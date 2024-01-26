@@ -1,0 +1,117 @@
+NAME ?= honeypot
+CLUSTER_NAME := $(NAME)
+
+OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
+ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
+
+.EXPORT_ALL_VARIABLES:
+
+##@ Kind
+
+.PHONY: cluster-up
+cluster-up: kind ## Create the kind cluster
+	$(KIND) create cluster --name $(CLUSTER_NAME)
+
+.PHONY: cluster-down
+cluster-down: kind ## Delete the kind cluster
+	-$(KIND) delete cluster --name $(CLUSTER_NAME)
+
+##@ Tetragon
+
+.PHONY: tetragon-install
+tetragon-install: helm
+	-$(HELM) repo add cilium https://helm.cilium.io
+	-$(HELM) repo update
+	-$(HELM) install tetragon cilium/tetragon -n kube-system
+
+##@ vcluster setup
+
+.PHONY: vcluster-deploy
+vcluster-deploy: vcluster
+	kubectl create namespace vcluster
+	-$(VCLUSTER) create ssh -n vcluster
+
+.PHONY: ssh-install
+ssh-install:
+	-$(HELM) repo add securecodebox https://charts.securecodebox.io/
+	-$(HELM) repo update
+	-$(HELM) upgrade --install dummy-ssh securecodebox/dummy-ssh
+
+.PHONY: vcluster-disconnect
+vcluster-disconnect: vcluster
+	-$(VCLUSTER) disconnect
+
+.PHONY: vcluster-connect
+vcluster-connect: vcluster
+	-$(VCLUSTER) connect ssh -n vcluster
+
+.PHONY: rbac
+rbac: 
+	kubectl apply -f rbac.yaml
+
+.PHONY: port-forward
+port-forward:
+	kubectl port-forward svc/dummy-ssh 5555:22
+
+.PHONY: copy-scripts
+copy-scripts:
+	scp -P 5555 create.py priv-create.sh root@127.0.0.1:/root
+
+.PHONY: ssh-connect
+ssh-connect:
+	ssh -p 5555 root@127.0.0.1
+
+.PHONY: exec 
+exec:
+	kubectl exec priv-pod -it -- nsenter --mount=/proc/1/ns/mnt -- cat /etc/kubernetes/pki/apiserver.key
+
+
+
+##@ Tools
+
+.PHONY: kind
+KIND = $(shell pwd)/bin/kind
+kind: ## Download kind if required
+ifeq (,$(wildcard $(KIND)))
+ifeq (,$(shell which kind 2> /dev/null))
+	@{ \
+		mkdir -p $(dir $(KIND)); \
+		curl -sSLo $(KIND) https://kind.sigs.k8s.io/dl/$(KIND_VERSION)/kind-$(OS)-$(ARCH); \
+		chmod + $(KIND); \
+	}
+else
+KIND = $(shell which kind)
+endif
+endif
+
+.PHONY: helm
+HELM = $(shell pwd)/bin/helm
+helm: ## Download helm if required
+ifeq (,$(wildcard $(HELM)))
+ifeq (,$(shell which helm 2> /dev/null))
+	@{ \
+		mkdir -p $(dir $(HELM)); \
+		curl -sSLo $(HELM).tar.gz https://get.helm.sh/helm-v$(HELM_VERSION)-$(OS)-$(ARCH).tar.gz; \
+		tar -xzf $(HELM).tar.gz --one-top-level=$(dir $(HELM)) --strip-components=1; \
+		chmod + $(HELM); \
+	}
+else
+HELM = $(shell which helm)
+endif
+endif
+
+.PHONY: vcluster
+VCLUSTER = $(shell pwd)/bin/vcluster
+vcluster: ## Download vcluster if required
+ifeq (,$(wildcard $(VCLUSTER)))
+ifeq (,$(shell which vcluster 2> /dev/null))
+	@{ \
+		mkdir -p $(dir $(VCLUSTER)); \
+		curl -L -o vcluster "https://github.com/loft-sh/vcluster/releases/latest/download/vcluster-$(OS)-$(ARCH)"; \
+		sudo install -c -m 0755 vcluster $(shell pwd)/bin; \
+		rm -f vcluster; \
+	}
+else
+VCLUSTER = $(shell which vcluster)
+endif
+endif
