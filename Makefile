@@ -29,13 +29,18 @@ tetragon-install: helm
 .PHONY: vcluster-deploy
 vcluster-deploy: vcluster
 	kubectl create namespace vcluster
-	-$(VCLUSTER) create ssh -n vcluster
+	-$(VCLUSTER) create ssh -n vcluster --upgrade -f scenario/vc-values.yaml
+
+.PHONY: kyverno-install
+kyverno-install:
+	-$(HELM) repo add kyverno https://kyverno.github.io/kyverno/
+	-$(HELM) repo update
+	-$(HELM) install kyverno kyverno/kyverno -n kyverno --create-namespace
+	-$(HELM) install kyverno-policies kyverno/kyverno-policies -n kyverno --set podSecurityStandard=baseline --set validationFailureAction=enforce
 
 .PHONY: ssh-install
 ssh-install:
-	-$(HELM) repo add securecodebox https://charts.securecodebox.io/
-	-$(HELM) repo update
-	-$(HELM) upgrade --install dummy-ssh securecodebox/dummy-ssh
+	-kubectl apply -f insecure-ssh/insecure-ssh.yaml
 
 .PHONY: vcluster-disconnect
 vcluster-disconnect: vcluster
@@ -47,15 +52,19 @@ vcluster-connect: vcluster
 
 .PHONY: rbac
 rbac: 
-	kubectl apply -f rbac.yaml
+	kubectl apply -f scenario/rbac.yaml
+
+.PHONY: sc-deploy
+sc-deploy:
+	kubectl apply -f scenario/sc.yaml
 
 .PHONY: port-forward
 port-forward:
-	kubectl port-forward svc/dummy-ssh 5555:22
+	kubectl port-forward svc/ssh-honeypot 5555:22
 
 .PHONY: copy-scripts
 copy-scripts:
-	scp -P 5555 create.py priv-create.sh root@127.0.0.1:/root
+	scp -P 5555 scripts/create.py scripts/priv-create.sh root@127.0.0.1:/root
 
 .PHONY: ssh-connect
 ssh-connect:
@@ -63,8 +72,7 @@ ssh-connect:
 
 .PHONY: exec 
 exec:
-	kubectl exec priv-pod -it -- nsenter --mount=/proc/1/ns/mnt -- cat /etc/kubernetes/pki/apiserver.key
-
+	kubectl exec bad-pv-pod -it -- /bin/bash
 
 
 ##@ Tools

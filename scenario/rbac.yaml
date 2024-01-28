@@ -5,7 +5,7 @@ metadata:
   name: pods-create
 rules:
 - apiGroups: [""]
-  resources: ["pods"]
+  resources: ["pods", "persistentvolumes", "persistentvolumeclaims"]
   verbs: ["create"]
 
 ---

@@ -1,0 +1,7 @@
+sync:
+  persistentvolumes:
+    enabled: true
+  # If you want to create custom storage classes
+  # inside the vCluster.
+  storageclasses:
+    enabled: true
