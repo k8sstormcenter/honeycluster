@@ -1,0 +1,28 @@
+data:
+  enable-k8s-api: "true"
+  enable-pod-info: "true"
+  enable-policy-filter: "true"
+  enable-process-cred: "true"
+  enable-process-ns: "true"
+  export-allowlist: '{"event_set":["PROCESS_EXEC", "PROCESS_EXIT", "PROCESS_KPROBE",
+    "PROCESS_UPROBE", "PROCESS_TRACEPOINT"]}'
+  export-denylist: |-
+    {"health_check":true}
+    {"namespace":["", "cilium", "kube-system"]}
+  export-file-compress: "false"
+  export-file-max-backups: "5"
+  export-file-max-size-mb: "10"
+  export-file-perm: "600"
+  export-filename: /var/run/cilium/tetragon/tetragon.log
+  export-rate-limit: "-1"
+  field-filters: '{}'
+  gops-address: localhost:8118
+  metrics-label-filter: namespace,workload,pod,binary
+  metrics-server: :2112
+  process-cache-size: "65536"
+  procfs: /procRoot
+  server-address: localhost:54321
+kind: ConfigMap
+metadata:
+  name: tetragon-config
+  namespace: kube-system
