@@ -1,0 +1,25 @@
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy
+metadata:
+  name: "file-descriptors"
+spec:
+  kprobes:
+  - call: "sys_symlinkat"
+    syscall: true
+    args:
+    - index: 0
+      type: "string"
+    - index: 1
+      type: "int"
+    - index: 2
+      type: "string"
+    selectors:
+    - matchArgs:
+      - index: 0
+        operator: "Equal"
+        values:
+        - "/etc/kubernetes/pki/apiserver.key" 
+    - matchActions:
+      - action: Post
+        stackTrace: true
+
