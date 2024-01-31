@@ -115,3 +115,10 @@ Note that we can see the first line of the private key.
 ```bash
 make cluster-down
 ```
+
+## Note for Mac Users
+Certain Docker Desktop versions will lead to the following error 
+```
+level=fatal msg="Load overlay network failed" error="program cil_from_overlay: replacing clsact qdisc for interface cilium_vxlan: operation not supported" interface=cilium_vxlan subsys=datapath-loader
+```
+downgrading or using an alternative (Orbstack) will solve this . 

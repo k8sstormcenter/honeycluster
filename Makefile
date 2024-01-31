@@ -10,7 +10,9 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 
 .PHONY: cluster-up
 cluster-up: kind ## Create the kind cluster
-	$(KIND) create cluster --name $(CLUSTER_NAME)
+	-$(KIND) create cluster --name $(CLUSTER_NAME) --config config/kind-config.yaml 
+	cilium install --version 1.14.6
+	kubectl -n kube-system wait --for=condition=Ready pod -l k8s-app=cilium
 
 .PHONY: cluster-down
 cluster-down: kind ## Delete the kind cluster
@@ -23,6 +25,12 @@ tetragon-install: helm
 	-$(HELM) repo add cilium https://helm.cilium.io
 	-$(HELM) repo update
 	-$(HELM) install tetragon cilium/tetragon -n kube-system
+
+.PHONY: traces
+traces:
+	-kubectl apply -f traces/1sshd-probe-success.yaml
+	-kubectl apply -f traces/2enumerate-sp.yaml
+
 
 ##@ vcluster setup
 

@@ -1,0 +1,18 @@
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy
+metadata:
+  name: "successful-ssh-connections"
+spec:
+  kprobes:
+  - call: "tcp_sendmsg"
+    syscall: false
+    args:
+    - index: 0
+      type: "sock"
+    - index: 2
+      type: int
+    selectors:
+    - matchBinaries:
+      - operator: "In"
+        values:
+        - "/usr/sbin/sshd"
