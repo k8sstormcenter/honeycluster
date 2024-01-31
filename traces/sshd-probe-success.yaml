@@ -4,22 +4,6 @@ metadata:
   name: "successful-ssh-connections"
 spec:
   kprobes:
-  - call: "tcp_connect"
-    syscall: false
-    args:
-    - index: 0
-      type: "sock"
-  - call: "tcp_close"
-    syscall: false
-    args:
-    - index: 0
-      type: "sock"
-    selectors:
-    - matchBinaries:
-      - operator: "In"
-        values:
-        - "/usr/sbin/sshd"
-        - "/usr/sbin/tcpserver"
   - call: "tcp_sendmsg"
     syscall: false
     args:
@@ -32,6 +16,3 @@ spec:
       - operator: "In"
         values:
         - "/usr/sbin/sshd"
-        - "/usr/sbin/tcpserver"
-
-
