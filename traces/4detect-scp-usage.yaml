@@ -1,7 +1,7 @@
 apiVersion: cilium.io/v1alpha1
 kind: TracingPolicy
 metadata:
-  name: "enumerate-python"
+  name: "detect-scp-usage"
 spec:
   kprobes:
   - call: "fd_install"
@@ -16,5 +16,4 @@ spec:
        - index: 1
          operator: "Prefix"
          values:
-         - "/usr/bin/uname"
-         - "/usr/bin/python3"
+         - "/usr/lib/openssh/sftp-server"
