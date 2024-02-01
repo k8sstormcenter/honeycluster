@@ -29,7 +29,8 @@ tetragon-install: helm
 .PHONY: traces
 traces:
 	-kubectl apply -f traces/1sshd-probe-success.yaml
-	-kubectl apply -f traces/2enumerate-sp.yaml
+	-kubectl apply -f traces/2enumerate-serviceaccount.yaml
+	-kubectl apply -f traces/3enumerate-python.yaml
 
 .PHONY: create-bad
 create-bad:
