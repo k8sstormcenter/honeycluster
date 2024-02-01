@@ -1,7 +1,7 @@
 apiVersion: cilium.io/v1alpha1
 kind: TracingPolicy
 metadata:
-  name: "file-descriptors"
+  name: "detect-symlinkat"
 spec:
   kprobes:
   - call: "sys_symlinkat"
