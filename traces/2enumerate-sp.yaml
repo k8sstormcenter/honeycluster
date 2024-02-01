@@ -1,7 +1,7 @@
 apiVersion: cilium.io/v1alpha1
 kind: TracingPolicy
 metadata:
-  name: "service-account-token-read"
+  name: "file-monitoring-filtered"
 spec:
   kprobes:
   - call: "security_file_permission"
@@ -14,14 +14,15 @@ spec:
       type: "int" # 0x04 is MAY_READ, 0x02 is MAY_WRITE
     returnArg:
       index: 0
-    filter: |
-      #include <linux/dcache.h>
-      #include <linux/fs.h>
-      SEC("filter")
-      int filter(struct __sk_buff *skb) {
-        struct file *file = bpf_hdr_pointer(skb, 0);
-        struct dentry *dentry = file->f_path.dentry;
-        char path[256];
-        dentry_path_raw(dentry, path, sizeof(path));
-        return strncmp(path, "/var/run/secrets/kubernetes.io/serviceaccount/token", sizeof(path)) == 0;
-      }
+      type: "int"
+    returnArgAction: "Post"
+    selectors:
+    - matchArgs:      
+      - index: 0
+        operator: "Prefix"
+        values:
+         - "/run/secrets/kubernetes.io/serviceaccount"
+      - index: 1
+        operator: "Equal"
+        values:
+        - "4" # MAY_READ

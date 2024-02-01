@@ -31,7 +31,9 @@ traces:
 	-kubectl apply -f traces/1sshd-probe-success.yaml
 	-kubectl apply -f traces/2enumerate-sp.yaml
 
-
+.PHONY: create-bad
+create-bad:
+	ssh -p 5555 -t root@127.0.0.1  'source priv-create.sh'
 ##@ vcluster setup
 
 .PHONY: vcluster-deploy
