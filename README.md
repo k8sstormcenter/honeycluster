@@ -18,6 +18,24 @@ flowchart TD
 
 ## Demo
 
+Bring all the infra up (known issue: wait conditions):
+```bash
+make all-up
+```
+Put the traces on
+```bash
+make traces
+```
+Go to second shell for STDOUT observations (dont kill this shell)
+```bash
+make secondshell-on
+```
+Back to first shell, run
+```bash
+make attack
+```
+
+
 Spin up a kind cluster:
 
 ```bash
