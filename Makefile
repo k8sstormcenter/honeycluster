@@ -8,10 +8,26 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 
 ##@ Kind
 
+.PHONY: all-up
+all-up: cluster-up tetragon-install ssh-install rbac sc-deploy  port-forward ## Create the kind cluster and deploy tetragon
+
+.PHONY: detect-on
+detect-on: traces
+
+## Run this in a second shell to observe the STDOUT
+.PHONY: secondshell-on
+secondshell-on: 
+	-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f |jq 'select(.process_kprobe != null) |  "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) "'
+
+.PHONY: attack
+attack: copy-scripts create-bad exec
+
+##@ Kind
+
 .PHONY: cluster-up
 cluster-up: kind ## Create the kind cluster
 	-$(KIND) create cluster --name $(CLUSTER_NAME) --config config/kind-config.yaml 
-	cilium install --version 1.14.6
+	-cilium install --version 1.14.6
 	kubectl -n kube-system wait --for=condition=Ready pod -l k8s-app=cilium
 
 .PHONY: cluster-down
@@ -24,7 +40,8 @@ cluster-down: kind ## Delete the kind cluster
 tetragon-install: helm
 	-$(HELM) repo add cilium https://helm.cilium.io
 	-$(HELM) repo update
-	-$(HELM) install tetragon cilium/tetragon -n kube-system
+	-$(HELM) upgrade --install tetragon cilium/tetragon -n kube-system
+	kubectl -n kube-system wait --for=condition=Ready pod  -l app.kubernetes.io/name=tetragon
 
 .PHONY: traces
 traces:
@@ -34,9 +51,18 @@ traces:
 	-kubectl apply -f traces/4detect-scp-usage.yaml
 	-kubectl apply -f traces/6detect-symlinkat.yaml
 
+.PHONY: traces-off
+traces-off:
+	-kubectl delete -f traces/1sshd-probe-success.yaml
+	-kubectl delete -f traces/2enumerate-serviceaccount.yaml
+	-kubectl delete -f traces/3enumerate-python.yaml
+	-kubectl delete -f traces/4detect-scp-usage.yaml
+	-kubectl delete -f traces/6detect-symlinkat.yaml
+
 .PHONY: create-bad
 create-bad:
 	ssh -p 5555 -t root@127.0.0.1  'source priv-create.sh'
+	-kubectl wait --for=condition=Ready pod -l app=bad-pv-pod
 ##@ vcluster setup
 
 .PHONY: vcluster-deploy
@@ -54,6 +80,7 @@ kyverno-install:
 .PHONY: ssh-install
 ssh-install:
 	-kubectl apply -f insecure-ssh/insecure-ssh.yaml
+	-kubectl -n default wait --for=condition=Ready pod -l app.kubernetes.io/name=ssh-honeypot
 
 .PHONY: vcluster-disconnect
 vcluster-disconnect: vcluster
@@ -73,7 +100,7 @@ sc-deploy:
 
 .PHONY: port-forward
 port-forward:
-	kubectl port-forward svc/ssh-honeypot 5555:22
+	kubectl port-forward svc/ssh-honeypot 5555:22 &
 
 .PHONY: copy-scripts
 copy-scripts:
@@ -85,7 +112,7 @@ ssh-connect:
 
 .PHONY: exec 
 exec:
-	kubectl exec bad-pv-pod -it -- /bin/bash -c "rm 0.log & ln -s /etc/kubernetes/pki/apiserver.key 0.log"
+	kubectl exec bad-pv-pod -it -- /bin/bash -c "cd /hostlogs/pods/default_bad-pv-**/bad-pv-pod/ & rm  0.log & ln -s /etc/kubernetes/pki/apiserver.key 0.log"
 
 
 ##@ Tools
