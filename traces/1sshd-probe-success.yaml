@@ -16,3 +16,13 @@ spec:
       - operator: "In"
         values:
         - "/usr/sbin/sshd"
+#    - matchArgs: # tried this with altered CRDs
+#      - index: 0
+#        operator: "Priority"
+#        values:
+#        - "6"
+  - call: "inet_csk_accept"
+    syscall: false
+    args:
+    - index: 0
+      type: "sock"
