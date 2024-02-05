@@ -45,11 +45,13 @@ tetragon-install: helm
 
 .PHONY: traces
 traces:
-	-kubectl apply -f traces/1sshd-probe-success.yaml
+	#-kubectl apply -f traces/1sshd-probe-success.yaml
 	-kubectl apply -f traces/2enumerate-serviceaccount.yaml
-	-kubectl apply -f traces/3enumerate-python.yaml
+	#-kubectl apply -f traces/3enumerate-python.yaml
 	-kubectl apply -f traces/4detect-scp-usage.yaml
-	-kubectl apply -f traces/6detect-symlinkat.yaml
+	-kubectl apply -f traces/5detect-k8sapi-invoke.yaml
+	#-kubectl apply -f traces/6detect-symlinkat.yaml
+	-kubectl apply -f traces/7detect-sensitivefile-access.yaml
 
 .PHONY: traces-off
 traces-off:
@@ -57,7 +59,9 @@ traces-off:
 	-kubectl delete -f traces/2enumerate-serviceaccount.yaml
 	-kubectl delete -f traces/3enumerate-python.yaml
 	-kubectl delete -f traces/4detect-scp-usage.yaml
+	-kubectl delete -f traces/5detect-k8sapi-invoke.yaml
 	-kubectl delete -f traces/6detect-symlinkat.yaml
+	-kubectl delete -f traces/7detect-sensitivefile-access.yaml
 
 .PHONY: create-bad
 create-bad:
@@ -112,7 +116,7 @@ ssh-connect:
 
 .PHONY: exec 
 exec:
-	kubectl exec bad-pv-pod -it -- /bin/bash -c "cd /hostlogs/pods/default_bad-pv-**/bad-pv-pod/ & rm  0.log & ln -s /etc/kubernetes/pki/apiserver.key 0.log"
+	-kubectl exec bad-pv-pod  -- /bin/bash -c "cd /hostlogs/pods/default_bad-pv-**/bad-pv-pod/ && rm  0.log && ln -s /etc/kubernetes/pki/apiserver.key 0.log"
 
 
 ##@ Tools
