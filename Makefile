@@ -26,14 +26,23 @@ attack: copy-scripts create-bad exec
 
 .PHONY: cluster-up
 cluster-up: kind ## Create the kind cluster
-	-$(KIND) create cluster --name $(CLUSTER_NAME) --config config/kind-config.yaml 
-	-cilium install --version 1.14.6
-	kubectl -n kube-system wait --for=condition=Ready pod -l k8s-app=cilium
-
+	-$(KIND) create cluster --name $(CLUSTER_NAME) 
+	
 .PHONY: cluster-down
 cluster-down: kind ## Delete the kind cluster
 	-$(KIND) delete cluster --name $(CLUSTER_NAME)
 
+
+.PHONY: spyder
+spyder:
+	-helm repo add nanoagent https://spyderbat.github.io/nanoagent_helm/
+	-helm repo update
+	-helm install nanoagent nanoagent/nanoagent \
+ 	 --set nanoagent.agentRegistrationCode=bL6Ns0xJY0MDliFn0xqX \
+	  --set nanoagent.orcurl=https://orc.spyderbat.com \
+	  --namespace spyderbat \
+	  --create-namespace \
+	  --set CLUSTER_NAME=kind-honeypot
 ##@ Tetragon
 
 .PHONY: tetragon-install
@@ -45,12 +54,12 @@ tetragon-install: helm
 
 .PHONY: traces
 traces:
-	#-kubectl apply -f traces/1sshd-probe-success.yaml
+	-kubectl apply -f traces/1sshd-probe-success.yaml
 	-kubectl apply -f traces/2enumerate-serviceaccount.yaml
-	#-kubectl apply -f traces/3enumerate-python.yaml
+	-kubectl apply -f traces/3enumerate-python.yaml
 	-kubectl apply -f traces/4detect-scp-usage.yaml
 	-kubectl apply -f traces/5detect-k8sapi-invoke.yaml
-	#-kubectl apply -f traces/6detect-symlinkat.yaml
+	-kubectl apply -f traces/6detect-symlinkat.yaml
 	-kubectl apply -f traces/7detect-sensitivefile-access.yaml
 
 .PHONY: traces-off
