@@ -1,0 +1,490 @@
+{
+  "type": "record",
+  "name": "Record",
+  "fields": [
+    {
+      "name": "type",
+      "type": "string"
+    },
+    {
+      "name": "properties",
+      "type": {
+        "type": "record",
+        "namespace": "Record",
+        "name": "properties",
+        "fields": [
+          {
+            "name": "process_kprobe",
+            "type": {
+              "type": "record",
+              "namespace": "Record.properties",
+              "name": "process_kprobe",
+              "fields": [
+                {
+                  "name": "type",
+                  "type": "string"
+                },
+                {
+                  "name": "properties",
+                  "type": {
+                    "type": "record",
+                    "namespace": "Record.properties.process_kprobe",
+                    "name": "properties",
+                    "fields": [
+                      {
+                        "name": "action",
+                        "type": {
+                          "type": "record",
+                          "namespace": "Record.properties.process_kprobe.properties",
+                          "name": "action",
+                          "fields": [
+                            {
+                              "name": "type",
+                              "type": "string"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "name": "args",
+                        "type": {
+                          "type": "record",
+                          "namespace": "Record.properties.process_kprobe.properties",
+                          "name": "args",
+                          "fields": [
+                            {
+                              "name": "type",
+                              "type": "string"
+                            },
+                            {
+                              "name": "items",
+                              "type": {
+                                "type": "record",
+                                "namespace": "Record.properties.process_kprobe.properties.args",
+                                "name": "items",
+                                "fields": [
+                                  {
+                                    "name": "type",
+                                    "type": "string"
+                                  },
+                                  {
+                                    "name": "properties",
+                                    "type": {
+                                      "type": "record",
+                                      "namespace": "Record.properties.process_kprobe.properties.args.items",
+                                      "name": "properties",
+                                      "fields": [
+                                        {
+                                          "name": "sock_arg",
+                                          "type": {
+                                            "type": "record",
+                                            "namespace": "Record.properties.process_kprobe.properties.args.items.properties",
+                                            "name": "sock_arg",
+                                            "fields": [
+                                              {
+                                                "name": "type",
+                                                "type": "string"
+                                              },
+                                              {
+                                                "name": "properties",
+                                                "type": {
+                                                  "type": "record",
+                                                  "namespace": "Record.properties.process_kprobe.properties.args.items.properties.sock_arg",
+                                                  "name": "properties",
+                                                  "fields": [
+                                                    {
+                                                      "name": "daddr",
+                                                      "type": {
+                                                        "type": "record",
+                                                        "namespace": "Record.properties.process_kprobe.properties.args.items.properties.sock_arg.properties",
+                                                        "name": "daddr",
+                                                        "fields": [
+                                                          {
+                                                            "name": "type",
+                                                            "type": "string"
+                                                          }
+                                                        ]
+                                                      }
+                                                    },
+                                                    {
+                                                      "name": "family",
+                                                      "type": {
+                                                        "type": "record",
+                                                        "namespace": "Record.properties.process_kprobe.properties.args.items.properties.sock_arg.properties",
+                                                        "name": "family",
+                                                        "fields": [
+                                                          {
+                                                            "name": "type",
+                                                            "type": "string"
+                                                          }
+                                                        ]
+                                                      }
+                                                    },
+                                                    {
+                                                      "name": "protocol",
+                                                      "type": {
+                                                        "type": "record",
+                                                        "namespace": "Record.properties.process_kprobe.properties.args.items.properties.sock_arg.properties",
+                                                        "name": "protocol",
+                                                        "fields": [
+                                                          {
+                                                            "name": "type",
+                                                            "type": "string"
+                                                          }
+                                                        ]
+                                                      }
+                                                    },
+                                                    {
+                                                      "name": "priority",
+                                                      "type": {
+                                                        "type": "record",
+                                                        "namespace": "Record.properties.process_kprobe.properties.args.items.properties.sock_arg.properties",
+                                                        "name": "priority",
+                                                        "fields": [
+                                                          {
+                                                            "name": "type",
+                                                            "type": "string"
+                                                          }
+                                                        ]
+                                                      }
+                                                    },
+                                                    {
+                                                      "name": "saddr",
+                                                      "type": {
+                                                        "type": "record",
+                                                        "namespace": "Record.properties.process_kprobe.properties.args.items.properties.sock_arg.properties",
+                                                        "name": "saddr",
+                                                        "fields": [
+                                                          {
+                                                            "name": "type",
+                                                            "type": "string"
+                                                          }
+                                                        ]
+                                                      }
+                                                    },
+                                                    {
+                                                      "name": "sport",
+                                                      "type": {
+                                                        "type": "record",
+                                                        "namespace": "Record.properties.process_kprobe.properties.args.items.properties.sock_arg.properties",
+                                                        "name": "sport",
+                                                        "fields": [
+                                                          {
+                                                            "name": "type",
+                                                            "type": "string"
+                                                          }
+                                                        ]
+                                                      }
+                                                    },
+                                                    {
+                                                      "name": "state",
+                                                      "type": {
+                                                        "type": "record",
+                                                        "namespace": "Record.properties.process_kprobe.properties.args.items.properties.sock_arg.properties",
+                                                        "name": "state",
+                                                        "fields": [
+                                                          {
+                                                            "name": "type",
+                                                            "type": "string"
+                                                          }
+                                                        ]
+                                                      }
+                                                    },
+                                                    {
+                                                      "name": "type",
+                                                      "type": {
+                                                        "type": "record",
+                                                        "namespace": "Record.properties.process_kprobe.properties.args.items.properties.sock_arg.properties",
+                                                        "name": "type",
+                                                        "fields": [
+                                                          {
+                                                            "name": "type",
+                                                            "type": "string"
+                                                          }
+                                                        ]
+                                                      }
+                                                    }
+                                                  ]
+                                                }
+                                              },
+                                              {
+                                                "name": "required",
+                                                "type": {
+                                                  "type": "array",
+                                                  "items": "string"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "name": "required",
+                                    "type": {
+                                      "type": "array",
+                                      "items": "string"
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "name": "function_name",
+                        "type": {
+                          "type": "record",
+                          "namespace": "Record.properties.process_kprobe.properties",
+                          "name": "function_name",
+                          "fields": [
+                            {
+                              "name": "type",
+                              "type": "string"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "name": "policy_name",
+                        "type": {
+                          "type": "record",
+                          "namespace": "Record.properties.process_kprobe.properties",
+                          "name": "policy_name",
+                          "fields": [
+                            {
+                              "name": "type",
+                              "type": "string"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "name": "process",
+                        "type": {
+                          "type": "record",
+                          "namespace": "Record.properties.process_kprobe.properties",
+                          "name": "process",
+                          "fields": [
+                            {
+                              "name": "type",
+                              "type": "string"
+                            },
+                            {
+                              "name": "properties",
+                              "type": {
+                                "type": "record",
+                                "namespace": "Record.properties.process_kprobe.properties.process",
+                                "name": "properties",
+                                "fields": [
+                                  {
+                                    "name": "arguments",
+                                    "type": {
+                                      "type": "record",
+                                      "namespace": "Record.properties.process_kprobe.properties.process.properties",
+                                      "name": "arguments",
+                                      "fields": [
+                                        {
+                                          "name": "type",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "name": "binary",
+                                    "type": {
+                                      "type": "record",
+                                      "namespace": "Record.properties.process_kprobe.properties.process.properties",
+                                      "name": "binary",
+                                      "fields": [
+                                        {
+                                          "name": "type",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "name": "cwd",
+                                    "type": {
+                                      "type": "record",
+                                      "namespace": "Record.properties.process_kprobe.properties.process.properties",
+                                      "name": "cwd",
+                                      "fields": [
+                                        {
+                                          "name": "type",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "name": "pid",
+                                    "type": {
+                                      "type": "record",
+                                      "namespace": "Record.properties.process_kprobe.properties.process.properties",
+                                      "name": "pid",
+                                      "fields": [
+                                        {
+                                          "name": "type",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "name": "pod",
+                                    "type": {
+                                      "type": "record",
+                                      "namespace": "Record.properties.process_kprobe.properties.process.properties",
+                                      "name": "pod",
+                                      "fields": [
+                                        {
+                                          "name": "type",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "name": "properties",
+                                          "type": {
+                                            "type": "record",
+                                            "namespace": "Record.properties.process_kprobe.properties.process.properties.pod",
+                                            "name": "properties",
+                                            "fields": [
+                                              {
+                                                "name": "name",
+                                                "type": {
+                                                  "type": "record",
+                                                  "namespace": "Record.properties.process_kprobe.properties.process.properties.pod.properties",
+                                                  "name": "name",
+                                                  "fields": [
+                                                    {
+                                                      "name": "type",
+                                                      "type": "string"
+                                                    }
+                                                  ]
+                                                }
+                                              },
+                                              {
+                                                "name": "namespace",
+                                                "type": {
+                                                  "type": "record",
+                                                  "namespace": "Record.properties.process_kprobe.properties.process.properties.pod.properties",
+                                                  "name": "namespace",
+                                                  "fields": [
+                                                    {
+                                                      "name": "type",
+                                                      "type": "string"
+                                                    }
+                                                  ]
+                                                }
+                                              },
+                                              {
+                                                "name": "workload",
+                                                "type": {
+                                                  "type": "record",
+                                                  "namespace": "Record.properties.process_kprobe.properties.process.properties.pod.properties",
+                                                  "name": "workload",
+                                                  "fields": [
+                                                    {
+                                                      "name": "type",
+                                                      "type": "string"
+                                                    }
+                                                  ]
+                                                }
+                                              },
+                                              {
+                                                "name": "workload_kind",
+                                                "type": {
+                                                  "type": "record",
+                                                  "namespace": "Record.properties.process_kprobe.properties.process.properties.pod.properties",
+                                                  "name": "workload_kind",
+                                                  "fields": [
+                                                    {
+                                                      "name": "type",
+                                                      "type": "string"
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        },
+                                        {
+                                          "name": "required",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "string"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "name": "start_time",
+                                    "type": {
+                                      "type": "record",
+                                      "namespace": "Record.properties.process_kprobe.properties.process.properties",
+                                      "name": "start_time",
+                                      "fields": [
+                                        {
+                                          "name": "type",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "name": "required",
+                              "type": {
+                                "type": "array",
+                                "items": "string"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "required",
+                  "type": {
+                    "type": "array",
+                    "items": "string"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "time",
+            "type": {
+              "type": "record",
+              "namespace": "Record.properties",
+              "name": "time",
+              "fields": [
+                {
+                  "name": "type",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "required",
+      "type": {
+        "type": "array",
+        "items": "string"
+      }
+    }
+  ]
+}
