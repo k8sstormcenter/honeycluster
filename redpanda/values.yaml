@@ -33,7 +33,7 @@ clusterDomain: cluster.local
 # -- Additional labels to add to all Kubernetes objects.
 # For example, `my.k8s.service: redpanda`.
 commonLabels: {}
-# -- Node selection constraints for scheduling Pods, can override this for StatefulSets.
+# -- Node selection constraindatats for scheduling Pods, can override this for StatefulSets.
 # For details,
 # see the [Kubernetes documentation](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector).
 nodeSelector: {}
@@ -261,7 +261,7 @@ external:
   # sourceRanges: []
   # -- Optional domain advertised to external clients
   # If specified, then it will be appended to the `external.addresses` values as each broker's advertised address
-  # domain: local
+  domain: kind
   # Optional list of addresses that the Redpanda brokers advertise.
   # Provide one entry for each broker in order of StatefulSet replicas.
   # The number of brokers is defined in statefulset.replicas.
@@ -969,8 +969,8 @@ config:
     # additional_start_flags:                                      # List of flags to pass to rpk, e.g., ` "--idle-poll-time-us=0"`
   cluster:
     default_topic_replications: 1                                  # Default replication factor for new topics
-                                                                   # There is logic in the chart that will set this to 1 if there are fewer than 3 statefulset.replicas
-    # auto_create_topics_enabled: true                             # Allow topic auto creation
+    data_transforms_enabled: true                                                               # There is logic in the chart that will set this to 1 if there are fewer than 3 statefulset.replicas
+    auto_create_topics_enabled: true                             # Allow topic auto creation
     # transaction_coordinator_replication: 1                       # Replication factor for a transaction coordinator topic
     # id_allocator_replication: 1                                  # Replication factor for an ID allocator topic
     # default_topic_partitions: 1                                  # Default number of partitions per topic
