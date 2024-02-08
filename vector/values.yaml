@@ -323,7 +323,14 @@ customConfig:
         enabled: true
         path: 'http://parseable.parseable.svc.cluster.local/api/v1/liveness'
         port: 80
-
+    redpanda:
+      type: kafka
+      inputs:
+        - modify
+      bootstrap_servers: redpanda-src.redpanda.svc.cluster.local:9093
+      encoding:
+        codec: json
+      topic: cr1
     
 
         

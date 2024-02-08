@@ -9,7 +9,7 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 ##@ Kind
 
 .PHONY: all-up
-all-up: cluster-up tetragon-install redpanda fluent spark vector ssh-install rbac sc-deploy  port-forward ## Create the kind cluster and deploy tetragon
+all-up: cluster-up tetragon-install redpanda spark vector ssh-install rbac sc-deploy  port-forward ## Create the kind cluster and deploy tetragon
 
 .PHONY: detect-on
 detect-on: traces
