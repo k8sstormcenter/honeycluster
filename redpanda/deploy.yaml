@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: edge-configmap
+  namespace: redpanda
+  labels:
+    app: redpanda-edge
+data:
+  agent.yaml: |
+    create_topics: true
+    source:
+      name: "source"
+      bootstrap_servers: redpanda-src:10092 # use secured internal interface
+      # List of outbound topics to push from source to destination
+      topics:
+        - telemetry1
+        - telemetry2
+      tls:
+        enabled: false
+        client_key: "/etc/redpanda/certs/agent.key"
+        client_cert: "/etc/redpanda/certs/agent.crt"
+        ca_cert: "/etc/redpanda/certs/ca.crt"
+    destination:
+      name: "destination"
+      bootstrap_servers: redpanda-dest:10092 # use secured internal interface
+      max_version: "3.0.0" # maximum kafka protocol version
+      # List of inbound topics to pull from destination to source
+      topics:
+        - config1
+        - config2
+      tls:
+        enabled: false
+        client_key: "/etc/redpanda/certs/agent.key"
+        client_cert: "/etc/redpanda/certs/agent.crt"
+        ca_cert: "/etc/redpanda/certs/ca.crt"
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redpanda-edge-agent
+  namespace: redpanda
+spec:
+  serviceName: redpanda-edge-agent
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redpanda-edge
+  template:
+    metadata:
+      labels:
+        app: redpanda-edge
+    spec:
+      containers:
+      - name: redpanda-edge-agent
+        image: vuldin/redpanda-edge-agent
+        volumeMounts:
+        - name: agent-config
+          mountPath: /etc/redpanda/agent.yaml
+          subPath: agent.yaml
+        resources:
+          requests:
+            memory: 64Mi
+            cpu: 250m
+          limits:
+            #memory: 256Mi
+            #cpu: 1
+            memory: 128Mi
+            cpu: 500m
+      volumes:
+      - name: agent-config
+        configMap:
+          name: edge-configmap

@@ -9,7 +9,7 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 ##@ Kind
 
 .PHONY: all-up
-all-up: cluster-up tetragon-install ssh-install rbac sc-deploy  port-forward ## Create the kind cluster and deploy tetragon
+all-up: cluster-up tetragon-install redpanda fluent spark vector ssh-install rbac sc-deploy  port-forward ## Create the kind cluster and deploy tetragon
 
 .PHONY: detect-on
 detect-on: traces
@@ -27,12 +27,46 @@ attack: copy-scripts create-bad exec
 .PHONY: cluster-up
 cluster-up: kind ## Create the kind cluster
 	-$(KIND) create cluster --name $(CLUSTER_NAME) 
-	
+
 .PHONY: cluster-down
 cluster-down: kind ## Delete the kind cluster
 	-$(KIND) delete cluster --name $(CLUSTER_NAME)
 
 
+.PHONY: redpanda
+redpanda:
+	-$(HELM) repo add jetstack https://charts.jetstack.io
+	-$(HELM) repo update
+	-$(HELM) upgrade --install cert-manager jetstack/cert-manager --set installCRDs=true --namespace cert-manager  --create-namespace
+	-$(HELM) repo add redpanda https://charts.redpanda.com
+	-$(HELM) repo update
+	-$(HELM) upgrade --install redpanda-src redpanda/redpanda -n redpanda --create-namespace --values redpanda/values.yaml
+	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create cr1"
+# rpk topic create cr1 | echo "hi" | rpk topic produce cr1
+#-watch -n 1 kubectl get all -A -o wide --field-selector=metadata.namespace=redpanda
+
+#export REDPANDA_BROKERS=localhost:19092
+#for i in {1..60}; do echo $(cat /dev/urandom | head -c10 | base64) | rpk topic produce telemetryB; sleep 1; done
+
+
+
+.PHONY: spark
+spark:
+	-$(HELM) repo add bitnami https://charts.bitnami.com/bitnami
+	-$(HELM) repo update
+	-$(HELM) upgrade --install spark -n spark oci://registry-1.docker.io/bitnamicharts/spark --create-namespace --values spark/values.yaml
+	-$(HELM) repo add jupyterhub https://jupyterhub.github.io/helm-chart/
+	-$(HELM) repo update
+	-$(HELM) upgrade --install jupyterhub jupyterhub/jupyterhub --namespace jupyter --create-namespace  --values jupyterhub/values.yaml
+	-echo "JHUB user/pass is yours to freely choose"
+
+.PHONY: fluent 
+fluent:
+	-$(HELM) repo add fluent https://fluent.github.io/helm-charts
+	-$(HELM) repo update
+	-$(HELM) upgrade --install fluentd fluent/fluentd -n redpanda --create-namespace --values fluentd/values.yaml
+
+# This is only for CR cause the Registration Code wont work for anyone else
 .PHONY: spyder
 spyder:
 	-helm repo add nanoagent https://spyderbat.github.io/nanoagent_helm/
@@ -49,8 +83,18 @@ spyder:
 tetragon-install: helm
 	-$(HELM) repo add cilium https://helm.cilium.io
 	-$(HELM) repo update
-	-$(HELM) upgrade --install tetragon cilium/tetragon -n kube-system
+	-$(HELM) upgrade --install tetragon cilium/tetragon -n kube-system --set tetragon.grpc.enabled=true --set tetragon.grpc.address=localhost:54321
 	kubectl -n kube-system wait --for=condition=Ready pod  -l app.kubernetes.io/name=tetragon
+
+
+.PHONY: vector
+vector:
+	-$(HELM) repo add vector https://helm.vector.dev
+	-$(HELM) upgrade --install vector vector/vector --namespace vector --create-namespace --values vector/values.yaml
+	-$(HELM) repo add parseable https://charts.parseable.com
+	-$(HELM) upgrade --install parseable parseable/parseable -n parseable --set "parseable.local=true" --create-namespace
+	-kubectl create secret generic parseable-env-secret --from-env-file=parseable/parseable-env-secret -n parseable || echo "pass"
+    #kubectl port-forward svc/parseable 8000:80 -n parseable
 
 .PHONY: traces
 traces:

@@ -1,0 +1,25 @@
+[sources.tetragon]
+type = "kafka"
+auto_offset_reset = "smallest"
+bootstrap_servers = "redpanda-src.redpanda.svc.cluster.local:9093"
+group_id = "vector"
+topics = [ "cr1" ]
+tls.enabled = false
+sasl.enabled = false
+sasl.mechanism = "PLAIN"
+sasl.username = "<username>"
+sasl.password = "<password>"
+decoding.codec = "json"
+
+[sinks.clickhouse]
+type = "clickhouse"
+inputs = ["tetragon"]
+endpoint = "http://localhost:8123"
+database = "KAFKA"
+table = "cr1"
+skip_unknown_fields = true
+auth.strategy = "basic"
+auth.user = "default"
+auth.password = "admin"
+buffer.max_events = 10000
+batch.timeout_secs = 1

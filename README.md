@@ -16,6 +16,15 @@ flowchart TD
     E --> more2[. . . . . . . .]
 ```
 
+## Known Issues
+tetragon traces are not all created equal, some need improvments, especially the logs from kafka/fluentd/cert-man etc should be ignored
+fluentd keeps on crashing, needs investigation
+all logs currently go to topic "cr1" on kafka, need filter in fluentd
+need schema
+wait-conditions in make-file are flaky at best, need fine-tuning
+currently vcluster is switched off, kyverno as well -> needs to be retested with those turned on
+
+
 ## Demo
 
 Bring all the infra up (known issue: wait conditions):
@@ -26,6 +35,7 @@ Put the traces on
 ```bash
 make traces
 ```
+
 Go to second shell for STDOUT observations (dont kill this shell)
 ```bash
 make secondshell-on

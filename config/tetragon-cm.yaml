@@ -1,4 +1,5 @@
 data:
+  verbose: "2"
   enable-k8s-api: "true"
   enable-pod-info: "true"
   enable-policy-filter: "true"
