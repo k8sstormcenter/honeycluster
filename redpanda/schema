@@ -1,0 +1,243 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "type": "object",
+  "properties": {
+    "node_name": {
+      "type": "string"
+    },
+    "process_kprobe": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string"
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "sock_arg": {
+                "type": "object",
+                "properties": {
+                  "cookie": {
+                    "type": "string"
+                  },
+                  "daddr": {
+                    "type": "string"
+                  },
+                  "family": {
+                    "type": "string"
+                  },
+                  "protocol": {
+                    "type": "string"
+                  },
+                  "saddr": {
+                    "type": "string"
+                  },
+                  "sport": {
+                    "type": "integer"
+                  },
+                  "state": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "cookie",
+                  "daddr",
+                  "family",
+                  "protocol",
+                  "saddr",
+                  "sport",
+                  "state",
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "sock_arg"
+            ]
+          }
+        },
+        "function_name": {
+          "type": "string"
+        },
+        "policy_name": {
+          "type": "string"
+        },
+        "process": {
+          "type": "object",
+          "properties": {
+            "arguments": {
+              "type": "string"
+            },
+            "auid": {
+              "type": "integer"
+            },
+            "binary": {
+              "type": "string"
+            },
+            "cwd": {
+              "type": "string"
+            },
+            "docker": {
+              "type": "string"
+            },
+            "exec_id": {
+              "type": "string"
+            },
+            "flags": {
+              "type": "string"
+            },
+            "parent_exec_id": {
+              "type": "string"
+            },
+            "pid": {
+              "type": "integer"
+            },
+            "pod": {
+              "type": "object",
+              "properties": {
+                "container": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "image": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name"
+                      ]
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "pid": {
+                      "type": "integer"
+                    },
+                    "start_time": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "image",
+                    "name",
+                    "pid",
+                    "start_time"
+                  ]
+                },
+                "name": {
+                  "type": "string"
+                },
+                "namespace": {
+                  "type": "string"
+                },
+                "pod_labels": {
+                  "type": "object",
+                  "properties": {
+                    "app.kubernetes.io/component": {
+                      "type": "string"
+                    },
+                    "app.kubernetes.io/instance": {
+                      "type": "string"
+                    },
+                    "app.kubernetes.io/name": {
+                      "type": "string"
+                    },
+                    "controller-revision-hash": {
+                      "type": "string"
+                    },
+                    "redpanda.com/poddisruptionbudget": {
+                      "type": "string"
+                    },
+                    "statefulset.kubernetes.io/pod-name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "app.kubernetes.io/component",
+                    "app.kubernetes.io/instance",
+                    "app.kubernetes.io/name",
+                    "controller-revision-hash",
+                    "redpanda.com/poddisruptionbudget",
+                    "statefulset.kubernetes.io/pod-name"
+                  ]
+                },
+                "workload": {
+                  "type": "string"
+                },
+                "workload_kind": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "container",
+                "name",
+                "namespace",
+                "pod_labels",
+                "workload",
+                "workload_kind"
+              ]
+            },
+            "refcnt": {
+              "type": "integer"
+            },
+            "start_time": {
+              "type": "string"
+            },
+            "tid": {
+              "type": "integer"
+            },
+            "uid": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "arguments",
+            "auid",
+            "binary",
+            "cwd",
+            "docker",
+            "exec_id",
+            "flags",
+            "parent_exec_id",
+            "pid",
+            "pod",
+            "refcnt",
+            "start_time",
+            "tid",
+            "uid"
+          ]
+        }
+      },
+      "required": [
+        "action",
+        "args",
+        "function_name",
+        "policy_name",
+        "process"
+      ]
+    },
+    "time": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "node_name",
+    "process_kprobe",
+    "time"
+  ]
+}
