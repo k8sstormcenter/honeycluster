@@ -23,7 +23,15 @@ func doTransform(e transform.WriteEvent, w transform.RecordWriter) error {
 	}
 
 	// Create a new jq query
-	query, err := gojq.Parse(".")
+	query, err := gojq.Parse("select( .process_kprobe != null  " +
+		"and .process_kprobe.process.pod.namespace != \"jupyter\"   " +
+		"and .process_kprobe.process.pod.namespace != \"cert-manager\" " +
+		"and .process_kprobe.process.pod.namespace != \"redpanda\" " +
+		"and .process_kprobe.process.pod.namespace != \"spark\" " +
+		"and .process_kprobe.process.pod.namespace != \"parseable\" " +
+		"and .process_kprobe.process.pod.namespace != \"vector\" )| " +
+		"\"\\(.time) \\(.process_kprobe.policy_name) \\(.process_kprobe.function_name) \\(.process_kprobe.process.binary) \\(.process_kprobe.process.arguments) \\(.process_kprobe.process.pod.namespace) \\(.process_kprobe.args[] | select(.sock_arg.priority != null) | .sock_arg.priority)\"")
+
 	if err != nil {
 		return err
 	}
