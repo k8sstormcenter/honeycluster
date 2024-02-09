@@ -30,7 +30,7 @@ func doTransform(e transform.WriteEvent, w transform.RecordWriter) error {
 		"and .process_kprobe.process.pod.namespace != \"spark\" " +
 		"and .process_kprobe.process.pod.namespace != \"parseable\" " +
 		"and .process_kprobe.process.pod.namespace != \"vector\" )| " +
-		"\"\\(.time) \\(.process_kprobe.policy_name) \\(.process_kprobe.function_name) \\(.process_kprobe.process.binary) \\(.process_kprobe.process.arguments) \\(.process_kprobe.process.pod.namespace) \\(.process_kprobe.args[] | select(.sock_arg.priority != null) | .sock_arg.priority)\"")
+		"\"\\(.time) \\(.process_kprobe.policy_name) \\(.process_kprobe.function_name) \\(.process_kprobe.process.binary) \\(.process_kprobe.process.arguments) \\(.process_kprobe.process.pod.namespace) \\(.process_kprobe.args[] | select(.sock_arg != null) | .sock_arg.priority)\"")
 
 	if err != nil {
 		return err
