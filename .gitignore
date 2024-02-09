@@ -2,6 +2,9 @@
 bin/
 venv/
 
+# Byte-compiled / optimized / DLL files
+*.wasm
+
 # Secrets #
 ###########
 *.pem
