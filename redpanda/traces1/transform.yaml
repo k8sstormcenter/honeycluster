@@ -1,4 +1,4 @@
 name: traces1
 input-topic: "tetragon"
-output-topic: "trace1"
+output-topic: "traces1"
 language: tinygo-no-goroutines

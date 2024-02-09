@@ -15,9 +15,25 @@ all-up: cluster-up tetragon-install redpanda spark vector ssh-install rbac sc-de
 detect-on: traces
 
 ## Run this in a second shell to observe the STDOUT
+.PHONY: secondshell-on1
+secondshell-on1: 
+	-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f |\
+	jq 'select( .process_kprobe != null  \
+			and .process_kprobe.process.pod.namespace != "vector" )| \
+	 "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.process.pod.namespace)"'
+
 .PHONY: secondshell-on
 secondshell-on: 
-	-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f |jq 'select(.process_kprobe != null) |  "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) "'
+	-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f |\
+	jq 'select( .process_kprobe != null  \
+	        and .process_kprobe.process.pod.namespace != "jupyter"   \
+			and .process_kprobe.process.pod.namespace != "cert-manager" \
+			and .process_kprobe.process.pod.namespace != "redpanda" \
+			and .process_kprobe.process.pod.namespace != "spark" \
+			and .process_kprobe.process.pod.namespace != "parseable" \
+			and .process_kprobe.process.pod.namespace != "vector" )| \
+	 "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.process.pod.namespace)"'
+
 
 .PHONY: attack
 attack: copy-scripts create-bad exec

@@ -26,3 +26,8 @@ spec:
     args:
     - index: 0
       type: "sock"
+    selectors:
+    - matchBinaries:
+      - operator: "In"
+        values:
+        - "/usr/sbin/sshd"
