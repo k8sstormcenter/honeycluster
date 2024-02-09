@@ -1,0 +1,13 @@
+!pip install jsonschema
+import json
+import jsonschema
+
+
+# Load the JSON data
+data = json.loads("{\"node_name\":\"honeypot-control-plane\",\"process_kprobe\":{\"action\":\"KPROBE_ACTION_POST\",\"args\":[{\"sock_arg\":{\"cookie\":\"18446536967447222848\",\"daddr\":\"0.0.0.0\",\"family\":\"AF_INET\",\"protocol\":\"IPPROTO_TCP\",\"saddr\":\"0.0.0.0\",\"sport\":9644,\"state\":\"TCP_LISTEN\",\"type\":\"SOCK_STREAM\"}}],\"function_name\":\"inet_csk_accept\",\"policy_name\":\"successful-ssh-connections\",\"process\":{\"arguments\":\"--redpanda-cfg /etc/redpanda/redpanda.yaml --smp=1 --memory=2048M --reserve-memory=205M --default-log-level=info --lock-memory=false\",\"auid\":0,\"binary\":\"/opt/redpanda/libexec/redpanda\",\"cwd\":\"/\",\"docker\":\"4300f2f11008a854d990ea73e3f681c\",\"exec_id\":\"aG9uZXlwb3QtY29udHJvbC1wbGFuZToyNzQ5MDM4NzIxNzUzNjY6MzQ3Mjg3NA==\",\"flags\":\"execve rootcwd\",\"parent_exec_id\":\"aG9uZXlwb3QtY29udHJvbC1wbGFuZToyNzQ5MDM4NzAzOTAwNjM6MzQ3Mjg3NA==\",\"pid\":3472874,\"pod\":{\"container\":{\"id\":\"containerd://4300f2f11008a854d990ea73e3f681cedb9848804865c1226453e4a0d5fed5d2\",\"image\":{\"id\":\"docker.redpanda.com/redpandadata/redpanda@sha256:5396c91b3f179f1c7f0743e1316b2e69343831b0615a3f6dd0deb0de7ecf809c\",\"name\":\"docker.redpanda.com/redpandadata/redpanda:v23.3.4\"},\"name\":\"redpanda\",\"pid\":1,\"start_time\":\"2024-02-08T17:45:29Z\"},\"name\":\"redpanda-src-0\",\"namespace\":\"redpanda\",\"pod_labels\":{\"app.kubernetes.io/component\":\"redpanda-statefulset\",\"app.kubernetes.io/instance\":\"redpanda-src\",\"app.kubernetes.io/name\":\"redpanda\",\"controller-revision-hash\":\"redpanda-src-6f8bcc98d7\",\"redpanda.com/poddisruptionbudget\":\"redpanda-src\",\"statefulset.kubernetes.io/pod-name\":\"redpanda-src-0\"},\"workload\":\"redpanda-src\",\"workload_kind\":\"StatefulSet\"},\"refcnt\":1,\"start_time\":\"2024-02-08T17:45:30.249049353Z\",\"tid\":3472874,\"uid\":101}},\"time\":\"2024-02-08T18:09:27.529568661Z\"}")
+
+# Infer the schema
+schema = jsonschema.infer(data)
+
+# Print the schema
+print(json.dumps(schema, indent=2))

@@ -13,3 +13,8 @@ Once you're ready to test out your transform live you need to:
 1. Run <code>rpk transform deploy</code>
 1. Then use <code>rpk topic produce</code> and <code>rpk topic consume</code>
    to see your transformation live!
+```   
+kubectl cp traces1.wasm transform.yaml redpanda/redpanda-src-0:/tmp/traces1/.
+kubectl cp transform.yaml redpanda/redpanda-src-0:/tmp/traces1/.
+kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/traces1/ && rpk transform deploy"
+```

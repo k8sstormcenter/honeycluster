@@ -20,6 +20,9 @@ Once you're ready to test out your transform live you need to:
 ### rew install redpanda-data/tap/redpanda
 ### rpk transform init --language=tinygo
 ### rpk profile create --from-profile <(kubectl get configmap --namespace redpanda redpanda-src-rpk -o go-template='{{ .data.profile }}') redpanda-profile
+``` 
 alias internal-rpk="kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk"
 kubectl cp transform.yaml redpanda/redpanda-src-0:/tmp
 kubectl cp kprobe.wasm redpanda/redpanda-src-0:/tmp
+kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp && rpk transform deploy"
+```
