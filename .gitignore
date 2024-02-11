@@ -10,6 +10,8 @@ venv/
 *.pem
 *.key
 *_rsa
+*.kubeconfig
+jupyterhub/rke2values.yaml
 
 # Compiled source #
 ###################
