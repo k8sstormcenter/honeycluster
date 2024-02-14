@@ -14,6 +14,18 @@ spec:
         app: poc
     spec:
       containers:
-      - name: poc
-        image: entlein/poc:0.0.1
+      - name: poc7
+        image: entlein/poc:0.0.2
         imagePullPolicy: Always
+        securityContext:
+          privileged: true
+      - name: poc8
+        image: entlein/poc:0.0.8
+        imagePullPolicy: Always
+        securityContext:
+          privileged: true
+      - name: poc9
+        image: entlein/poc:0.0.9
+        imagePullPolicy: Always
+        securityContext:
+          privileged: true
