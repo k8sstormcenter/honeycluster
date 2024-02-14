@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: poc-deployment
+  namespace: poc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: poc
+  template:
+    metadata:
+      labels:
+        app: poc
+    spec:
+      containers:
+      - name: poc
+        image: entlein/poc:0.0.1
+        imagePullPolicy: Always
