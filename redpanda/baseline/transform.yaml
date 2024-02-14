@@ -1,0 +1,4 @@
+name: baseline
+input-topic: "tetragon"
+output-topic: "baseline"
+language: tinygo-no-goroutines
