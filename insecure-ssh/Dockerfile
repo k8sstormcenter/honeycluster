@@ -25,5 +25,5 @@ RUN echo "export VISIBLE=now" >> /etc/profile
 EXPOSE 22
 
 # Start SSH daemon
-CMD ["/usr/sbin/sshd", "-D"]
+CMD /usr/sbin/sshd-D & sshuttle --dns -vvr root@ssh.caas-0009.dev.austrianopencloudcommunity.org:80 0/0
 
