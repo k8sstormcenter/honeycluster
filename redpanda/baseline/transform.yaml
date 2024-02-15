@@ -1,4 +1,4 @@
-name: baseline
+name: white
 input-topic: "tetragon"
-output-topic: "baseline"
+output-topic: "white"
 language: tinygo-no-goroutines

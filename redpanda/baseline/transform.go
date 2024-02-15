@@ -80,9 +80,9 @@ func doTransform(e transform.WriteEvent, w transform.RecordWriter) error {
 		return err
 	}
 
-	// We want all record that are not from the following namespaces
-	query, err := gojq.Parse("select( .process_kprobe != null  " +
-		"and .process_kprobe.process.pod.namespace != \"jupyter\"   " +
+	// We want all record that are not from the following namespaces // .process_kprobe != null  " +
+	query, err := gojq.Parse("select(  " +
+		" .process_kprobe.process.pod.namespace != \"jupyter\"   " +
 		"and .process_kprobe.process.pod.namespace != \"cert-manager\" " +
 		"and .process_kprobe.process.pod.namespace != \"redpanda\" " +
 		"and .process_kprobe.process.pod.namespace != \"spark\" " +
