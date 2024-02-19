@@ -4,12 +4,14 @@ CLUSTER_NAME := $(NAME)
 OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 
+KUBECONFIG := $(shell pwd)/.kubeconfig
+
 .EXPORT_ALL_VARIABLES:
 
-##@ Kind
-
+##@ put all on rke2
 .PHONY: all-up
-all-up: cluster-up tetragon-install redpanda spark vector ssh-install rbac sc-deploy  port-forward ## Create the kind cluster and deploy tetragon
+all-up: redpanda tetragon-install spyder vector spark
+
 
 .PHONY: detect-on
 detect-on: traces
@@ -46,23 +48,13 @@ attack: copy-scripts create-bad exec
 
 ##@ Kind
 
-.PHONY: cluster-up
-cluster-up: kind ## Create the kind cluster
-	-$(KIND) create cluster --name $(CLUSTER_NAME) 
-
-.PHONY: cluster-down
-cluster-down: kind ## Delete the kind cluster
-	-$(KIND) delete cluster --name $(CLUSTER_NAME)
 
 
 .PHONY: redpanda
 redpanda:
-	-$(HELM) repo add jetstack https://charts.jetstack.io
-	-$(HELM) repo update
-	-$(HELM) upgrade --install cert-manager jetstack/cert-manager --set installCRDs=true --namespace cert-manager  --create-namespace
 	-$(HELM) repo add redpanda https://charts.redpanda.com
 	-$(HELM) repo update
-	-$(HELM) upgrade --install redpanda-src redpanda/redpanda -n redpanda --create-namespace --values redpanda/values.yaml
+	-$(HELM) upgrade --install redpanda-src redpanda/redpanda -n redpanda --create-namespace --values redpanda/rke2values.yaml
 	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create cr1"
 
 .PHONY: redpanda-wasm
@@ -79,23 +71,12 @@ redpanda-wasm:
 	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/traces1/ && rpk transform deploy"
 
 
-
-
 .PHONY: spark
 spark:
-	-$(HELM) repo add bitnami https://charts.bitnami.com/bitnami
-	-$(HELM) repo update
-	-$(HELM) upgrade --install spark -n spark oci://registry-1.docker.io/bitnamicharts/spark --create-namespace --values spark/values.yaml
 	-$(HELM) repo add jupyterhub https://jupyterhub.github.io/helm-chart/
 	-$(HELM) repo update
-	-$(HELM) upgrade --install jupyterhub jupyterhub/jupyterhub --namespace jupyter --create-namespace  --values jupyterhub/values.yaml
-	-echo "JHUB user/pass is yours to freely choose"
+	-$(HELM) upgrade --install jupyterhub jupyterhub/jupyterhub --namespace jupyter --create-namespace  --values jupyterhub/rke2values.yaml
 
-.PHONY: fluent 
-fluent:
-	-$(HELM) repo add fluent https://fluent.github.io/helm-charts
-	-$(HELM) repo update
-	-$(HELM) upgrade --install fluentd fluent/fluentd -n redpanda --create-namespace --values fluentd/values.yaml
 
 
 ##@ Tetragon
