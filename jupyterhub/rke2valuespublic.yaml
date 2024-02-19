@@ -9,6 +9,7 @@ hub:
         - k8sstormcenter
       allowed_users:
         - entlein
+        - JamesCallaghan
     JupyterHub:
       authenticator_class: github
 

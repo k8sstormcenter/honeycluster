@@ -35,26 +35,3 @@ spec:
   selector:
     app: ssh-proxy
 
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: ssh-proxy
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-cluster-issuer
-    nginx.ingress.kubernetes.io/backend-protocol: "SSH"
-spec:
-  ingressClassName: nginx
-  rules:
-  - host: ssh.caas-0009.dev.austrianopencloudcommunity.org
-    http:
-      paths:
-      - pathType: Prefix
-        path: "/"
-        backend:
-          service:
-            name: ssh-proxy
-            port:
-              number: 22
-
-
