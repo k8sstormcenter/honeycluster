@@ -9,7 +9,7 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 ##@ Scenario
 
 .PHONY: all-up
-all-up: cluster-up tetragon-install redpanda spark vector ssh-install rbac sc-deploy port-forward ## Create the kind cluster and deploy tetragon
+all-up: cluster-up tetragon-install redpanda jupyter vector ssh-install rbac sc-deploy port-forward ## Create the kind cluster and deploy tetragon
 
 .PHONY: detect-on
 detect-on: traces
@@ -88,27 +88,14 @@ redpanda-wasm:
 	-kubectl cp redpanda/traces1/traces1.wasm redpanda/redpanda-src-0:/tmp/traces1/.
 	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/traces1/ && rpk transform deploy"
 
-.PHONY: spark
+.PHONY: jupyter
 spark:
-	-$(HELM) repo add bitnami https://charts.bitnami.com/bitnami
-	-$(HELM) repo update
-	-$(HELM) upgrade --install spark -n spark oci://registry-1.docker.io/bitnamicharts/spark --create-namespace --values spark/values.yaml
 	-$(HELM) repo add jupyterhub https://jupyterhub.github.io/helm-chart/
 	-$(HELM) repo update
 	-$(HELM) upgrade --install jupyterhub jupyterhub/jupyterhub --namespace jupyter --create-namespace  --values jupyterhub/values.yaml
 	-echo "JHUB user/pass is yours to freely choose"
 
-# This is only for CR cause the Registration Code wont work for anyone else
-.PHONY: spyder
-spyder:
-	-helm repo add nanoagent https://spyderbat.github.io/nanoagent_helm/
-	-helm repo update
-	-helm install nanoagent nanoagent/nanoagent \
- 	 --set nanoagent.agentRegistrationCode=bL6Ns0xJY0MDliFn0xqX \
-	  --set nanoagent.orcurl=https://orc.spyderbat.com \
-	  --namespace spyderbat \
-	  --create-namespace \
-	  --set CLUSTER_NAME=kind-honeypot
+
 ##@ Tetragon
 
 .PHONY: tetragon-install
