@@ -1,4 +1,4 @@
-name: white
+name: clean
 input-topic: "tetragon"
-output-topic: "white"
+output-topic: "clean"
 language: tinygo-no-goroutines
