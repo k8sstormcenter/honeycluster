@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: poc-deployment
+  namespace: poc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: poc
+  template:
+    metadata:
+      labels:
+        app: poc
+    spec:
+      containers:
+      - name: poc7
+        image: entlein/poc:0.0.2
+        imagePullPolicy: Always
+        securityContext:
+          privileged: true
+      - name: poc8
+        image: entlein/poc:0.0.8
+        imagePullPolicy: Always
+        securityContext:
+          privileged: true
+      - name: poc9
+        image: entlein/poc:0.0.9
+        imagePullPolicy: Always
+        securityContext:
+          privileged: true

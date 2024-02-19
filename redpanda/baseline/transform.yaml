@@ -1,0 +1,4 @@
+name: clean
+input-topic: "tetragon"
+output-topic: "clean"
+language: tinygo-no-goroutines

@@ -1,0 +1,37 @@
+hub:
+  allowNamedServers: false
+  config:
+    GitHubOAuthenticator:
+      client_id: 
+      client_secret: 
+      oauth_callback_url: https://jupyter./hub/oauth_callback
+      allowed_organizations:
+        - k8sstormcenter
+      allowed_users:
+        - entlein
+        - JamesCallaghan
+    JupyterHub:
+      authenticator_class: github
+
+ingress:
+  enabled: true
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-cluster-issuer
+  hosts: 
+    - jupyter.
+  tls:
+    - hosts:
+      - jupyter.
+      secretName: jupyter-ingress-tls-cert
+proxy:
+  secretToken: "" 
+  service:
+    type: ClusterIP
+
+singleuser:
+  image:
+    name: jupyter/pyspark-notebook
+    tag: latest
+  defaultUrl: "/lab"
+  storage:
+    type: none

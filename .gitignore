@@ -4,12 +4,15 @@ venv/
 
 # Byte-compiled / optimized / DLL files
 *.wasm
+*.DS_Store
 
 # Secrets #
 ###########
 *.pem
 *.key
 *_rsa
+*.kubeconfig
+jupyterhub/rke2values.yaml
 
 # Compiled source #
 ###################
