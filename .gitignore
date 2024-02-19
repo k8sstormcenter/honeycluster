@@ -4,6 +4,7 @@ venv/
 
 # Byte-compiled / optimized / DLL files
 *.wasm
+*.DS_Store
 
 # Secrets #
 ###########
