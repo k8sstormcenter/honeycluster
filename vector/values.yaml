@@ -299,30 +299,6 @@ customConfig:
       include:
         - /var/run/cilium/tetragon/tetragon.log
   sinks:
-    parseable:
-      type: http
-      method: post
-      batch:
-        max_bytes: 10485760
-        max_events: 1000
-        timeout_secs: 10
-      compression: gzip
-      inputs: 
-        - modify
-      encoding:
-        codec: json
-      uri: 'http://parseable.parseable.svc.cluster.local/api/v1/ingest'
-      auth:
-        strategy: basic
-        user: admin
-        password: admin
-      request:
-        headers:
-          X-P-Stream: tetrademo
-      healthcheck:
-        enabled: true
-        path: 'http://parseable.parseable.svc.cluster.local/api/v1/liveness'
-        port: 80
     redpanda:
       type: kafka
       inputs:
