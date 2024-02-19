@@ -154,6 +154,10 @@ console:
   deployment:
     create: false
   config: {}
+  service:
+    type: "NodePort"
+    port: 8080
+    nodePort: 30000
 
 #
 # -- Redpanda Managed Connectors settings

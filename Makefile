@@ -6,10 +6,10 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 
 .EXPORT_ALL_VARIABLES:
 
-##@ Kind
+##@ Scenario
 
 .PHONY: all-up
-all-up: cluster-up tetragon-install redpanda spark vector ssh-install rbac sc-deploy  port-forward ## Create the kind cluster and deploy tetragon
+all-up: cluster-up tetragon-install redpanda spark vector ssh-install rbac sc-deploy port-forward ## Create the kind cluster and deploy tetragon
 
 .PHONY: detect-on
 detect-on: traces
@@ -17,42 +17,46 @@ detect-on: traces
 ## Run this in a second shell to observe the STDOUT
 .PHONY: secondshell-on
 secondshell-on: 
-	-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f |\
-	jq 'select( .process_kprobe != null  \
-	        and .process_kprobe.process.pod.namespace != "jupyter"   \
-			and .process_kprobe.process.pod.namespace != "cert-manager" \
-			and .process_kprobe.process.pod.namespace != "redpanda" \
-			and .process_kprobe.process.pod.namespace != "spark" \
-			and .process_kprobe.process.pod.namespace != "parseable" \
-			and .process_kprobe.process.pod.namespace != "vector" )| \
-	 "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.process.pod.namespace) \(.process_kprobe.args[] | select(.sock_arg != null) | .sock_arg)"'
+	-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f | \
+	jq 'select( .process_kprobe != null and .process_kprobe.process.pod.namespace == "default" ) | "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.process.pod.namespace) \(.process_kprobe.args[] | select(.sock_arg != null) | .sock_arg)"'
 
 
 .PHONY: jquery-traces1
 jquery-traces1:
-	-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f |\
-	jq 'select( .process_kprobe != null  \
-	        and .process_kprobe.process.pod.namespace != "jupyter"   \
-			and .process_kprobe.process.pod.namespace != "cert-manager" \
-			and .process_kprobe.process.pod.namespace != "redpanda" \
-			and .process_kprobe.process.pod.namespace != "spark" \
-			and .process_kprobe.process.pod.namespace != "parseable" \
-			and .process_kprobe.process.pod.namespace != "vector" )| \
-	 "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.process.pod.namespace) \(.process_kprobe.args[] | select(.sock_arg.priority != null) | .sock_arg.priority)"'
-
+	-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f | \
+	jq 'select( .process_kprobe != null and .process_kprobe.process.pod.namespace == "default" ) | "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.process.pod.namespace) \(.process_kprobe.args[] | select(.sock_arg.priority != null) | .sock_arg.priority)"'
 
 .PHONY: attack
 attack: copy-scripts create-bad exec
+
+.PHONY: teardown
+teardown: stop-port-forwarding sc-delete cluster-down
 
 ##@ Kind
 
 .PHONY: cluster-up
 cluster-up: kind ## Create the kind cluster
-	-$(KIND) create cluster --name $(CLUSTER_NAME) 
+	-$(KIND) create cluster --name $(CLUSTER_NAME) --config config/kind-config.yaml
 
 .PHONY: cluster-down
 cluster-down: kind ## Delete the kind cluster
+	-$(HELM) uninstall vector -n vector
+	-$(HELM) uninstall redpanda-src -n redpanda
+	-$(HELM) uninstall cert-manager -n cert-manager
+	-$(HELM) uninstall tetragon -n kube-system
+	-sleep 10
 	-$(KIND) delete cluster --name $(CLUSTER_NAME)
+
+.PHONY: stop-port-forwarding
+stop-port-forwarding:
+	-lsof -ti:5555 | xargs kill -9
+
+.PHONY: sc-delete
+sc-delete:
+	kubectl delete po bad-pv-pod
+	kubectl delete pvc bad-pv-claim-vol 
+	kubectl delete pv bad-pv-volume-vol
+	kubectl delete sc local-storage
 
 
 .PHONY: redpanda
@@ -63,14 +67,12 @@ redpanda:
 	-$(HELM) repo add redpanda https://charts.redpanda.com
 	-$(HELM) repo update
 	-$(HELM) upgrade --install redpanda-src redpanda/redpanda -n redpanda --create-namespace --values redpanda/values.yaml
+	while [ "$$(kubectl -n redpanda get po -l app.kubernetes.io/name=redpanda -o jsonpath='{.items[0].metadata.generateName}')" != "redpanda-src-" ]; do \
+		sleep 5; \
+   	echo "Waiting for Redpanda pod to be created."; \
+	done
+	-kubectl -n redpanda wait --timeout=30s --for=condition=Ready pod -l app.kubernetes.io/component=redpanda-statefulset
 	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create cr1"
-# rpk topic create cr1 | echo "hi" | rpk topic produce cr1
-#-watch -n 1 kubectl get all -A -o wide --field-selector=metadata.namespace=redpanda
-
-#export REDPANDA_BROKERS=localhost:19092
-#for i in {1..60}; do echo $(cat /dev/urandom | head -c10 | base64) | rpk topic produce telemetryB; sleep 1; done
-
-
 
 .PHONY: spark
 spark:
@@ -81,12 +83,6 @@ spark:
 	-$(HELM) repo update
 	-$(HELM) upgrade --install jupyterhub jupyterhub/jupyterhub --namespace jupyter --create-namespace  --values jupyterhub/values.yaml
 	-echo "JHUB user/pass is yours to freely choose"
-
-.PHONY: fluent 
-fluent:
-	-$(HELM) repo add fluent https://fluent.github.io/helm-charts
-	-$(HELM) repo update
-	-$(HELM) upgrade --install fluentd fluent/fluentd -n redpanda --create-namespace --values fluentd/values.yaml
 
 # This is only for CR cause the Registration Code wont work for anyone else
 .PHONY: spyder
@@ -106,17 +102,22 @@ tetragon-install: helm
 	-$(HELM) repo add cilium https://helm.cilium.io
 	-$(HELM) repo update
 	-$(HELM) upgrade --install tetragon cilium/tetragon -n kube-system --set tetragon.grpc.enabled=true --set tetragon.grpc.address=localhost:54321
-	kubectl -n kube-system wait --for=condition=Ready pod  -l app.kubernetes.io/name=tetragon
+	while [ "$$(kubectl -n kube-system get po -l app.kubernetes.io/name=tetragon -o jsonpath='{.items[0].metadata.generateName}')" != "tetragon-" ]; do \
+		sleep 5; \
+   	echo "Waiting for Tetragon pod to be created."; \
+	done
+	-kubectl -n kube-system wait --timeout=120s --for=condition=Ready pod -l app.kubernetes.io/name=tetragon
 
 
 .PHONY: vector
 vector:
 	-$(HELM) repo add vector https://helm.vector.dev
 	-$(HELM) upgrade --install vector vector/vector --namespace vector --create-namespace --values vector/values.yaml
-	-$(HELM) repo add parseable https://charts.parseable.com
-	-$(HELM) upgrade --install parseable parseable/parseable -n parseable --set "parseable.local=true" --create-namespace
-	-kubectl create secret generic parseable-env-secret --from-env-file=parseable/parseable-env-secret -n parseable || echo "pass"
-    #kubectl port-forward svc/parseable 8000:80 -n parseable
+	while [ "$$(kubectl -n vector get po -l app.kubernetes.io/name=vector -o jsonpath='{.items[0].metadata.generateName}')" != "vector-" ]; do \
+		sleep 5; \
+   	echo "Waiting for Vector pod to be created."; \
+	done
+	-kubectl -n vector wait --timeout=120s --for=condition=Ready pod -l app.kubernetes.io/name=vector
 
 .PHONY: traces
 traces:
@@ -141,7 +142,7 @@ traces-off:
 .PHONY: create-bad
 create-bad:
 	ssh -p 5555 -t root@127.0.0.1  'source priv-create.sh'
-	-kubectl wait --for=condition=Ready pod -l app=bad-pv-pod
+	-kubectl wait --for=condition=Ready pod bad-pv-pod
 ##@ vcluster setup
 
 .PHONY: vcluster-deploy
@@ -159,7 +160,7 @@ kyverno-install:
 .PHONY: ssh-install
 ssh-install:
 	-kubectl apply -f insecure-ssh/insecure-ssh.yaml
-	-kubectl -n default wait --for=condition=Ready pod -l app.kubernetes.io/name=ssh-honeypot
+	-kubectl -n default wait --timeout=120s --for=condition=Ready pod -l app.kubernetes.io/name=ssh-honeypot
 
 .PHONY: vcluster-disconnect
 vcluster-disconnect: vcluster
@@ -192,6 +193,7 @@ ssh-connect:
 .PHONY: exec 
 exec:
 	-kubectl exec bad-pv-pod  -- /bin/bash -c "cd /hostlogs/pods/default_bad-pv-**/bad-pv-pod/ && rm  0.log && ln -s /etc/kubernetes/pki/apiserver.key 0.log"
+	-kubectl logs bad-pv-pod
 
 
 ##@ Tools
