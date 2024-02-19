@@ -76,14 +76,14 @@ redpanda:
 
 	
 .PHONY: redpanda-wasm
-redpanda-wasm:
-	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create tetragon" 
-	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/kprobe" 
+redpanda-wasm: rpk
+	cd redpanda/transform; $(RPK) container start; $(RPK) transform build
+	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/kprobe && rpk topic create tetragon" 
 	-kubectl cp redpanda/transform/transform.yaml redpanda/redpanda-src-0:/tmp/kprobe/.
 	-kubectl cp redpanda/transform/kprobe.wasm redpanda/redpanda-src-0:/tmp/kprobe/.
 	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/kprobe/ && rpk transform deploy"
-	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create traces1" 
-	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/traces1" 
+	cd redpanda/traces1; $(RPK) container start; $(RPK) transform build
+	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/traces1 && rpk topic create traces1" 
 	-kubectl cp redpanda/traces1/transform.yaml redpanda/redpanda-src-0:/tmp/traces1/.
 	-kubectl cp redpanda/traces1/traces1.wasm redpanda/redpanda-src-0:/tmp/traces1/.
 	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/traces1/ && rpk transform deploy"
@@ -243,5 +243,22 @@ ifeq (,$(shell which vcluster 2> /dev/null))
 	}
 else
 VCLUSTER = $(shell which vcluster)
+endif
+endif
+
+.PHONY: rpk
+RPK = $(shell pwd)/bin/rpk
+rpk: ## Download rpk if required
+ifeq (,$(wildcard $(RPK)))
+ifeq (,$(shell which rpk 2> /dev/null))
+	@{ \
+		mkdir -p $(dir $(RPK)); \
+		curl -sSLo $(RPK).zip https://github.com/redpanda-data/redpanda/releases/latest/download/rpk-$(OS)-$(ARCH).zip; \
+		unzip $(RPK).zip -d $(shell pwd)/bin; \
+		rm $(RPK).zip; \
+		chmod + $(RPK); \
+	}
+else
+RPK = $(shell which rpk)
 endif
 endif
