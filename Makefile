@@ -74,6 +74,20 @@ redpanda:
 	-kubectl -n redpanda wait --timeout=30s --for=condition=Ready pod -l app.kubernetes.io/component=redpanda-statefulset
 	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create cr1"
 
+	
+.PHONY: redpanda-wasm
+redpanda-wasm:
+	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create tetragon" 
+	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/kprobe" 
+	-kubectl cp redpanda/transform/transform.yaml redpanda/redpanda-src-0:/tmp/kprobe/.
+	-kubectl cp redpanda/transform/kprobe.wasm redpanda/redpanda-src-0:/tmp/kprobe/.
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/kprobe/ && rpk transform deploy"
+	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create traces1" 
+	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/traces1" 
+	-kubectl cp redpanda/traces1/transform.yaml redpanda/redpanda-src-0:/tmp/traces1/.
+	-kubectl cp redpanda/traces1/traces1.wasm redpanda/redpanda-src-0:/tmp/traces1/.
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/traces1/ && rpk transform deploy"
+
 .PHONY: spark
 spark:
 	-$(HELM) repo add bitnami https://charts.bitnami.com/bitnami
