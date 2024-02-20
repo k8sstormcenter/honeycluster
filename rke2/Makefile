@@ -71,24 +71,14 @@ redpanda-wasm:
 	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/traces1/ && rpk transform deploy"
 
 
-.PHONY: spark
-spark:
+.PHONY: jupyter
+jupyter:
 	-$(HELM) repo add jupyterhub https://jupyterhub.github.io/helm-chart/
 	-$(HELM) repo update
 	-$(HELM) upgrade --install jupyterhub jupyterhub/jupyterhub --namespace jupyter --create-namespace  --values jupyterhub/rke2values.yaml
 
 
-# This is only for CR cause the Registration Code wont work for anyone else
-.PHONY: spyder
-spyder:
-	-helm repo add nanoagent https://spyderbat.github.io/nanoagent_helm/
-	-helm repo update
-	-helm install nanoagent nanoagent/nanoagent \
- 	 --set nanoagent.agentRegistrationCode=bL6Ns0xJY0MDliFn0xqX \
-	  --set nanoagent.orcurl=https://orc.spyderbat.com \
-	  --namespace spyderbat \
-	  --create-namespace \
-	  --set CLUSTER_NAME=rke2
+
 ##@ Tetragon
 
 .PHONY: tetragon-install
@@ -166,7 +156,8 @@ sc-deploy:
 
 .PHONY: port-forward
 port-forward:
-	kubectl port-forward svc/ssh-honeypot 5555:22 &
+	-kubectl cp id_rsa  default/ssh-proxy-7f8988c7d5-rrp8v:/.
+	-kubectl exec -i -t ssh-proxy-7f8988c7d5-rrp8v -- /bin/bash -c " ssh -R8888:localhost:22 paris@137.117.185.70 -i id_rsa "
 
 .PHONY: copy-scripts
 copy-scripts:
@@ -174,7 +165,7 @@ copy-scripts:
 
 .PHONY: ssh-connect
 ssh-connect:
-	ssh -p 5555 root@127.0.0.1
+	ssh root@137.117.185.70 -p 8888
 
 .PHONY: exec 
 exec:
