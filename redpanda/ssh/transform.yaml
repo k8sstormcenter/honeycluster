@@ -1,0 +1,4 @@
+name: ssh
+input-topic: "tetragon"
+output-topic: "ssh"
+language: tinygo-no-goroutines
