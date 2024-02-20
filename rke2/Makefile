@@ -26,8 +26,12 @@ secondshell-on:
 			and .process_kprobe.process.pod.namespace != "redpanda" \
 			and .process_kprobe.process.pod.namespace != "spark" \
 			and .process_kprobe.process.pod.namespace != "parseable" \
-			and .process_kprobe.process.pod.namespace != "vector" )| \
-	 "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.process.pod.namespace) \(.process_kprobe.args[] | select(.sock_arg != null) | .sock_arg)"'
+			and .process_kprobe.process.pod.namespace != "vector"  \
+			and .process_kprobe.process.binary != "/usr/bin/rancher"  \
+			and .process_kprobe.process.binary != "/usr/bin/webhook") | \
+			"\(.)"'
+
+# "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.process.pod.namespace) \(.process_kprobe.args[] | select(.sock_arg != null) | .sock_arg)"'
 
 
 .PHONY: jquery-traces1
@@ -66,8 +70,8 @@ redpanda-wasm:
 	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/kprobe/ && rpk transform deploy"
 	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create traces1" 
 	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/traces1" 
-	-kubectl cp redpanda/traces1/transform.yaml redpanda/redpanda-src-0:/tmp/traces1/.
-	-kubectl cp redpanda/traces1/traces1.wasm redpanda/redpanda-src-0:/tmp/traces1/.
+	-kubectl cp redpanda/traces1rke2/transform.yaml redpanda/redpanda-src-0:/tmp/traces1/.
+	-kubectl cp redpanda/traces1rke2/traces1.wasm redpanda/redpanda-src-0:/tmp/traces1/.
 	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/traces1/ && rpk transform deploy"
 
 

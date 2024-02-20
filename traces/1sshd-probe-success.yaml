@@ -31,3 +31,13 @@ spec:
       - operator: "In"
         values:
         - "/usr/sbin/sshd"
+  - call: "sys_execve"
+    syscall: true
+    args:
+    - index: 0
+      type: "string"
+    selectors:
+    - matchBinaries:
+      - operator: "In"
+        values:
+        - "/usr/sbin/sshd"
