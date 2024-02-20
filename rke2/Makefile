@@ -43,8 +43,9 @@ jquery-traces1:
 			and .process_kprobe.process.pod.namespace != "redpanda" \
 			and .process_kprobe.process.pod.namespace != "spark" \
 			and .process_kprobe.process.pod.namespace != "parseable" \
+			and .process_kprobe.process.binary == "/usr/sbin/sshd" \
 			and .process_kprobe.process.pod.namespace != "vector" )| \
-	 "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.process.pod.namespace) \(.process_kprobe.args[] | select(.sock_arg.priority != null) | .sock_arg.priority)"'
+	 "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.process.pod.namespace) \(.process_kprobe.args[] )"'
 
 
 .PHONY: attack
@@ -102,6 +103,7 @@ vector:
 .PHONY: traces
 traces:
 	-kubectl apply -f traces/1sshd-probe-success.yaml
+	-kubectl apply -f traces/1sshd-probe-spawnbash.yaml
 	-kubectl apply -f traces/2enumerate-serviceaccount.yaml
 	-kubectl apply -f traces/3enumerate-python.yaml
 	-kubectl apply -f traces/4detect-scp-usage.yaml
@@ -112,6 +114,7 @@ traces:
 .PHONY: traces-off
 traces-off:
 	-kubectl delete -f traces/1sshd-probe-success.yaml
+	-kubectl delete -f traces/1sshd-probe-spawnbash.yaml
 	-kubectl delete -f traces/2enumerate-serviceaccount.yaml
 	-kubectl delete -f traces/3enumerate-python.yaml
 	-kubectl delete -f traces/4detect-scp-usage.yaml

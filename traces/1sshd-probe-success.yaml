@@ -4,18 +4,18 @@ metadata:
   name: "successful-ssh-connections"
 spec:
   kprobes:
-  - call: "tcp_sendmsg"
-    syscall: false
-    args:
-    - index: 0
-      type: "sock"
-    - index: 2
-      type: int
-    selectors:
-    - matchBinaries:
-      - operator: "In"
-        values:
-        - "/usr/sbin/sshd"
+  # - call: "tcp_sendmsg"
+  #   syscall: false
+  #   args:
+  #   - index: 0
+  #     type: "sock"
+  #   - index: 2
+  #     type: int
+  #   selectors:
+  #   - matchBinaries:
+  #     - operator: "In"
+  #       values:
+  #       - "/usr/sbin/sshd"
 #    - matchArgs: # tried this with altered CRDs
 #      - index: 0
 #        operator: "Priority"
@@ -39,5 +39,10 @@ spec:
     selectors:
     - matchBinaries:
       - operator: "In"
+        values:
+        - "/usr/sbin/sshd"
+      matchArgs:
+      - index: 0
+        operator: "Equal"
         values:
         - "/usr/sbin/sshd"
