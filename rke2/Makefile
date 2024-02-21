@@ -39,6 +39,12 @@ secondshell-on:
 # "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.process.pod.namespace) \(.process_kprobe.args[] | select(.sock_arg != null) | .sock_arg)"'
 
 
+.PHONY: jquery-tracesscp
+jquery-tracesscp:
+	-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f |\
+	jq 'select( .process_kprobe.process.pod.namespace == "default" | .)'
+
+
 .PHONY: jquery-traces1
 jquery-traces1:
 	-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f |\
