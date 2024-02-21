@@ -26,7 +26,7 @@ func doTransform(e transform.WriteEvent, w transform.RecordWriter) error {
 	}
 
 	// Create a new jq query
-	query, err := gojq.Parse("select( .process_kprobe != null and .process_kprobe.process.pod.namespace == \"default\" and  .process_kprobe.policy_name == \"detect-k8sapi-invoke\" ))| .")
+	query, err := gojq.Parse("select( .process_kprobe != null and .process_kprobe.process.pod.namespace == \"default\" and  .process_kprobe.policy_name == \"detect-k8sapi-invoke\" )| .")
 	if err != nil {
 		return err
 	}

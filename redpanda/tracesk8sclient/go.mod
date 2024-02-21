@@ -1,6 +1,6 @@
 module tracesk8sclient
 
-go 1.20
+go 1.21
 
 require (
 	github.com/itchyny/gojq v0.12.14
