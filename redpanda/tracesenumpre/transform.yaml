@@ -1,4 +1,4 @@
-name: ssh
+name: tracesenumpre
 input-topic: "tetragon"
-output-topic: "ssh"
+output-topic: "tracesenumpre"
 language: tinygo-no-goroutines

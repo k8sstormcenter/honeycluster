@@ -13,6 +13,9 @@ func main() {
 	transform.OnRecordWritten(doTransform)
 }
 
+// doTransform is where you read the record that was written, and then you can
+// output new records that will be written to the destination topic
+
 func doTransform(e transform.WriteEvent, w transform.RecordWriter) error {
 
 	// Unmarshal the incoming message into a map
@@ -23,7 +26,7 @@ func doTransform(e transform.WriteEvent, w transform.RecordWriter) error {
 	}
 
 	// Create a new jq query
-	query, err := gojq.Parse("select( .process_kprobe != null and .process_kprobe.process.pod.namespace != \"jupyter\" and .process_kprobe.process.pod.namespace != \"cert-manager\" and .process_kprobe.process.pod.namespace != \"redpanda\"  and .process_kprobe.process.pod.binary == \"/usr/sbin/sshd\" and .process_kprobe.process.pod.namespace != \"vector\" and (.process_kprobe.policy_name == \"ssh-spawn-bash\" or (.process_kprobe.policy_name == \"successful-ssh-connections\" and .process_kprobe.function_name == \"inet_csk_accept\")) )| .")
+	query, err := gojq.Parse("select( .process_kprobe != null and .process_kprobe.process.pod.namespace == \"default\" and  .process_kprobe.policy_name == \"detect-symlinkat\" ))| .")
 	if err != nil {
 		return err
 	}

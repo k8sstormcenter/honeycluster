@@ -26,7 +26,7 @@ func doTransform(e transform.WriteEvent, w transform.RecordWriter) error {
 	}
 
 	// Create a new jq query
-	query, err := gojq.Parse("\"\\(.time) \\(.process_kprobe.policy_name) \\(.process_kprobe.function_name) \\(.process_kprobe.process.binary) \\(.process_kprobe.process.arguments) \\(.process_kprobe.process.pod.namespace) \\(.process_kprobe.args[] )\"")
+	query, err := gojq.Parse("\"\\(.time) \\(.process_kprobe.policy_name)  \\(.process_kprobe.process.pod.namespace) \\(.process_kprobe.function_name) \\(.process_kprobe.process.binary) \\(.process_kprobe.process.arguments) \\(.process_kprobe.args[] )\"")
 	if err != nil {
 		return err
 	}

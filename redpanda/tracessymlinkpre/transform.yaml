@@ -1,0 +1,4 @@
+name: tracessymlinkpre
+input-topic: "tetragon"
+output-topic: "tracessymlinkpre"
+language: tinygo-no-goroutines

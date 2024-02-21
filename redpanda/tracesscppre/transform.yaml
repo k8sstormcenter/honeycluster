@@ -1,0 +1,4 @@
+name: tracesscppre
+input-topic: "tetragon"
+output-topic: "tracesscppre"
+language: tinygo-no-goroutines

@@ -1,6 +1,6 @@
-module traces1
+module tracesenum
 
-go 1.21
+go 1.20
 
 require (
 	github.com/itchyny/gojq v0.12.14

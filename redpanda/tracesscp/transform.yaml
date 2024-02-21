@@ -1,0 +1,4 @@
+name: tracesscp
+input-topic: "tracesscppre"
+output-topic: "tracesscp"
+language: tinygo-no-goroutines

@@ -1,4 +1,4 @@
-module ssh
+module tracessshpre
 
 go 1.21
 

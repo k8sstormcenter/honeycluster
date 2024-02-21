@@ -1,4 +1,0 @@
-name: traces1
-input-topic: "cr1"
-output-topic: "traces1"
-language: tinygo-no-goroutines
