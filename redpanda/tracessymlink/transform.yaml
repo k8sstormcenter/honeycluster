@@ -1,0 +1,4 @@
+name: tracessymlink
+input-topic: "tracessymlinkpre"
+output-topic: "tracessymlink"
+language: tinygo-no-goroutines

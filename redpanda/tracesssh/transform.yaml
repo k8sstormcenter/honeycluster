@@ -1,0 +1,4 @@
+name: tracesssh
+input-topic:  "tracessshpre"
+output-topic: "tracesssh"
+language: tinygo-no-goroutines

@@ -3,8 +3,13 @@ CLUSTER_NAME := $(NAME)
 
 OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
+DIRS := tracesk8sclient
+#DIRS :=  tracessshpre tracesssh  tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
+#DIRS := kprobe tracessshpre tracesssh tracesapipre tracesapi tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
+
 
 KUBECONFIG := $(shell pwd)/.kubeconfig
+
 
 .EXPORT_ALL_VARIABLES:
 
@@ -26,8 +31,18 @@ secondshell-on:
 			and .process_kprobe.process.pod.namespace != "redpanda" \
 			and .process_kprobe.process.pod.namespace != "spark" \
 			and .process_kprobe.process.pod.namespace != "parseable" \
-			and .process_kprobe.process.pod.namespace != "vector" )| \
-	 "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.process.pod.namespace) \(.process_kprobe.args[] | select(.sock_arg != null) | .sock_arg)"'
+			and .process_kprobe.process.pod.namespace != "vector"  \
+			and .process_kprobe.process.binary != "/usr/bin/rancher"  \
+			and .process_kprobe.process.binary != "/usr/bin/webhook") | \
+			"\(.)"'
+
+# "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.process.pod.namespace) \(.process_kprobe.args[] | select(.sock_arg != null) | .sock_arg)"'
+
+
+.PHONY: jquery-tracesscp
+jquery-tracesscp:
+	-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f |\
+	jq 'select( .process_kprobe.process.pod.namespace == "default" | .)'
 
 
 .PHONY: jquery-traces1
@@ -39,8 +54,9 @@ jquery-traces1:
 			and .process_kprobe.process.pod.namespace != "redpanda" \
 			and .process_kprobe.process.pod.namespace != "spark" \
 			and .process_kprobe.process.pod.namespace != "parseable" \
+			and .process_kprobe.process.binary == "/usr/sbin/sshd" \
 			and .process_kprobe.process.pod.namespace != "vector" )| \
-	 "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.process.pod.namespace) \(.process_kprobe.args[] | select(.sock_arg.priority != null) | .sock_arg.priority)"'
+	 "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.process.pod.namespace) \(.process_kprobe.args[] )"'
 
 
 .PHONY: attack
@@ -57,19 +73,20 @@ redpanda:
 	-$(HELM) upgrade --install redpanda-src redpanda/redpanda -n redpanda --create-namespace --values redpanda/rke2values.yaml
 	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create cr1"
 
+# Its about time to make this into a loop
+
+
 .PHONY: redpanda-wasm
 redpanda-wasm:
 	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create tetragon" 
-	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/kprobe" 
-	-kubectl cp redpanda/transform/transform.yaml redpanda/redpanda-src-0:/tmp/kprobe/.
-	-kubectl cp redpanda/transform/kprobe.wasm redpanda/redpanda-src-0:/tmp/kprobe/.
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/kprobe/ && rpk transform deploy"
-	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create traces1" 
-	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/traces1" 
-	-kubectl cp redpanda/traces1/transform.yaml redpanda/redpanda-src-0:/tmp/traces1/.
-	-kubectl cp redpanda/traces1/traces1.wasm redpanda/redpanda-src-0:/tmp/traces1/.
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/traces1/ && rpk transform deploy"
-
+	@for dir in $(DIRS); do \
+		cd redpanda/$$dir/ && go mod tidy && rpk transform build && cd ../.. ;\
+		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
+		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/$$dir" ;\
+		kubectl cp redpanda/$$dir/transform.yaml redpanda/redpanda-src-0:/tmp/$$dir/. ;\
+		kubectl cp redpanda/$$dir/$$dir.wasm redpanda/redpanda-src-0:/tmp/$$dir/. ;\
+		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/$$dir/ && rpk transform deploy" ;\
+	done
 
 .PHONY: jupyter
 jupyter:
@@ -92,12 +109,13 @@ tetragon-install: helm
 .PHONY: vector
 vector:
 	-$(HELM) repo add vector https://helm.vector.dev
-	-$(HELM) upgrade --install vector vector/vector --namespace vector --create-namespace --values vector/values.yaml
+	-$(HELM) upgrade --install vector vector/vector --namespace vector --create-namespace --values vector/rke2values.yaml
 
 
 .PHONY: traces
 traces:
 	-kubectl apply -f traces/1sshd-probe-success.yaml
+	-kubectl apply -f traces/1sshd-probe-spawnbash.yaml
 	-kubectl apply -f traces/2enumerate-serviceaccount.yaml
 	-kubectl apply -f traces/3enumerate-python.yaml
 	-kubectl apply -f traces/4detect-scp-usage.yaml
@@ -108,6 +126,7 @@ traces:
 .PHONY: traces-off
 traces-off:
 	-kubectl delete -f traces/1sshd-probe-success.yaml
+	-kubectl delete -f traces/1sshd-probe-spawnbash.yaml
 	-kubectl delete -f traces/2enumerate-serviceaccount.yaml
 	-kubectl delete -f traces/3enumerate-python.yaml
 	-kubectl delete -f traces/4detect-scp-usage.yaml
@@ -117,34 +136,15 @@ traces-off:
 
 .PHONY: create-bad
 create-bad:
-	ssh -p 5555 -t root@127.0.0.1  'source priv-create.sh'
-	-kubectl wait --for=condition=Ready pod -l app=bad-pv-pod
+	ssh -p 8888 -t root@137.117.185.70  'source rke2priv-create.sh'
+	-kubectl wait --for=condition=Ready pod -l app=my-pod
 ##@ vcluster setup
 
-.PHONY: vcluster-deploy
-vcluster-deploy: vcluster
-	kubectl create namespace vcluster
-	-$(VCLUSTER) create ssh -n vcluster --upgrade -f scenario/vc-values.yaml
-
-.PHONY: kyverno-install
-kyverno-install:
-	-$(HELM) repo add kyverno https://kyverno.github.io/kyverno/
-	-$(HELM) repo update
-	-$(HELM) install kyverno kyverno/kyverno -n kyverno --create-namespace
-	-$(HELM) install kyverno-policies kyverno/kyverno-policies -n kyverno --set podSecurityStandard=baseline --set validationFailureAction=enforce
 
 .PHONY: ssh-install
 ssh-install:
-	-kubectl apply -f insecure-ssh/insecure-ssh.yaml
-	-kubectl -n default wait --for=condition=Ready pod -l app.kubernetes.io/name=ssh-honeypot
-
-.PHONY: vcluster-disconnect
-vcluster-disconnect: vcluster
-	-$(VCLUSTER) disconnect
-
-.PHONY: vcluster-connect
-vcluster-connect: vcluster
-	-$(VCLUSTER) connect ssh -n vcluster
+	-kubectl apply -f insecure-ssh/rke2insecure-ssh.yaml
+	-kubectl -n default wait --for=condition=Ready pod -l app.kubernetes.io/name=ssh-proxy
 
 .PHONY: rbac
 rbac: 
@@ -156,12 +156,12 @@ sc-deploy:
 
 .PHONY: port-forward
 port-forward:
-	-kubectl cp id_rsa  default/ssh-proxy-7f8988c7d5-rrp8v:/.
-	-kubectl exec -i -t ssh-proxy-7f8988c7d5-rrp8v -- /bin/bash -c " ssh -R8888:localhost:22 paris@137.117.185.70 -i id_rsa "
+	-kubectl cp id_rsa  default/ssh-proxy:/.
+	-kubectl exec -i -t ssh-proxy -- /bin/bash -c " ssh -R8888:localhost:22 paris@137.117.185.70 -i id_rsa &"
 
 .PHONY: copy-scripts
 copy-scripts:
-	scp -P 5555 scripts/create.py scripts/priv-create.sh root@127.0.0.1:/root
+	scp -P 8888 scripts/create.py scripts/priv-create.sh root@137.117.185.70:/root
 
 .PHONY: ssh-connect
 ssh-connect:
@@ -169,8 +169,15 @@ ssh-connect:
 
 .PHONY: exec 
 exec:
-	-kubectl exec bad-pv-pod  -- /bin/bash -c "cd /hostlogs/pods/default_bad-pv-**/bad-pv-pod/ && rm  0.log && ln -s /etc/kubernetes/pki/apiserver.key 0.log"
+	-kubectl exec my-pod  -- /bin/bash -c "cd /hostlogs/pods/default_my-**/my-pod/ && rm  0.log && ln -s /etc/kubernetes/pki/apiserver.key 0.log"
 
+.PHONY: influxdb
+influxdb:
+	-$(HELM) repo add influxdata https://helm.influxdata.com
+	-$(HELM) repo add grafana https://grafana.github.io/helm-charts
+	-$(HELM) repo update
+	-$(HELM) upgrade --install influxdb influxdata/influxdb --namespace influxdb -f influxdb/rke2values.yaml --create-namespace
+	-$(HELM) upgrade --install grafana grafana/grafana --namespace influxdb -f grafana/rke2values.yaml
 
 ##@ Tools
 

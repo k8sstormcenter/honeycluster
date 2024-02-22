@@ -1,0 +1,4 @@
+name: tracesapipre
+input-topic: "tetragon"
+output-topic: "tracesapipre"
+language: tinygo-no-goroutines

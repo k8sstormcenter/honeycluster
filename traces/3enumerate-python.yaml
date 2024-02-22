@@ -1,7 +1,7 @@
 apiVersion: cilium.io/v1alpha1
 kind: TracingPolicy
 metadata:
-  name: "enumerate-python"
+  name: "enumerate-util"
 spec:
   kprobes:
   - call: "fd_install"
@@ -18,3 +18,18 @@ spec:
          values:
          - "/usr/bin/uname"
          - "/usr/bin/python3"
+         - "/usr/bin/pip"
+         - "/usr/bin/apt"
+         - "/usr/bin/c++"
+         - "/usr/bin/which"
+         - "/usr/bin/whereis"
+         - "/usr/bin/cat"
+         - "/usr/bin/chmod"
+         - "/usr/bin/grep"
+         - "/usr/bin/find"
+         - "/usr/bin/who"
+         - "/usr/bin/xargs"
+         - "/usr/bin/ln"
+         - "/usr/bin/env"
+         - "/usr/bin/ls"
+         - "/usr/bin/cp"
