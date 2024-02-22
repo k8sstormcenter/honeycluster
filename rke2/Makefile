@@ -3,8 +3,8 @@ CLUSTER_NAME := $(NAME)
 
 OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
-#DIRS := tracesscppre tracesscp
-DIRS :=  tracessshpre tracesssh  tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
+DIRS := tracesk8sclient
+#DIRS :=  tracessshpre tracesssh  tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
 #DIRS := kprobe tracessshpre tracesssh tracesapipre tracesapi tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
 
 
@@ -136,7 +136,7 @@ traces-off:
 
 .PHONY: create-bad
 create-bad:
-	ssh -p 8888 -t root@137.117.185.70  'source priv-create.sh'
+	ssh -p 8888 -t root@137.117.185.70  'source rke2priv-create.sh'
 	-kubectl wait --for=condition=Ready pod -l app=my-pod
 ##@ vcluster setup
 
