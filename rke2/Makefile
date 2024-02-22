@@ -109,7 +109,7 @@ tetragon-install: helm
 .PHONY: vector
 vector:
 	-$(HELM) repo add vector https://helm.vector.dev
-	-$(HELM) upgrade --install vector vector/vector --namespace vector --create-namespace --values vector/values.yaml
+	-$(HELM) upgrade --install vector vector/vector --namespace vector --create-namespace --values vector/rke2values.yaml
 
 
 .PHONY: traces
@@ -171,6 +171,13 @@ ssh-connect:
 exec:
 	-kubectl exec my-pod  -- /bin/bash -c "cd /hostlogs/pods/default_my-**/my-pod/ && rm  0.log && ln -s /etc/kubernetes/pki/apiserver.key 0.log"
 
+.PHONY: influxdb
+influxdb:
+	-$(HELM) repo add influxdata https://helm.influxdata.com
+	-$(HELM) repo add grafana https://grafana.github.io/helm-charts
+	-$(HELM) repo update
+	-$(HELM) upgrade --install influxdb influxdata/influxdb --namespace influxdb -f influxdb/rke2values.yaml --create-namespace
+	-$(HELM) upgrade --install grafana grafana/grafana --namespace influxdb -f grafana/rke2values.yaml
 
 ##@ Tools
 
