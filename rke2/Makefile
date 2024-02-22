@@ -15,7 +15,7 @@ KUBECONFIG := $(shell pwd)/.kubeconfig
 
 ##@ put all on rke2
 .PHONY: all-up
-all-up: redpanda tetragon-install spyder vector spark
+all-up: redpanda tetragon-install vector jupyter traces ssh-install
 
 
 .PHONY: detect-on
@@ -62,10 +62,8 @@ jquery-traces1:
 .PHONY: attack
 attack: copy-scripts create-bad exec
 
-##@ Kind
 
-
-
+# useful:  alias internal-rpk="kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk"
 .PHONY: redpanda
 redpanda:
 	-$(HELM) repo add redpanda https://charts.redpanda.com
