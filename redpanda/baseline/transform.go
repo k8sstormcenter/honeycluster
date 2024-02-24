@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/redpanda-data/redpanda/src/transform-sdk/go/transform"
@@ -45,6 +46,41 @@ func removeTimeFields(obj interface{}) {
 	}
 }
 
+var topLevelFields = []string{"process_exec", "process_exit", "process_kprobe"}
+var subFieldsToConcatenate = []string{"process.pod.container.id", "process.binary", "process.arguments"}
+
+func createKey(incomingMessage map[string]interface{}) string {
+	var keyParts []string
+
+	for _, topLevelField := range topLevelFields {
+		if value, ok := incomingMessage[topLevelField]; ok {
+			// If the top-level field exists, traverse its subfields
+			for _, subField := range subFieldsToConcatenate {
+				// Split the subfield into parts
+				parts := strings.Split(subField, ".")
+				subValue := value.(map[string]interface{})
+				for _, part := range parts {
+					// Traverse the map
+					if v, ok := subValue[part]; ok {
+						// If the part exists, add it to the key parts
+						switch v := v.(type) {
+						case map[string]interface{}:
+							subValue = v
+						default:
+							keyParts = append(keyParts, fmt.Sprint(v))
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Join the key parts with a separator
+	key := strings.Join(keyParts, "_")
+
+	return key
+}
+
 func doTransform(e transform.WriteEvent, w transform.RecordWriter) error {
 	// Unmarshal the incoming message into a map
 	var incomingMessage map[string]interface{}
@@ -55,6 +91,8 @@ func doTransform(e transform.WriteEvent, w transform.RecordWriter) error {
 
 	// Remove the time fields from the message
 	removeTimeFields(incomingMessage)
+	// Extract 3 fields from the JSON and concat them as key
+	key := createKey(incomingMessage)
 
 	// Marshal the result back to JSON
 	jsonData, err := json.Marshal(incomingMessage)
@@ -64,7 +102,7 @@ func doTransform(e transform.WriteEvent, w transform.RecordWriter) error {
 
 	// Create a new record with the JSON data
 	record := &transform.Record{
-		Key:       e.Record().Key,
+		Key:       []byte(key),
 		Value:     jsonData,
 		Offset:    e.Record().Offset,
 		Timestamp: e.Record().Timestamp,
