@@ -77,6 +77,12 @@ func createKey(incomingMessage map[string]interface{}) string {
 
 	// Join the key parts with a separator
 	key := strings.Join(keyParts, "_")
+	// Remove all whitespaces and escape characters
+	key = strings.ReplaceAll(key, " ", "")
+	key = strings.ReplaceAll(key, "\\", "")
+	key = strings.ReplaceAll(key, "/", "")
+	key = strings.ReplaceAll(key, "\"", "")
+	key = strings.ReplaceAll(key, "'", "")
 
 	return key
 }
