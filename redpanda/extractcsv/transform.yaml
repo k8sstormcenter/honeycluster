@@ -1,0 +1,4 @@
+name: extractcsv
+input-topic: "compact"
+output-topic: "extractcsv"
+language: tinygo-no-goroutines
