@@ -3,8 +3,8 @@ CLUSTER_NAME := $(NAME)
 
 OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
-DIRS := tracesk8sclient
-#DIRS :=  tracessshpre tracesssh  tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
+#DIRS := signalminusbaseline extractcsv compact baseline
+DIRS :=   kprobe tracessshpre tracesssh  tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
 #DIRS := kprobe tracessshpre tracesssh tracesapipre tracesapi tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
 
 
@@ -63,6 +63,15 @@ jquery-traces1:
 attack: copy-scripts create-bad exec
 
 
+
+
+.PHONY: sc-delete
+sc-delete:
+	kubectl delete po my-pod
+	kubectl delete pvc my-claim-vol 
+	kubectl delete pv my-volume-vol
+
+
 # useful:  alias internal-rpk="kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk"
 .PHONY: redpanda
 redpanda:
@@ -73,7 +82,7 @@ redpanda:
 
 # Its about time to make this into a loop
 
-
+	#-kubectl create configmap csv-configmap --from-file=keys.csv=redpanda/uniquekeys.csv --namespace redpanda
 .PHONY: redpanda-wasm
 redpanda-wasm:
 	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create tetragon" 
@@ -148,14 +157,18 @@ ssh-install:
 rbac: 
 	kubectl apply -f scenario/rbac.yaml
 
-.PHONY: sc-deploy
-sc-deploy:
-	kubectl apply -f scenario/sc.yaml
 
 .PHONY: port-forward
 port-forward:
 	-kubectl cp id_rsa  default/ssh-proxy:/.
+	-kubectl exec -i -t ssh-proxy -- /bin/bash -c "chmod 600 id_rsa"
 	-kubectl exec -i -t ssh-proxy -- /bin/bash -c " ssh -R8888:localhost:22 paris@137.117.185.70 -i id_rsa &"
+
+
+
+.PHONY: stop-local-port-forwarding
+stop-port-forwarding:
+	-lsof -ti:5555 | xargs kill -9
 
 .PHONY: copy-scripts
 copy-scripts:
@@ -167,7 +180,7 @@ ssh-connect:
 
 .PHONY: exec 
 exec:
-	-kubectl exec my-pod  -- /bin/bash -c "cd /hostlogs/pods/default_my-**/my-pod/ && rm  0.log && ln -s /etc/kubernetes/pki/apiserver.key 0.log"
+	-kubectl exec my-pod  -- /bin/bash -c "cd /hostlogs/pods/default_my-**/my-pod/ && rm  0.log & ln -s /home/ansible/.id_rsa_tmp"
 
 .PHONY: influxdb
 influxdb:
