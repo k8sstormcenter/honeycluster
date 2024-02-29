@@ -14,6 +14,8 @@ func main() {
 	transform.OnRecordWritten(doTransform)
 }
 
+
+
 var fieldsToRemove = []string{"pid", "tid", "auid", "uid", "exec_id", "parent_exec_id"}
 
 type Message struct {
@@ -76,13 +78,21 @@ func createKey(incomingMessage map[string]interface{}) string {
 	}
 
 	// Join the key parts with a separator
-	key := strings.Join(keyParts, "_")
+	key := strings.Join(keyParts, "")
 	// Remove all whitespaces and escape characters
 	key = strings.ReplaceAll(key, " ", "")
 	key = strings.ReplaceAll(key, "\\", "")
 	key = strings.ReplaceAll(key, "/", "")
 	key = strings.ReplaceAll(key, "\"", "")
 	key = strings.ReplaceAll(key, "'", "")
+	key = strings.ReplaceAll(key, "-", "")
+	key = strings.ReplaceAll(key, "/", "")
+	key = strings.ReplaceAll(key, "=", "")
+	key = strings.ReplaceAll(key, ".", "")
+	key = strings.ReplaceAll(key, "containerd", "")
+	key = strings.ReplaceAll(key, ":", "")
+	key = strings.ReplaceAll(key, "+", "")
+	key = strings.ReplaceAll(key, "$", "")
 
 	return key
 }

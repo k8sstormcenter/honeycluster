@@ -1,4 +1,0 @@
-name: compact
-input-topic: "baseline"
-output-topic: "compact"
-language: tinygo-no-goroutines

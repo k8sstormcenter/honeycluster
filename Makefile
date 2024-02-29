@@ -3,6 +3,8 @@ CLUSTER_NAME := $(NAME)
 
 OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
+DIRS :=  extractcsv baseline signalminusbaseline
+#DIRS :=    kprobe tracessshpre tracesssh  tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
 
 .EXPORT_ALL_VARIABLES:
 
@@ -76,17 +78,17 @@ redpanda:
 
 	
 .PHONY: redpanda-wasm
-redpanda-wasm: rpk
-	cd redpanda/transform; $(RPK) container start; $(RPK) transform build
-	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/kprobe && rpk topic create tetragon" 
-	-kubectl cp redpanda/transform/transform.yaml redpanda/redpanda-src-0:/tmp/kprobe/.
-	-kubectl cp redpanda/transform/kprobe.wasm redpanda/redpanda-src-0:/tmp/kprobe/.
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/kprobe/ && rpk transform deploy"
-	cd redpanda/traces1; $(RPK) container start; $(RPK) transform build
-	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/traces1 && rpk topic create traces1" 
-	-kubectl cp redpanda/traces1/transform.yaml redpanda/redpanda-src-0:/tmp/traces1/.
-	-kubectl cp redpanda/traces1/traces1.wasm redpanda/redpanda-src-0:/tmp/traces1/.
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/traces1/ && rpk transform deploy"
+redpanda-wasm:
+	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create tetragon" 
+	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create baseline && rpk topic alter-config baseline --set cleanup.policy=compact"
+	@for dir in $(DIRS); do \
+		cd redpanda/$$dir/ && go mod tidy && $(RPK) container start; $(RPK) transform build && cd ../.. ;\
+		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
+		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/$$dir" ;\
+		kubectl cp redpanda/$$dir/transform.yaml redpanda/redpanda-src-0:/tmp/$$dir/. ;\
+		kubectl cp redpanda/$$dir/$$dir.wasm redpanda/redpanda-src-0:/tmp/$$dir/. ;\
+		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/$$dir/ && rpk transform deploy" ;\
+	done
 
 .PHONY: jupyter
 spark:
