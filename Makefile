@@ -11,7 +11,7 @@ DIRS :=  extractcsv baseline signalminusbaseline
 ##@ Scenario
 
 .PHONY: all-up
-all-up: cluster-up tetragon-install redpanda jupyter vector ssh-install rbac sc-deploy port-forward ## Create the kind cluster and deploy tetragon
+all-up: cluster-up tetragon-install redpanda vector ssh-install rbac sc-deploy port-forward ## Create the kind cluster and deploy tetragon
 
 .PHONY: detect-on
 detect-on: traces
@@ -53,12 +53,18 @@ cluster-down: kind ## Delete the kind cluster
 stop-port-forwarding:
 	-lsof -ti:5555 | xargs kill -9
 
+.PHONY: attack-delete
+attack-delete:
+	-kubectl delete po my-pod
+	-kubectl delete pvc my-claim-vol 
+	-kubectl delete pv my-volume-vol
+
 .PHONY: sc-delete
 sc-delete:
-	kubectl delete po bad-pv-pod
-	kubectl delete pvc bad-pv-claim-vol 
-	kubectl delete pv bad-pv-volume-vol
-	kubectl delete sc local-storage
+	-kubectl delete po my-pod
+	-kubectl delete pvc my-claim-vol 
+	-kubectl delete pv my-volume-vol
+	-kubectl delete sc local-storage
 
 
 .PHONY: redpanda
@@ -195,7 +201,7 @@ ssh-connect:
 
 .PHONY: exec 
 exec:
-	-kubectl exec my-pod  -- /bin/bash -c "cd /hostlogs/pods/default_bad-pv-**/my-pod/ && rm  0.log && ln -s /etc/kubernetes/pki/apiserver.key 0.log"
+	-kubectl exec -it my-pod -- /bin/bash -c "cd /hostlogs/pods/default_my-pod_**/my-pod/ && rm 0.log && ln -s /etc/kubernetes/pki/apiserver.key 0.log"
 	-kubectl logs my-pod
 
 
