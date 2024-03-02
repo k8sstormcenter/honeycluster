@@ -82,10 +82,10 @@ redpanda:
 
 # Its about time to make this into a loop
 
-	#-kubectl create configmap csv-configmap --from-file=keys.csv=redpanda/uniquekeys.csv --namespace redpanda
 .PHONY: redpanda-wasm
 redpanda-wasm:
 	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create tetragon" 
+	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create baseline && rpk topic alter-config baseline --set cleanup.policy=compact"
 	@for dir in $(DIRS); do \
 		cd redpanda/$$dir/ && go mod tidy && rpk transform build && cd ../.. ;\
 		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\

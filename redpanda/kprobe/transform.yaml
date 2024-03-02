@@ -1,4 +1,0 @@
-name: kprobe
-input-topic: "signalminusbaseline"
-output-topic: "tetragon"
-language: tinygo-no-goroutines

@@ -70,6 +70,7 @@ func createKey(incomingMessage map[string]interface{}) string {
 	key = strings.ReplaceAll(key, ":", "")
 	key = strings.ReplaceAll(key, "+", "")
 	key = strings.ReplaceAll(key, "$", "")
+	key = strings.ReplaceAll(key, "_", "")
 
 	return key
 }
