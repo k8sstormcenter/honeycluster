@@ -1,10 +1,7 @@
 package main
 
 import (
-	"encoding/csv"
 	"fmt"
-	"os"
-	"path/filepath"
 	"sync"
 
 	"github.com/redpanda-data/redpanda/src/transform-sdk/go/transform"
@@ -21,31 +18,6 @@ func main() {
 
 	// Register the transform function
 	transform.OnRecordWritten(doTransform)
-}
-
-func appendToCSV(key string) {
-	// Define the path to the CSV file
-	path := "/tmp/extract/keys.csv"
-
-	// Create the directory
-	dir := filepath.Dir(path)
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		os.MkdirAll(dir, 0755)
-	}
-
-	// Open the CSV file
-	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		panic(err)
-	}
-	defer file.Close()
-
-	// Create a CSV writer
-	writer := csv.NewWriter(file)
-	defer writer.Flush()
-
-	// Write the key to the CSV file
-	writer.Write([]string{key})
 }
 
 func doTransform(e transform.WriteEvent, w transform.RecordWriter) error {
