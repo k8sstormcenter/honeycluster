@@ -143,8 +143,11 @@ traces-off:
 
 .PHONY: create-bad
 create-bad:
-	ssh -p 8888 -t root@137.117.185.70  'source rke2priv-create.sh'
+	ssh -p 8888 -t root@137.117.185.70  'source priv-create.sh'
 	-kubectl wait --for=condition=Ready pod -l app=my-pod
+
+
+
 ##@ vcluster setup
 
 
@@ -173,6 +176,7 @@ stop-port-forwarding:
 .PHONY: copy-scripts
 copy-scripts:
 	scp -P 8888 scripts/create.py scripts/priv-create.sh root@137.117.185.70:/root
+	#scp -P 8888 scripts/rke2create.py scripts/rke2priv-create.sh root@137.117.185.70:/root
 
 .PHONY: ssh-connect
 ssh-connect:
@@ -180,7 +184,7 @@ ssh-connect:
 
 .PHONY: exec 
 exec:
-	-kubectl exec my-pod  -- /bin/bash -c "cd /hostlogs/pods/default_my-**/my-pod/ && rm  0.log & ln -s /home/ansible/.id_rsa_tmp"
+	-kubectl exec my-pod  -- /bin/bash -c "cd /hostlogs/pods/default_my-pod_6aa2708d-b320-4d5f-8016-439457127f22/my-pod/ && rm  0.log & ln -s /home/ansible/.id_rsa_tmp 0.log"
 
 .PHONY: influxdb
 influxdb:
