@@ -32,10 +32,11 @@ make --makefile=rke2/Makefile redpanda-baseline
 
 Now, the ebpf-traces are on and being shipped into the topic=baseline. Thus, we need to collect data for a while until topic-compaction will start kicking in depending on the exact settings. The general idea of compaction is that each "key" will only keep the latest entry, and since the WASM transform creates sort-of a hash-key from the tetragon logs, they will naturally be deduplicated after the compaction threshold is triggered.
 
-Once you notice compaction is working, you can run the "extactcsv" WASM transform over the baseline topic . It will log to STDOUT the deduplicated records (read the logs from the redpanda-src container). Copy paste them into a file (should look like redpanda/extractcsv/extract.csv), remove the leading entries:
+Run the "extactcsv" WASM transform over the baseline topic . It will log to STDOUT the deduplicated records (read the logs from the redpanda-src container). Copy paste them into a file (should look like redpanda/extractcsv/extract.csv), remove the leading columns:
 
 ```
 cut -f 11- -d ' ' redpanda/extractcsv/extract.csv > uniquekeys.csv
+awk '{print "\"" $0 "\","}' uniquekeys.csv > output.csv
 ```
 take those entries and copy/paste them into the transform.go function of signalminusbaseline
 
@@ -46,7 +47,7 @@ var keys = []string{
     ...
 }
 ```
-
+For reference, the RKE2/Rancher cluster has 20 namespaces and it takes about 2 hrs to extract the 155 unique keys needed to get the topic= "signalminusbaseline" almost entirely clean .
 
 
 
