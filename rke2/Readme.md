@@ -2,14 +2,15 @@
 
 ## Example on RKE2 (on openstack)
 
-In the KubeCon EU talk, we present also two "real" clusters, they are hosted on a RKE2 1.27 with Rancher running.
-This cluster is supposed to look like a experimental cluster on which an SRE is actively debugging something.
-This SRE is useing reverse SSH to login to the cluster via a jump-host. Thus, the corporate firewall is untouched.
+In the KubeCon EU talk, we present two "real" clusters, they are hosted on a RKE2 1.27 with Rancher running.
+This type of honeycluster is supposed to look like a experimental kubernetes-cluster on which an SRE is actively debugging something.
+This SRE is useing insecure reverse SSH to login to the cluster via a jump-host, no modifications to the corporate firewall are required.
 
 
 ## Security Considerations
 
-Given this is an experimental setup of a honeypot-infrastructure, there are additional measures taken to make sure these clusters can be shut down at a moment's notice and they also have additional observability installed to verify any integrity compromises.
+Given this is an insecure and experimental setup of a honeypot-infrastructure, there are several additional measures taken that are not covered in the talk or this repo.
+This repo is for demonstration purposes only.
 
 ## Setup
 
