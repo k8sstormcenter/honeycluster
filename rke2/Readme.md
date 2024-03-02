@@ -30,9 +30,9 @@ make --makefile=rke2/Makefile redpanda-baseline
 ```
 (you might need Go 1.21 installed)
 
-Now, the traces are on and the topic=baseline needs to collect data for a while, the compaction settings will start kicking in depending on the exact settings. The general idea is that each "key" will only be kept once after a certain "wait-time" , and since the WASM transform creates sort-of a hash-key from the tetragon logs, they will naturally be deduplicated after compaction kicks in.
+Now, the ebpf-traces are on and being shipped into the topic=baseline. Thus, we need to collect data for a while until topic-compaction will start kicking in depending on the exact settings. The general idea of compaction is that each "key" will only keep the latest entry, and since the WASM transform creates sort-of a hash-key from the tetragon logs, they will naturally be deduplicated after the compaction threshold is triggered.
 
-If you check the oldest records, and they start missing records -> you ve waited long enough  and you can run the "extactcsv" WASM transform over the baseline topic . It will log to STDOUT the deduplicated records (read the logs from the redpanda-src container). Copy paste them into a file (should look like redpanda/extractcsv/extract.csv), remove the leading entries:
+Once you notice compaction is working, you can run the "extactcsv" WASM transform over the baseline topic . It will log to STDOUT the deduplicated records (read the logs from the redpanda-src container). Copy paste them into a file (should look like redpanda/extractcsv/extract.csv), remove the leading entries:
 
 ```
 cut -f 11- -d ' ' redpanda/extractcsv/extract.csv > uniquekeys.csv
