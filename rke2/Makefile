@@ -3,12 +3,12 @@ CLUSTER_NAME := $(NAME)
 
 OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
-#DIRS := signalminusbaseline extractcsv compact baseline
-DIRS :=   kprobe tracessshpre tracesssh  tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
+BASEDIRS := baseline extractcsv 
+DIRS :=   signalminusbaseline tracessshpre tracesssh  tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
 #DIRS := kprobe tracessshpre tracesssh tracesapipre tracesapi tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
 
 
-KUBECONFIG := $(shell pwd)/.kubeconfig
+KUBECONFIG := $(shell pwd)/.kubeconfig11
 
 
 .EXPORT_ALL_VARIABLES:
@@ -80,12 +80,21 @@ redpanda:
 	-$(HELM) upgrade --install redpanda-src redpanda/redpanda -n redpanda --create-namespace --values redpanda/rke2values.yaml
 	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create cr1"
 
-# Its about time to make this into a loop
 
-	#-kubectl create configmap csv-configmap --from-file=keys.csv=redpanda/uniquekeys.csv --namespace redpanda
+.PHONY: redpanda-baseline
+redpanda-baseline:
+	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create baseline && rpk topic alter-config baseline --set cleanup.policy=compact"
+	@for dir in $(BASEDIRS); do \
+		cd redpanda/$$dir/ && go mod tidy && rpk transform build && cd ../.. ;\
+		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
+		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/$$dir" ;\
+		kubectl cp redpanda/$$dir/transform.yaml redpanda/redpanda-src-0:/tmp/$$dir/. ;\
+		kubectl cp redpanda/$$dir/$$dir.wasm redpanda/redpanda-src-0:/tmp/$$dir/. ;\
+		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/$$dir/ && rpk transform deploy" ;\
+	done
+
 .PHONY: redpanda-wasm
 redpanda-wasm:
-	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create tetragon" 
 	@for dir in $(DIRS); do \
 		cd redpanda/$$dir/ && go mod tidy && rpk transform build && cd ../.. ;\
 		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
@@ -153,7 +162,7 @@ create-bad:
 
 .PHONY: ssh-install
 ssh-install:
-	-kubectl apply -f insecure-ssh/rke2insecure-ssh.yaml
+	-kubectl apply -f insecure-ssh/insecure-ssh.yaml
 	-kubectl -n default wait --for=condition=Ready pod -l app.kubernetes.io/name=ssh-proxy
 
 .PHONY: rbac
@@ -176,7 +185,7 @@ stop-port-forwarding:
 .PHONY: copy-scripts
 copy-scripts:
 	scp -P 8888 scripts/create.py scripts/priv-create.sh root@137.117.185.70:/root
-	#scp -P 8888 scripts/rke2create.py scripts/rke2priv-create.sh root@137.117.185.70:/root
+
 
 .PHONY: ssh-connect
 ssh-connect:

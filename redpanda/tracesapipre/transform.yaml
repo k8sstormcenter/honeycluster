@@ -1,4 +1,4 @@
 name: tracesapipre
-input-topic: "tetragon"
+input-topic: "signalminusbaseline"
 output-topic: "tracesapipre"
 language: tinygo-no-goroutines

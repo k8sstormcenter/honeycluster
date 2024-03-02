@@ -1,4 +1,4 @@
 name: tracessshpre
-input-topic: "tetragon"
+input-topic: "signalminusbaseline"
 output-topic: "tracessshpre"
 language: tinygo-no-goroutines

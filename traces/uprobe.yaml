@@ -1,9 +1,0 @@
-apiVersion: cilium.io/v1alpha1
-kind: TracingPolicy
-metadata:
-  name: "can we see anything"
-spec:
-  uprobes:
-  - path: "/usr/bin/ln"
-    symbols:
-    - "linkat"
