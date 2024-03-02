@@ -169,7 +169,7 @@ kyverno-install:
 .PHONY: ssh-install
 ssh-install:
 	-kubectl apply -f insecure-ssh/insecure-ssh.yaml
-	-kubectl -n default wait --timeout=120s --for=condition=Ready pod -l app.kubernetes.io/name=ssh-honeypot
+	-kubectl -n default wait --timeout=120s --for=condition=Ready pod -l app.kubernetes.io/name=ssh-proxy
 
 .PHONY: vcluster-disconnect
 vcluster-disconnect: vcluster

@@ -153,7 +153,7 @@ create-bad:
 
 .PHONY: ssh-install
 ssh-install:
-	-kubectl apply -f insecure-ssh/rke2insecure-ssh.yaml
+	-kubectl apply -f insecure-ssh/insecure-ssh.yaml
 	-kubectl -n default wait --for=condition=Ready pod -l app.kubernetes.io/name=ssh-proxy
 
 .PHONY: rbac
