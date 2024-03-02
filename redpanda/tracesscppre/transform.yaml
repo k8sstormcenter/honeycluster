@@ -1,0 +1,4 @@
+name: tracesscppre
+input-topic: "signalminusbaseline"
+output-topic: "tracesscppre"
+language: tinygo-no-goroutines

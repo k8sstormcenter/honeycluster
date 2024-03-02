@@ -4,16 +4,20 @@ metadata:
   name: "detect-scp-usage"
 spec:
   kprobes:
-  - call: "fd_install"
-    syscall: false
+  - call: "sys_execve"
+    syscall: true
     args:
     - index: 0
-      type: "int" 
-    - index: 1
-      type: "file" 
+      type: "string"
     selectors:
+ #   - matchBinaries:
+ #     - operator: "In"
+ #       values:
+ #       - "/usr/bin/sftp"
+ #       - "/usr/lib/openssh/sftp-server"
+ #       - "/usr/bin/scp"
     - matchArgs:
-       - index: 1
-         operator: "Prefix"
-         values:
-         - "/usr/lib/openssh/sftp-server"
+      - index: 0
+        operator: "Equal"
+        values:
+        - "/usr/lib/openssh/sftp-server"

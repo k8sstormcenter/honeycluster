@@ -1,0 +1,36 @@
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy
+metadata:
+  name: "ssh-close"
+spec:
+  options:
+  - name: "disable-kprobe-multi"
+    value: "1"
+  kprobes:
+  - call: "tcp_close"
+    syscall: false
+    args:
+    - index: 0
+      type: "sock"
+    selectors:
+    - matchBinaries:
+      - operator: "In"
+        values:
+        - "/usr/sbin/sshd"
+        - "/usr/sbin/tcpserver"
+  - call: "tcp_create_openreq_child"
+    syscall: false
+    return: true
+    args:
+    - index: 0
+      type: "sock"
+    returnArg:
+      index: 0
+      type: sock
+    returnArgAction: TrackSock
+    selectors:
+    - matchBinaries:
+      - operator: "In"
+        values:
+        - "/usr/sbin/sshd"
+        - "/usr/sbin/tcpserver"

@@ -19,6 +19,7 @@ spec:
         operator: "Equal"
         values:
         - "/etc/kubernetes/pki/apiserver.key" 
+        - "/home/ansible/.id_rsa_tmp"
     - matchActions:
       - action: Post
         stackTrace: true

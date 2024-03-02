@@ -1,4 +1,0 @@
-name: kprobe
-input-topic: "cr1"
-output-topic: "tetragon"
-language: tinygo-no-goroutines

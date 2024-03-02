@@ -1,4 +1,4 @@
-name: clean
-input-topic: "tetragon"
-output-topic: "clean"
+name: baseline
+input-topic: "cr1"
+output-topic: "baseline"
 language: tinygo-no-goroutines

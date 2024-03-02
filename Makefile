@@ -143,7 +143,7 @@ traces-off:
 .PHONY: create-bad
 create-bad:
 	ssh -p 5555 -t root@127.0.0.1  'source priv-create.sh'
-	-kubectl wait --for=condition=Ready pod bad-pv-pod
+	-kubectl wait --for=condition=Ready pod my-pod
 ##@ vcluster setup
 
 .PHONY: vcluster-deploy
@@ -193,8 +193,8 @@ ssh-connect:
 
 .PHONY: exec 
 exec:
-	-kubectl exec bad-pv-pod  -- /bin/bash -c "cd /hostlogs/pods/default_bad-pv-**/bad-pv-pod/ && rm  0.log && ln -s /etc/kubernetes/pki/apiserver.key 0.log"
-	-kubectl logs bad-pv-pod
+	-kubectl exec my-pod  -- /bin/bash -c "cd /hostlogs/pods/default_bad-pv-**/my-pod/ && rm  0.log && ln -s /etc/kubernetes/pki/apiserver.key 0.log"
+	-kubectl logs my-pod
 
 
 ##@ Tools

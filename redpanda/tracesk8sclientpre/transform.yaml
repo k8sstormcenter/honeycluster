@@ -1,0 +1,4 @@
+name: tracesk8sclientpre
+input-topic: "tetragon"
+output-topic: "tracesk8sclientpre"
+language: tinygo-no-goroutines

@@ -1,0 +1,4 @@
+name: tracesapi
+input-topic: "tracesapipre"
+output-topic: "tracesapi"
+language: tinygo-no-goroutines

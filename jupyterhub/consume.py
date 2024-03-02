@@ -1,32 +1,3 @@
-!pip install confluent_kafka
-from confluent_kafka import Consumer, KafkaException
-
-c = Consumer({
-    'bootstrap.servers': 'redpanda-src.redpanda.svc.cluster.local:9093',
-    'group.id': 'mygroup',
-    'auto.offset.reset': 'earliest'
-})
-
-c.subscribe(['cr1'])
-
-try:
-    for _ in range(5):
-        msg = c.poll(1.0)  # Wait for up to 1.0 seconds for a message
-        if msg is None:
-            continue
-        if msg.error():
-            raise KafkaException(msg.error())
-        else:
-            # Proper message
-            print('Received message: {}'.format(msg.value().decode('utf-8')))
-
-except KeyboardInterrupt:
-    pass
-
-finally:
-    c.close()
-
-
 !pip install pyspark
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import upper, col
@@ -41,23 +12,52 @@ spark = SparkSession.builder \
 df = (
     spark.readStream.format("kafka")
     .option("kafka.bootstrap.servers", "redpanda-src.redpanda.svc.cluster.local:9093")
-    .option("subscribe", "cr1")
+    .option("subscribe", "tracessshpre")
     .load()
     .selectExpr("CAST(value AS STRING) as message")
 )
 
-# Filter the DataFrame to select only those messages that contain the word "policy_name"
-filtered_df = df.filter(col("message").contains("policy_name"))
 
-# Write the filtered messages to the "tetragon" Kafka topic
-query = (
-    filtered_df
-    .selectExpr("CAST(message AS STRING) AS value")
-    .writeStream.format("kafka")
-    .option("kafka.bootstrap.servers", "redpanda-src.redpanda.svc.cluster.local:9093")
-    .option("topic", "tetragon")
-    .option("checkpointLocation", "checkpoint_folder")  # Specify the checkpoint location
-    .start()
-)
+import json
+import tensorflow as tf
+from confluent_kafka import Consumer, KafkaException
 
-query.awaitTermination()
+# Set up Kafka consumer
+conf = {
+    'bootstrap.servers': 'redpanda-src.redpanda.svc.cluster.local:9093',
+    'group.id': 'mygroup',
+    'auto.offset.reset': 'earliest',
+}
+consumer = Consumer(conf)
+
+# Subscribe to the Kafka topic
+consumer.subscribe(['tracessshpre'])
+
+# Collect messages from Kafka
+messages = []
+try:
+    while True:
+        msg = consumer.poll(1.0)
+        if msg is None:
+            break
+        if msg.error():
+            raise KafkaException(msg.error())
+        else:
+            # Parse message as JSON
+            message = json.loads(msg.value().decode('utf-8'))
+            # Filter messages with classification "baseline"
+            if message.get('classification') == 'baseline':
+                messages.append(message)
+finally:
+    consumer.close()
+
+# Preprocess messages for TensorFlow
+# This will depend on your specific use case
+# For this example, let's assume each message is a dictionary with numeric values
+data = [list(message.values()) for message in messages]
+labels = ['baseline'] * len(data)
+
+# Convert to TensorFlow Dataset
+dataset = tf.data.Dataset.from_tensor_slices((data, labels))
+
+# Now you can use `dataset` to train your TensorFlow model
