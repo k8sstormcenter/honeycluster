@@ -1,0 +1,35 @@
+package keys
+
+redpandaContainerId := "REDPANDA_CONTAINER_ID"
+
+var Baselinekeys = []string{
+	redpandaContainerId + "usrbinbashusrbinrpkclusterhealth",
+	redpandaContainerId + "usrbincurlsilentfailkhttpredpandasrc0redpandasrcredpandasvcclusterlocal9644v1statusready",
+	redpandaContainerId + "binshccurlsilentfailkhttp{SERVICE_NAME}redpandasrcredpandasvcclusterlocal9644v1statusready",
+	redpandaContainerId + "binshccurlsilentfailkhttp{SERVICENAME}redpandasrcredpandasvcclusterlocal9644v1statusready",
+	redpandaContainerId + "optredpandalibexecrpkclusterhealth",
+	redpandaContainerId + "binbashcrpktopiccreateextractcsv",
+	redpandaContainerId + "usrbinrpkbashusrbinrpktopiccreateextractcsv",
+	redpandaContainerId + "usrbinbashusrbinrpktopiccreateextractcsv",
+	redpandaContainerId + "optredpandalibexecrpktopiccreateextractcsv",
+	redpandaContainerId + "binbashcrpktopiccreatebaseline",
+	redpandaContainerId + "usrbinrpkbashusrbinrpktopiccreatebaseline",
+	redpandaContainerId + "usrbinbashusrbinrpktopiccreatebaseline",
+	redpandaContainerId + "optredpandalibexecrpktopiccreatebaseline",
+	redpandaContainerId + "binbashcrpktopiccreatesignalminusbaseline",
+	redpandaContainerId + "usrbinrpkbashusrbinrpktopiccreatesignalminusbaseline",
+	redpandaContainerId + "usrbinbashusrbinrpktopiccreatesignalminusbaseline",
+	redpandaContainerId + "optredpandalibexecrpktopiccreatesignalminusbaseline",
+	redpandaContainerId + "binbashcrpktopiccreatetetragon",
+	redpandaContainerId + "usrbinrpkbashusrbinrpktopiccreatetetragon",
+	redpandaContainerId + "usrbinbashusrbinrpktopiccreatetetragon",
+	redpandaContainerId + "optredpandalibexecrpktopiccreatetetragon",
+	redpandaContainerId + "binbashcrpktopiccreatekind-smb",
+	redpandaContainerId + "usrbinrpkbashusrbinrpktopiccreatekind-smb",
+	redpandaContainerId + "usrbinbashusrbinrpktopiccreatekind-smb",
+	redpandaContainerId + "optredpandalibexecrpktopiccreatekind-smb",
+	redpandaContainerId + "binbashcmkdirptmpbaseline",
+	redpandaContainerId + "usrbinmkdirptmpbaseline",
+	redpandaContainerId + "usrbintestdtmpbaseline",
+	redpandaContainerId + "usrbintarxmfCtmpbaseline",
+}

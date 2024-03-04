@@ -3,8 +3,8 @@ CLUSTER_NAME := $(NAME)
 
 OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
-DIRS :=  extractcsv baseline signalminusbaseline
-#DIRS :=    kprobe tracessshpre tracesssh  tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
+DIRS :=  extractcsv baseline 
+#DIRS :=    signalminusbaseline kprobe tracessshpre tracesssh  tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
 
 .EXPORT_ALL_VARIABLES:
 
@@ -82,7 +82,7 @@ redpanda:
 	-kubectl -n redpanda wait --timeout=30s --for=condition=Ready pod -l app.kubernetes.io/component=redpanda-statefulset
 	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create cr1"
 
-	
+
 .PHONY: redpanda-wasm
 redpanda-wasm:
 	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create tetragon" 
@@ -95,6 +95,16 @@ redpanda-wasm:
 		kubectl cp redpanda/$$dir/$$dir.wasm redpanda/redpanda-src-0:/tmp/$$dir/. ;\
 		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/$$dir/ && rpk transform deploy" ;\
 	done
+	
+.PHONY: redpanda-kind-wasm
+redpanda-kind-wasm:
+	sed -i 's/REDPANDA_CONTAINER_ID/$(shell docker exec -it honeypot-control-plane ls /var/log/containers | grep "redpanda-src-0_redpanda_redpanda-[a-z0-9]*\.log" | sed -e 's/redpanda-src-0_redpanda_redpanda-//' | sed -e 's/\.log//')/g' redpanda/kind-smb/keys/keys.go
+	-cd redpanda/kind-smb/transform; $(RPK) container start; $(RPK) transform build; cd ../../..;
+	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/kind-smb/ && rpk topic create kind-smb" 
+	-kubectl cp redpanda/kind-smb/transform/transform.yaml redpanda/redpanda-src-0:/tmp/kind-smb/.
+	-kubectl cp redpanda/kind-smb/transform/kind-smb.wasm redpanda/redpanda-src-0:/tmp/kind-smb/.
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/kind-smb/ && rpk transform deploy"
+	sed -i 's/$(shell docker exec -it honeypot-control-plane ls /var/log/containers | grep "redpanda-src-0_redpanda_redpanda-[a-z0-9]*\.log" | sed -e 's/redpanda-src-0_redpanda_redpanda-//' | sed -e 's/\.log//')/REDPANDA_CONTAINER_ID/g' redpanda/kind-smb/keys/keys.go
 
 .PHONY: jupyter
 spark:
@@ -189,7 +199,7 @@ sc-deploy:
 
 .PHONY: port-forward
 port-forward:
-	kubectl port-forward svc/ssh-honeypot 5555:22 &
+	kubectl port-forward svc/ssh-proxy 5555:22 &
 
 .PHONY: copy-scripts
 copy-scripts:

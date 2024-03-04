@@ -8,7 +8,7 @@ metadata:
 spec:
   containers:
     - name: ssh-proxy
-      image: entlein/ssh-proxy:0.0.3
+      image: jamescallaghan1987/insecure_ssh:latest
       imagePullPolicy: Always
       ports:
         - name: ssh-port
@@ -26,5 +26,5 @@ spec:
   - port: 22
     targetPort: 22
   selector:
-    app: ssh-proxy
+    app.kubernetes.io/name: ssh-proxy
 
