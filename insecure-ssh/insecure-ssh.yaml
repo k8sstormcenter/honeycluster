@@ -8,7 +8,7 @@ metadata:
 spec:
   containers:
     - name: ssh-proxy
-      image: jamescallaghan1987/insecure_ssh:latest
+      image: entlein/ssh-proxy:0.0.3
       imagePullPolicy: Always
       ports:
         - name: ssh-port
