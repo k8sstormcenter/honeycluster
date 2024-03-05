@@ -1,6 +1,6 @@
 package keys
 
-redpandaContainerId := "REDPANDA_CONTAINER_ID"
+var redpandaContainerId = "REDPANDA_CONTAINER_ID"
 
 var Baselinekeys = []string{
 	redpandaContainerId + "usrbinbashusrbinrpkclusterhealth",
