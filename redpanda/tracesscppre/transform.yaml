@@ -1,4 +1,4 @@
 name: tracesscppre
-input-topic: "signalminusbaseline"
+input-topic: "smb"
 output-topic: "tracesscppre"
 language: tinygo-no-goroutines

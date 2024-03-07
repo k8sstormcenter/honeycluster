@@ -1,4 +1,4 @@
 name: tracesapipre
-input-topic: "signalminusbaseline"
+input-topic: "smb"
 output-topic: "tracesapipre"
 language: tinygo-no-goroutines

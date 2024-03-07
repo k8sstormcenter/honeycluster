@@ -4,7 +4,7 @@ CLUSTER_NAME := $(NAME)
 OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 BASEDIRS := baseline extractcsv 
-DIRS :=   smb tracessshpre tracesssh  tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
+DIRS :=   tracessshpre tracesssh  tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
 #DIRS := kprobe tracessshpre tracesssh tracesapipre tracesapi tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
 
 NUMBER := "9"
@@ -132,9 +132,19 @@ redpanda-baseline:
 		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/$$dir/ && rpk transform deploy" ;\
 	done
 
+.PHONY: redpanda-smb-wasm
+redpanda-smb-wasm:
+	-cp redpanda/smb/keys.9txt redpanda/smb/keys/keys.go
+	-cd redpanda/smb/transform && go mod tidy && rpk transform build &&  cd ../../..;
+	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/smb/ && rpk topic create smb" 
+	-kubectl cp redpanda/smb/transform/transform.yaml redpanda/redpanda-src-0:/tmp/smb/.
+	-kubectl cp redpanda/smb/transform/smb.wasm redpanda/redpanda-src-0:/tmp/smb/.
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/smb/ && rpk transform deploy"
+
+
 .PHONY: redpanda-wasm
 redpanda-wasm:
-	cp redpanda/smb/keys/keys.$(NUMBER)txt redpanda/smb/keys/keys.go
+	
 	@for dir in $(DIRS); do \
 		cd redpanda/$$dir/ && go mod tidy && rpk transform build && cd ../.. ;\
 		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
