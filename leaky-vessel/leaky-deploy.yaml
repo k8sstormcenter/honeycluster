@@ -17,18 +17,15 @@ spec:
       - name: poc7
         image: entlein/poc:0.0.2
         imagePullPolicy: Always
-        command: ["sleep", "600"]
         securityContext:
           privileged: true
       - name: poc8
         image: entlein/poc:0.0.8
         imagePullPolicy: Always
-        command: ["sleep", "600"]
         securityContext:
           privileged: true
       - name: poc9
         image: entlein/poc:0.0.9
         imagePullPolicy: Always
-        command: ["sleep", "600"]
         securityContext:
           privileged: true
