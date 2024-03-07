@@ -58,6 +58,8 @@ If the service account compromised by our attacker could inspect the logs of the
 make teardown
 ```
 
+
+
 ## Note for Mac Users
 
 Certain Docker Desktop versions will lead to the following error:
