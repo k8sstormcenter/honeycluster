@@ -3,7 +3,7 @@
 apiVersion: cilium.io/v1alpha1
 kind: TracingPolicy
 metadata:
-  name: "leaky-vessel"
+  name: "leakynormal"
   annotations:
     url: https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-21626
     description: "Prevents exploitation of runc CVE-2024-21626"
@@ -15,26 +15,7 @@ spec:
     args:
       - index: 0
         type: "string"
-    selectors:
-    - matchBinaries:
-      - operator: "In"
-        values:
-        # Add your runc paths here
-        - "/usr/bin/runc"
-        - "/usr/sbin/runc"
-        - "/usr/local/sbin/runc"
-        - "/var/lib/rancher/rke2/data/v1.27.10-rc2-rke2r1-2009b566493e/bin/containerd-shim-runc-v2"
-        - "/var/lib/rancher/rke2/data/v1.27.9-rke2r1-bfe115e44df3/bin/containerd-shim-runc-v2"
-        - "/var/lib/rancher/rke2/data/v1.27.10-rc2-rke2r1-2009b566493e/bin/runc"
-        - "/var/lib/rancher/rke2/bin/runc"
-        - "/var/lib/rancher/rke2/data/v1.27.10-rke2r1-31de34f39de5/bin/containerd-shim-runc-v2"
-        - "/var/lib/rancher/rke2/data/v1.27.10-rc2-rke2r1-2009b566493e/bin/runc"
-        - "/var/lib/rancher/rke2/data/v1.27.9-rke2r1-bfe115e44df3/bin/runc"
-      matchArgs:
-      - index: 0
-        operator: "Prefix"
-        values:
-        - "/proc/self/fd/"
+
   # - call: "sys_execve"
   #   syscall: true
   #   args:
