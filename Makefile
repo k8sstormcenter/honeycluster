@@ -85,7 +85,6 @@ redpanda:
 
 .PHONY: redpanda-wasm
 redpanda-wasm:
-	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create tetragon" 
 	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create baseline && rpk topic alter-config baseline --set cleanup.policy=compact"
 	@for dir in $(DIRS); do \
 		cd redpanda/$$dir/ && go mod tidy && $(RPK) container start; $(RPK) transform build && cd ../.. ;\
@@ -141,6 +140,7 @@ vector:
 .PHONY: traces
 traces:
 	-kubectl apply -f traces/1sshd-probe-success.yaml
+	-kubectl apply -f traces/1sshd-probe-spawnbash.yaml
 	-kubectl apply -f traces/2enumerate-serviceaccount.yaml
 	-kubectl apply -f traces/3enumerate-python.yaml
 	-kubectl apply -f traces/4detect-scp-usage.yaml
@@ -151,6 +151,7 @@ traces:
 .PHONY: traces-off
 traces-off:
 	-kubectl delete -f traces/1sshd-probe-success.yaml
+	-kubectl delete -f traces/1sshd-probe-spawnbash.yaml
 	-kubectl delete -f traces/2enumerate-serviceaccount.yaml
 	-kubectl delete -f traces/3enumerate-python.yaml
 	-kubectl delete -f traces/4detect-scp-usage.yaml
