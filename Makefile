@@ -1,17 +1,17 @@
-NAME ?= honeypot
+NAME ?= honeycluster
 CLUSTER_NAME := $(NAME)
 
 OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
-DIRS :=  extractcsv baseline 
-#DIRS :=    signalminusbaseline kprobe tracessshpre tracesssh  tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
+#DIRS :=  extractcsv baseline 
+DIRS :=    tracessshpre tracesssh  tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
 
 .EXPORT_ALL_VARIABLES:
 
 ##@ Scenario
 
 .PHONY: all-up
-all-up: cluster-up tetragon-install redpanda vector ssh-install rbac sc-deploy port-forward ## Create the kind cluster and deploy tetragon
+all-up: cluster-up tetragon-install redpanda redpanda-wasm redpanda-kind-wasm vector ssh-install rbac sc-deploy port-forward traces ## Create the kind cluster and deploy tetragon
 
 .PHONY: detect-on
 detect-on: traces
@@ -95,15 +95,22 @@ redpanda-wasm:
 		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/$$dir/ && rpk transform deploy" ;\
 	done
 	
+# Linux version of sed -i
+#	sed -i  's/REDPANDA_CONTAINER_ID/$(shell docker exec -it honeycluster-control-plane ls /var/log/containers | grep "redpanda-src-0_redpanda_redpanda-[a-z0-9]*\.log" | sed -e 's/redpanda-src-0_redpanda_redpanda-//' | sed -e 's/\.log//')/g'  redpanda/kind-smb/keys/keys.go
+# MacOS version of sed -i 
+# 	sed -i '' 's/REDPANDA_CONTAINER_ID/$(shell docker exec -it honeycluster-control-plane ls /var/log/containers | grep "redpanda-src-0_redpanda_redpanda-[a-z0-9]*\.log" | sed -e 's/redpanda-src-0_redpanda_redpanda-//' | sed -e 's/\.log//')/g'  redpanda/kind-smb/keys/keys.go
+
+
 .PHONY: redpanda-kind-wasm
 redpanda-kind-wasm:
-	sed -i 's/REDPANDA_CONTAINER_ID/$(shell docker exec -it honeypot-control-plane ls /var/log/containers | grep "redpanda-src-0_redpanda_redpanda-[a-z0-9]*\.log" | sed -e 's/redpanda-src-0_redpanda_redpanda-//' | sed -e 's/\.log//')/g' redpanda/kind-smb/keys/keys.go
+	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create smb"
+	sed -i '' 's/REDPANDA_CONTAINER_ID/$(shell docker exec -it honeycluster-control-plane ls /var/log/containers | grep "redpanda-src-0_redpanda_redpanda-[a-z0-9]*\.log" | sed -e 's/redpanda-src-0_redpanda_redpanda-//' | sed -e 's/\.log//')/g'  redpanda/kind-smb/keys/keys.go
 	-cd redpanda/kind-smb/transform; $(RPK) container start; $(RPK) transform build; cd ../../..;
 	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/kind-smb/ && rpk topic create kind-smb" 
 	-kubectl cp redpanda/kind-smb/transform/transform.yaml redpanda/redpanda-src-0:/tmp/kind-smb/.
 	-kubectl cp redpanda/kind-smb/transform/kind-smb.wasm redpanda/redpanda-src-0:/tmp/kind-smb/.
 	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/kind-smb/ && rpk transform deploy"
-	sed -i 's/$(shell docker exec -it honeypot-control-plane ls /var/log/containers | grep "redpanda-src-0_redpanda_redpanda-[a-z0-9]*\.log" | sed -e 's/redpanda-src-0_redpanda_redpanda-//' | sed -e 's/\.log//')/REDPANDA_CONTAINER_ID/g' redpanda/kind-smb/keys/keys.go
+	sed -i '' 's/$(shell docker exec -it honeycluster-control-plane ls /var/log/containers | grep "redpanda-src-0_redpanda_redpanda-[a-z0-9]*\.log" | sed -e 's/redpanda-src-0_redpanda_redpanda-//' | sed -e 's/\.log//')/REDPANDA_CONTAINER_ID/g' redpanda/kind-smb/keys/keys.go
 
 .PHONY: jupyter
 spark:
