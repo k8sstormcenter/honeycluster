@@ -1,10 +1,12 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"keys"
+	"strings"
 
 	"github.com/redpanda-data/redpanda/src/transform-sdk/go/transform"
 )
@@ -63,6 +65,7 @@ func createKey(incomingMessage map[string]interface{}) string {
 	key = strings.ReplaceAll(key, "/", "")
 	key = strings.ReplaceAll(key, "\"", "")
 	key = strings.ReplaceAll(key, "'", "")
+	key = strings.ReplaceAll(key, "\" ", "")
 	key = strings.ReplaceAll(key, "-", "")
 	key = strings.ReplaceAll(key, "/", "")
 	key = strings.ReplaceAll(key, "=", "")
@@ -73,7 +76,8 @@ func createKey(incomingMessage map[string]interface{}) string {
 	key = strings.ReplaceAll(key, "$", "")
 	key = strings.ReplaceAll(key, "_", "")
 
-	return key
+	hash := sha256.Sum256([]byte(key))
+	return hex.EncodeToString(hash[:])
 }
 
 var bkeys = keys.Baselinekeys
@@ -83,6 +87,8 @@ var keysSet map[string]struct{}
 func doTransform(e transform.WriteEvent, w transform.RecordWriter) error {
 	// Unmarshal the incoming message into a map
 	record := e.Record()
+	// Remove baseline where the hashes dont work:
+	// Example of a very generic filter for changing containerIDs (like something involving git)
 	if strings.Contains(string(record.Value), "/var/lib/rancher-data/local-catalogs/v2/rancher") {
 		return nil
 	}
@@ -96,9 +102,9 @@ func doTransform(e transform.WriteEvent, w transform.RecordWriter) error {
 	// Extract 3 fields from the JSON and concat them as key
 	key := createKey(incomingMessage)
 
-	// Check if the key is in the CSV keys
+	// Check if the key is in the baseline table of hashes
 	if _, ok := keysSet[key]; !ok {
-		// If the key is not in the CSV keys, write the message
+		// If the key is not in the baseline (is not known), write the message
 
 		// Marshal the result back to JSON
 		jsonData, err := json.Marshal(incomingMessage)

@@ -1,4 +1,0 @@
-name: signalminusbaseline
-input-topic: "cr1"
-output-topic: "signalminusbaseline"
-language: tinygo-no-goroutines
