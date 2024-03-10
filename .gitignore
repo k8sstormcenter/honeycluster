@@ -13,6 +13,7 @@ venv/
 *_rsa
 *.kubeconfig*
 jupyterhub/rke2values.yaml
+*.csv
 
 # Compiled source #
 ###################
