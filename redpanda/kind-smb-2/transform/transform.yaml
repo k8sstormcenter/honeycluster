@@ -1,0 +1,4 @@
+name: kind-smb-2
+input-topic: "cr1"
+output-topic: "smb2"
+language: tinygo-no-goroutines
