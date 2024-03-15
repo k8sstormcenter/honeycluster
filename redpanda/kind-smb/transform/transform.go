@@ -5,13 +5,89 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"keys"
 	"strings"
 
 	"github.com/redpanda-data/redpanda/src/transform-sdk/go/transform"
 )
 
+func hashString(s string) string {
+	hash := sha256.Sum256([]byte(s))
+	return hex.EncodeToString(hash[:])
+}
+
+func hashMap(vs []string, f func(string) string) []string {
+	vsm := make([]string, len(vs))
+	for i, v := range vs {
+		vsm[i] = f(v)
+	}
+	return vsm
+}
+
 func main() {
+
+	var redpandaContainerId = "REDPANDA_CONTAINER_ID"
+
+	var baselinekeys = []string{
+		redpandaContainerId + "bincurlsilentfailkm5httpredpandasrc0redpandasrcredpandasvcclusterlocal9644v1statusready",
+		redpandaContainerId + "binshccurlsilentfailkm5http{SERVICENAME}redpandasrcredpandasvcclusterlocal9644v1statusready",
+		redpandaContainerId + "usrbinbashusrbinrpkclusterhealth",
+		redpandaContainerId + "usrbincurlsilentfailkhttpredpandasrc0redpandasrcredpandasvcclusterlocal9644v1statusready",
+		redpandaContainerId + "usrbincurlsilentfailkm5httpredpandasrc0redpandasrcredpandasvcclusterlocal9644v1statusready",
+		redpandaContainerId + "binshccurlsilentfailkhttp{SERVICE_NAME}redpandasrcredpandasvcclusterlocal9644v1statusready",
+		redpandaContainerId + "binshccurlsilentfailkhttp{SERVICENAME}redpandasrcredpandasvcclusterlocal9644v1statusready",
+		redpandaContainerId + "optredpandalibexecrpkclusterhealth",
+		redpandaContainerId + "binbashcrpktopiccreateextractcsv",
+		redpandaContainerId + "usrbinrpkbashusrbinrpktopiccreateextractcsv",
+		redpandaContainerId + "usrbinbashusrbinrpktopiccreateextractcsv",
+		redpandaContainerId + "optredpandalibexecrpktopiccreateextractcsv",
+		redpandaContainerId + "binbashcrpktopiccreatebaseline",
+		redpandaContainerId + "usrbinrpkbashusrbinrpktopiccreatebaseline",
+		redpandaContainerId + "usrbinbashusrbinrpktopiccreatebaseline",
+		redpandaContainerId + "optredpandalibexecrpktopiccreatebaseline",
+		redpandaContainerId + "binbashcrpktopiccreatesignalminusbaseline",
+		redpandaContainerId + "usrbinrpkbashusrbinrpktopiccreatesignalminusbaseline",
+		redpandaContainerId + "usrbinbashusrbinrpktopiccreatesignalminusbaseline",
+		redpandaContainerId + "optredpandalibexecrpktopiccreatesignalminusbaseline",
+		redpandaContainerId + "binbashcrpktopiccreatetetragon",
+		redpandaContainerId + "usrbinrpkbashusrbinrpktopiccreatetetragon",
+		redpandaContainerId + "usrbinbashusrbinrpktopiccreatetetragon",
+		redpandaContainerId + "optredpandalibexecrpktopiccreatetetragon",
+		redpandaContainerId + "binbashcrpktopiccreatekind-smb",
+		redpandaContainerId + "usrbinrpkbashusrbinrpktopiccreatekind-smb",
+		redpandaContainerId + "usrbinbashusrbinrpktopiccreatekind-smb",
+		redpandaContainerId + "optredpandalibexecrpktopiccreatekind-smb",
+		redpandaContainerId + "binbashcmkdirptmpbaseline",
+		redpandaContainerId + "usrbinmkdirptmpbaseline",
+		redpandaContainerId + "usrbintestdtmpbaseline",
+		redpandaContainerId + "usrbintarxmfCtmpbaseline",
+		redpandaContainerId + "binbashcrpktopiccreatesmb",
+		redpandaContainerId + "usrbinrpkbashusrbinrpktopiccreatesmb",
+		redpandaContainerId + "usrbinbashusrbinrpktopiccreatesmb",
+		redpandaContainerId + "optredpandalibexecrpktopiccreatesmb",
+		redpandaContainerId + "binbashcrpktopiccreatetracessshpre",
+		redpandaContainerId + "usrbinrpkbashusrbinrpktopiccreatetracessshpre",
+		redpandaContainerId + "usrbinbashusrbinrpktopiccreatetracessshpre",
+		redpandaContainerId + "optredpandalibexecrpktopiccreatetracessshpre",
+		redpandaContainerId + "binbashcrpktopiccreatetracesssh",
+		redpandaContainerId + "usrbinrpkbashusrbinrpktopiccreatetracesssh",
+		redpandaContainerId + "usrbinbashusrbinrpktopiccreatetracesssh",
+		redpandaContainerId + "optredpandalibexecrpktopiccreatetracesssh",
+		redpandaContainerId + "binbashcmkdirptmptracessshpre",
+		redpandaContainerId + "usrbinmkdirptmptracessshpre",
+		redpandaContainerId + "usrbintestdtmptracessshpre",
+		redpandaContainerId + "usrbintarxmfCtmptracessshpre",
+		redpandaContainerId + "binbashcmkdirptmptracesssh",
+		redpandaContainerId + "usrbinmkdirptmptracesssh",
+		redpandaContainerId + "usrbintestdtmptracesssh",
+		redpandaContainerId + "usrbintarxmfCtmptracesssh",
+		redpandaContainerId + "binbashccdtmptracessshprerpktransformdeploy",
+		redpandaContainerId + "usrbinrpkbashusrbinrpktransformdeploy",
+		redpandaContainerId + "usrbinbashusrbinrpktransformdeploy",
+		redpandaContainerId + "optredpandalibexecrpktransformdeploy",
+		redpandaContainerId + "binbashccdtmptracessshrpktransformdeploy",
+	}
+
+	bkeys := hashMap(baselinekeys, hashString)
 	// Register your transform function.
 	// This is a good place to perform other setup too.
 	keysSet = make(map[string]struct{}, len(bkeys))
@@ -75,12 +151,11 @@ func createKey(incomingMessage map[string]interface{}) string {
 	key = strings.ReplaceAll(key, "+", "")
 	key = strings.ReplaceAll(key, "$", "")
 	key = strings.ReplaceAll(key, "_", "")
+	key = strings.ReplaceAll(key, "&", "")
 
 	hash := sha256.Sum256([]byte(key))
 	return hex.EncodeToString(hash[:])
 }
-
-var bkeys = keys.Baselinekeys
 
 var keysSet map[string]struct{}
 

@@ -3,33 +3,21 @@ CLUSTER_NAME := $(NAME)
 
 OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
-#DIRS :=  extractcsv baseline 
-DIRS :=    tracessshpre tracesssh  tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
+#DIRS :=  extractcsv baseline tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
+DIRS :=    tracessshpre tracesssh 
 
 .EXPORT_ALL_VARIABLES:
 
 ##@ Scenario
 
 .PHONY: all-up
-all-up: cluster-up tetragon-install redpanda redpanda-wasm redpanda-kind-wasm vector ssh-install rbac sc-deploy port-forward traces ## Create the kind cluster and deploy tetragon
-
-.PHONY: attack-demo-up
-attack-demo-up: cluster-up tetragon-install redpanda redpanda-linux-kind-demo vector ssh-install rbac sc-deploy port-forward traces
-
-.PHONY: detect-on
-detect-on: traces
+all-up: cluster-up tetragon-install redpanda redpanda-kind-smb redpanda-wasm vector ssh-install rbac sc-deploy port-forward traces
 
 ## Run this in a second shell to observe the STDOUT
 .PHONY: secondshell-on
 secondshell-on: 
 	-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f | \
 	jq 'select( .process_kprobe != null and .process_kprobe.process.pod.namespace == "default" ) | "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.process.pod.namespace) \(.process_kprobe.args[] | select(.sock_arg != null) | .sock_arg)"'
-
-
-.PHONY: jquery-traces1
-jquery-traces1:
-	-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f | \
-	jq 'select( .process_kprobe != null and .process_kprobe.process.pod.namespace == "default" ) | "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.process.pod.namespace) \(.process_kprobe.args[] | select(.sock_arg.priority != null) | .sock_arg.priority)"'
 
 .PHONY: attack
 attack: copy-scripts create-bad exec
@@ -69,6 +57,7 @@ sc-delete:
 	-kubectl delete pv my-volume-vol
 	-kubectl delete sc local-storage
 
+##@ Redpanda
 
 .PHONY: redpanda
 redpanda:
@@ -88,7 +77,7 @@ redpanda:
 
 .PHONY: redpanda-wasm
 redpanda-wasm:
-	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create baseline && rpk topic alter-config baseline --set cleanup.policy=compact"
+#	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create baseline && rpk topic alter-config baseline --set cleanup.policy=compact"
 	@for dir in $(DIRS); do \
 		cd redpanda/$$dir/ && go mod tidy && $(RPK) container start; $(RPK) transform build && cd ../.. ;\
 		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
@@ -98,50 +87,23 @@ redpanda-wasm:
 		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/$$dir/ && rpk transform deploy" ;\
 	done
 	
-# Linux version of sed -i
-#	sed -i  's/REDPANDA_CONTAINER_ID/$(shell docker exec -it honeycluster-control-plane ls /var/log/containers | grep "redpanda-src-0_redpanda_redpanda-[a-z0-9]*\.log" | sed -e 's/redpanda-src-0_redpanda_redpanda-//' | sed -e 's/\.log//')/g'  redpanda/kind-smb/keys/keys.go
-# MacOS version of sed -i 
-# 	sed -i '' 's/REDPANDA_CONTAINER_ID/$(shell docker exec -it honeycluster-control-plane ls /var/log/containers | grep "redpanda-src-0_redpanda_redpanda-[a-z0-9]*\.log" | sed -e 's/redpanda-src-0_redpanda_redpanda-//' | sed -e 's/\.log//')/g'  redpanda/kind-smb/keys/keys.go
-
-
-.PHONY: redpanda-kind-wasm
-redpanda-kind-wasm:
-	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create smb"
-	sed -i '' 's/REDPANDA_CONTAINER_ID/$(shell docker exec -it honeycluster-control-plane ls /var/log/containers | grep "redpanda-src-0_redpanda_redpanda-[a-z0-9]*\.log" | sed -e 's/redpanda-src-0_redpanda_redpanda-//' | sed -e 's/\.log//')/g'  redpanda/kind-smb/keys/keys.go
-	-cd redpanda/kind-smb/transform; $(RPK) container start; $(RPK) transform build; cd ../../..;
-	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/kind-smb/ && rpk topic create kind-smb" 
-	-kubectl cp redpanda/kind-smb/transform/transform.yaml redpanda/redpanda-src-0:/tmp/kind-smb/.
-	-kubectl cp redpanda/kind-smb/transform/kind-smb.wasm redpanda/redpanda-src-0:/tmp/kind-smb/.
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/kind-smb/ && rpk transform deploy"
-	sed -i '' 's/$(shell docker exec -it honeycluster-control-plane ls /var/log/containers | grep "redpanda-src-0_redpanda_redpanda-[a-z0-9]*\.log" | sed -e 's/redpanda-src-0_redpanda_redpanda-//' | sed -e 's/\.log//')/REDPANDA_CONTAINER_ID/g' redpanda/kind-smb/keys/keys.go
-
-.PHONY: redpanda-linux-kind-demo
-redpanda-linux-kind-demo:
-	sed -i 's/REDPANDA_CONTAINER_ID/$(shell docker exec -it $(CLUSTER_NAME)-control-plane ls /var/log/containers | grep "redpanda-src-0_redpanda_redpanda-[a-z0-9]*\.log" | sed -e 's/redpanda-src-0_redpanda_redpanda-//' | sed -e 's/\.log//')/g' redpanda/kind-smb/keys/keys.go
+.PHONY: redpanda-kind-smb
+redpanda-kind-smb:
+ifeq ($(OS), "darwin")
+	sed -i '' 's/REDPANDA_CONTAINER_ID/$(shell docker exec -it $(CLUSTER_NAME)-control-plane ls /var/log/containers | grep "redpanda-src-0_redpanda_redpanda-[a-z0-9]*\.log" | sed -e 's/redpanda-src-0_redpanda_redpanda-//' | sed -e 's/\.log//')/g'  redpanda/kind-smb/transform/transform.go
+else
+	sed -i 's/REDPANDA_CONTAINER_ID/$(shell docker exec -it $(CLUSTER_NAME)-control-plane ls /var/log/containers | grep "redpanda-src-0_redpanda_redpanda-[a-z0-9]*\.log" | sed -e 's/redpanda-src-0_redpanda_redpanda-//' | sed -e 's/\.log//')/g' redpanda/kind-smb/transform/transform.go
+endif
 	-cd redpanda/kind-smb/transform; $(RPK) container start; $(RPK) transform build; cd ../../..;
 	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/kind-smb/ && rpk topic create smb" 
 	-kubectl cp redpanda/kind-smb/transform/transform.yaml redpanda/redpanda-src-0:/tmp/kind-smb/.
 	-kubectl cp redpanda/kind-smb/transform/kind-smb.wasm redpanda/redpanda-src-0:/tmp/kind-smb/.
 	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/kind-smb/ && rpk transform deploy"
-	sed -i 's/$(shell docker exec -it $(CLUSTER_NAME)-control-plane ls /var/log/containers | grep "redpanda-src-0_redpanda_redpanda-[a-z0-9]*\.log" | sed -e 's/redpanda-src-0_redpanda_redpanda-//' | sed -e 's/\.log//')/REDPANDA_CONTAINER_ID/g' redpanda/kind-smb/keys/keys.go
-
-.PHONY: redpanda-linux-kind-2
-redpanda-linux-kind-2:
-	sed -i 's/REDPANDA_CONTAINER_ID/$(shell docker exec -it $(CLUSTER_NAME)-control-plane ls /var/log/containers | grep "redpanda-src-0_redpanda_redpanda-[a-z0-9]*\.log" | sed -e 's/redpanda-src-0_redpanda_redpanda-//' | sed -e 's/\.log//')/g' redpanda/kind-smb-2/keys/keys.go
-	-cd redpanda/kind-smb-2/transform; $(RPK) container start; $(RPK) transform build; cd ../../..;
-	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/kind-smb-2/ && rpk topic create smb2" 
-	-kubectl cp redpanda/kind-smb-2/transform/transform.yaml redpanda/redpanda-src-0:/tmp/kind-smb-2/.
-	-kubectl cp redpanda/kind-smb-2/transform/kind-smb-2.wasm redpanda/redpanda-src-0:/tmp/kind-smb-2/.
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/kind-smb-2/ && rpk transform deploy"
-	sed -i 's/$(shell docker exec -it $(CLUSTER_NAME)-control-plane ls /var/log/containers | grep "redpanda-src-0_redpanda_redpanda-[a-z0-9]*\.log" | sed -e 's/redpanda-src-0_redpanda_redpanda-//' | sed -e 's/\.log//')/REDPANDA_CONTAINER_ID/g' redpanda/kind-smb-2/keys/keys.go
-
-.PHONY: jupyter
-spark:
-	-$(HELM) repo add jupyterhub https://jupyterhub.github.io/helm-chart/
-	-$(HELM) repo update
-	-$(HELM) upgrade --install jupyterhub jupyterhub/jupyterhub --namespace jupyter --create-namespace  --values jupyterhub/values.yaml
-	-echo "JHUB user/pass is yours to freely choose"
-
+ifeq ($(OS), "darwin")
+	sed -i '' 's/$(shell docker exec -it $(CLUSTER_NAME)-control-plane ls /var/log/containers | grep "redpanda-src-0_redpanda_redpanda-[a-z0-9]*\.log" | sed -e 's/redpanda-src-0_redpanda_redpanda-//' | sed -e 's/\.log//')/REDPANDA_CONTAINER_ID/g'  redpanda/kind-smb/transform/transform.go
+else
+	sed -i 's/$(shell docker exec -it $(CLUSTER_NAME)-control-plane ls /var/log/containers | grep "redpanda-src-0_redpanda_redpanda-[a-z0-9]*\.log" | sed -e 's/redpanda-src-0_redpanda_redpanda-//' | sed -e 's/\.log//')/REDPANDA_CONTAINER_ID/g' redpanda/kind-smb/transform/transform.go
+endif
 
 ##@ Tetragon
 
@@ -193,32 +155,11 @@ traces-off:
 create-bad:
 	ssh -p 5555 -t root@127.0.0.1  'source priv-create.sh'
 	-kubectl wait --for=condition=Ready pod my-pod
-##@ vcluster setup
-
-.PHONY: vcluster-deploy
-vcluster-deploy: vcluster
-	kubectl create namespace vcluster
-	-$(VCLUSTER) create ssh -n vcluster --upgrade -f scenario/vc-values.yaml
-
-.PHONY: kyverno-install
-kyverno-install:
-	-$(HELM) repo add kyverno https://kyverno.github.io/kyverno/
-	-$(HELM) repo update
-	-$(HELM) install kyverno kyverno/kyverno -n kyverno --create-namespace
-	-$(HELM) install kyverno-policies kyverno/kyverno-policies -n kyverno --set podSecurityStandard=baseline --set validationFailureAction=enforce
 
 .PHONY: ssh-install
 ssh-install:
 	-kubectl apply -f insecure-ssh/insecure-ssh.yaml
 	-kubectl -n default wait --timeout=120s --for=condition=Ready pod -l app.kubernetes.io/name=ssh-proxy
-
-.PHONY: vcluster-disconnect
-vcluster-disconnect: vcluster
-	-$(VCLUSTER) disconnect
-
-.PHONY: vcluster-connect
-vcluster-connect: vcluster
-	-$(VCLUSTER) connect ssh -n vcluster
 
 .PHONY: rbac
 rbac: 
@@ -244,7 +185,6 @@ ssh-connect:
 exec:
 	-kubectl exec -it my-pod -- /bin/bash -c "cd /hostlogs/pods/default_my-pod_**/my-pod/ && rm 0.log && ln -s /etc/kubernetes/pki/apiserver.key 0.log"
 	-kubectl logs my-pod
-
 
 ##@ Tools
 
@@ -276,22 +216,6 @@ ifeq (,$(shell which helm 2> /dev/null))
 	}
 else
 HELM = $(shell which helm)
-endif
-endif
-
-.PHONY: vcluster
-VCLUSTER = $(shell pwd)/bin/vcluster
-vcluster: ## Download vcluster if required
-ifeq (,$(wildcard $(VCLUSTER)))
-ifeq (,$(shell which vcluster 2> /dev/null))
-	@{ \
-		mkdir -p $(dir $(VCLUSTER)); \
-		curl -L -o vcluster "https://github.com/loft-sh/vcluster/releases/latest/download/vcluster-$(OS)-$(ARCH)"; \
-		sudo install -c -m 0755 vcluster $(shell pwd)/bin; \
-		rm -f vcluster; \
-	}
-else
-VCLUSTER = $(shell which vcluster)
 endif
 endif
 
