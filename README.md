@@ -1,4 +1,13 @@
-# Honeypots Research
+# HoneyCluster to verify and quantify an Attack Tree
+
+## The four fold path to threat intelligence
+1 Threat Model -> Attack Model
+
+2 Instrument a honeycluster (with eBPF tripwires and some bait)
+
+3 Trace and stream events, remove baseline
+
+4 Disseminate the Threat Intelligence
 
 ## Simple Attack Tree
 
@@ -19,7 +28,7 @@ flowchart TD
 
 ## Known Issues
 
-Tetragon traces are not all created equal, some need improvements
+Works on linux, but MACs are still having some hiccups WIP
 
 ## Demo
 
@@ -49,11 +58,16 @@ If the service account compromised by our attacker could inspect the logs of the
 
 Note that we have a lot more messages in the `smb` topic following the attack. Additional topics can be configured to filter for the other attack steps by configuring `DIRS` in the Makefile.
 
-## Teardown
+### Teardown
 
 ```bash
 make teardown
 ```
+
+## Experiment to detect Leak Vessel on live clusters
+No additional cluster instrumentation is needed
+[![K8sstormcenter](https://img.youtube.com/vi/RNYz86uDXLc/0.jpg)](https://www.youtube.com/watch?v=RNYz86uDXLc)
+
 
 ## Note for Mac Users
 
