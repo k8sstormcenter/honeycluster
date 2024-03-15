@@ -66,7 +66,9 @@ make teardown
 
 ## Experiment to detect Leak Vessel on live clusters
 No additional cluster instrumentation is needed
-[![K8sstormcenter](https://img.youtube.com/vi/RNYz86uDXLc/0.jpg)](https://www.youtube.com/watch?v=RNYz86uDXLc)
+
+
+[![K8sstormcenter](https://img.youtube.com/vi/RNYz86uDXLc/2000.jpg)](https://www.youtube.com/watch?v=RNYz86uDXLc)
 
 
 ## Note for Mac Users
