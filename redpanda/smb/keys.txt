@@ -1,0 +1,5 @@
+package keys
+
+var Baselinekeys = []string{
+    $HASHLIST
+}

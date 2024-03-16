@@ -1,4 +1,4 @@
-NAME ?= honeypot
+NAME ?= honeycluster
 CLUSTER_NAME := $(NAME)
 
 OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
@@ -7,15 +7,13 @@ BASEDIRS := baseline extractcsv
 DIRS :=   tracessshpre tracesssh  tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
 #DIRS := kprobe tracessshpre tracesssh tracesapipre tracesapi tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
 
-NUMBER := "9"
 
-KUBECONFIG := $(shell pwd)/.kubeconfig9
 
 .EXPORT_ALL_VARIABLES:
 
 ##@ put all on rke2
 .PHONY: all-up
-all-up: redpanda tetragon-install vector jupyter traces ssh-install
+all-up: redpanda tetragon-install vector jupyter traces ssh-install redpanda-baseline  redpanda-keys redpanda-smb-wasm
 
 
 .PHONY: detect-on
@@ -131,24 +129,23 @@ redpanda-baseline:
 		kubectl cp redpanda/$$dir/$$dir.wasm redpanda/redpanda-src-0:/tmp/$$dir/. ;\
 		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/$$dir/ && rpk transform deploy" ;\
 	done
-	-kubectl logs -n redpanda redpanda-src-0 -c redpanda |grep extractcsv >> extractcsv 
+
 
 
 # This is a way to extract the unique hashes from the redpanda logs (WASM cant write to file)
 # Make sure to run this before compiling the SMB wasm transform as it is needed to remove the baseline
 .PHONY: redpanda-keys
 redpanda-keys:
-	-kubectl logs -n redpanda redpanda-src-0 -c redpanda |grep "transform - extractcsv" > redpanda/extractcsv/extract
-	-cut -f 11- -d ' ' redpanda/extractcsv/extract >> keys.csv
-	-cat -n keys.csv | sort -uk2 | sort -nk1 | cut -f2-  > uniquekeys.csv 
-	-awk '{print "\"" $0 "\","}' uniquekeys.csv > output.csv
-	-paste -s -d ' ' output.csv > one_line_list.txt
-	-export HASHLIST=$(cat one_line_list.txt)
-	-envsubst < redpanda/smb/keys.txt > redpanda/smb/keys/keys.go
+	kubectl logs -n redpanda redpanda-src-0 -c redpanda |grep "transform - extractcsv" > redpanda/extractcsv/extract
+	cut -f 11- -d ' ' redpanda/extractcsv/extract >> keys.csv
+	cat -n keys.csv | sort -uk2 | sort -nk1 | cut -f2-  > uniquekeys.csv 
+	awk '{print "\"" $0 "\","}' uniquekeys.csv > output.csv
+	paste -s -d ' ' output.csv > one_line_list.txt
+	export HASHLIST=$(cat one_line_list.txt)
+	envsubst < redpanda/smb/keys.txt > redpanda/smb/keys/keys.go
 
 .PHONY: redpanda-smb-wasm
 redpanda-smb-wasm:
-	#-cp redpanda/smb/keys.9txt redpanda/smb/keys/keys.go
 	-cd redpanda/smb/transform && go mod tidy && rpk transform build &&  cd ../../..;
 	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/smb/ && rpk topic create smb" 
 	-kubectl cp redpanda/smb/transform/transform.yaml redpanda/redpanda-src-0:/tmp/smb/.
