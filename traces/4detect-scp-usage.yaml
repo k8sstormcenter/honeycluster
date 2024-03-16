@@ -10,12 +10,6 @@ spec:
     - index: 0
       type: "string"
     selectors:
- #   - matchBinaries:
- #     - operator: "In"
- #       values:
- #       - "/usr/bin/sftp"
- #       - "/usr/lib/openssh/sftp-server"
- #       - "/usr/bin/scp"
     - matchArgs:
       - index: 0
         operator: "Equal"
