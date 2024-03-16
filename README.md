@@ -68,8 +68,8 @@ Note that we have a lot more messages in the `smb` topic following the attack. A
 [![K8sstormcenterSSH](https://img.youtube.com/vi/EcZcLz3kkUs/0.jpg)](https://www.youtube.com/watch?v=EcZcLz3kkUs)
 
 
-The above screen recording shows the newly established ssh connection being picked up by the eBPF traces and appearing
-filtered into the tracesssh topic on RedPanda.
+The above screen recording shows the newly established ssh connection being picked up by the eBPF traces and appearing as anomaly in the topic `signalminusbaseline` (=`smb`) in the RedPandaUI and 
+filtered into the topic  `tracesssh`  on RedPanda (lower screen, shell `rpk topic consume tracesssh`).
 ### Teardown
 
 ```bash
