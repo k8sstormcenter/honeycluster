@@ -111,7 +111,7 @@ redpanda-keys:
 	-kubectl logs -n redpanda redpanda-src-0 -c redpanda |grep "transform - extractcsv" > redpanda/extractcsv/extract
 	-cut -f 11- -d ' ' redpanda/extractcsv/extract >> keys.csv
 	-cat -n keys.csv | sort -uk2 | sort -nk1 | cut -f2-  > uniquekeys.csv 
-	-awk '{print "\"" $0 "\","}' uniquekeys.csv > output.csv
+	-awk '{printf "\"%s\",\n", $$0}' uniquekeys.csv > output.csv
 	-paste -s -d ' ' output.csv > one_line_list.txt
 	-export HASHLIST=$(cat one_line_list.txt)
 	-envsubst < redpanda/smb/keys.txt > redpanda/smb/keys/key.go
