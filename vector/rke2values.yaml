@@ -298,36 +298,6 @@ customConfig:
       type: file
       include:
         - /var/run/cilium/tetragon/tetragon.log
-    # redpandasrc:
-    #   type: kafka
-    #   bootstrap_servers: "redpanda-src.redpanda.svc.cluster.local:9093"
-    #   group_id: "vector"
-    #   topics: 
-    #     - "tracessshpre"
-    #     - "tracesssh"
-    #     - "tracesapipre"
-    #     - "tracesapi"
-    #     - "tracesenumpre"
-    #     - "tracesenum"
-    #     - "tracesscppre"
-    #     - "tracesscp"
-    #     - "tracesk8sclientpre"
-    #     - "tracesk8sclient"
-    #     - "tracessymlinkpre"
-    #     - "tracessymlink"
-    #   librdkafka_options:
-    #     "auto.offset.reset": "smallest"
-  sinks:
-    # influxdb:
-    #   type: influxdb_logs
-    #   inputs:
-    #     - redpandasrc
-    #   endpoint: http://influxdb.influxdb.svc.cluster.local:8086
-    #   database: redpanda
-    #   measurement: "ioc"  # Add this line
-    #   batch:
-    #     max_events: 50
-    #     timeout_secs: 1
     redpanda:
       type: kafka
       inputs:

@@ -378,7 +378,7 @@ resources:
       # -- Maximum memory count for each Redpanda broker.
       # Equivalent to `resources.limits.memory`.
       # For production, use `10Gi` or greater.
-      max: 2.5Gi
+      max: 10Gi
     #
     # This optional `redpanda` object allows you to specify the memory size for both the Redpanda
     # process and the underlying reserved memory used by Seastar.
