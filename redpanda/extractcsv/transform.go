@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/redpanda-data/redpanda/src/transform-sdk/go/transform"
@@ -26,9 +25,9 @@ func doTransform(e transform.WriteEvent, w transform.RecordWriter) error {
 	defer lock.Unlock()
 
 	// Check if the counter has reached 200
-	if counter >= 200 {
-		return nil
-	}
+	//if counter >= 200 {
+	//return nil
+	//}
 
 	// Get the key
 	key := string(e.Record().Key)
@@ -41,7 +40,22 @@ func doTransform(e transform.WriteEvent, w transform.RecordWriter) error {
 
 		// Append the key to the CSV file
 		//appendToCSV(key)
-		fmt.Println(key)
+		//fmt.Println(key)
+		//fmt.Println(counter)
+
+		// Create a new record with the JSON data
+		record := &transform.Record{
+			Key:       []byte(key),
+			Value:     e.Record().Value,
+			Offset:    e.Record().Offset,
+			Timestamp: e.Record().Timestamp,
+			Headers:   e.Record().Headers,
+		}
+
+		// Write the record to the destination topic
+		w.Write(*record)
+		totalkeys = append(totalkeys, key)
+
 	}
 
 	return nil

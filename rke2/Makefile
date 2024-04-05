@@ -4,7 +4,8 @@ CLUSTER_NAME := $(NAME)
 OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 BASEDIRS := baseline extractcsv 
-DIRS :=   tracessshpre tracesssh  tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
+DIRS :=   tracessshpre tracesssh 
+# tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
 #DIRS := kprobe tracessshpre tracesssh tracesapipre tracesapi tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
 
 
@@ -134,11 +135,14 @@ redpanda-baseline:
 
 # This is a way to extract the unique hashes from the redpanda logs (WASM cant write to file)
 # Make sure to run this before compiling the SMB wasm transform as it is needed to remove the baseline
+# for LINUX, use timeout instead of gtimeout
 .PHONY: redpanda-keys
 redpanda-keys:
-	kubectl logs -n redpanda redpanda-src-0 -c redpanda |grep "transform - extractcsv" > redpanda/extractcsv/extract
-	cut -f 11- -d ' ' redpanda/extractcsv/extract >> keys.csv
-	cat -n keys.csv | sort -uk2 | sort -nk1 | cut -f2-  > uniquekeys.csv 
+	#kubectl logs -n redpanda redpanda-src-0 -c redpanda |grep "transform - extractcsv" > redpanda/extractcsv/extract
+	#cut -f 11- -d ' ' redpanda/extractcsv/extract >> keys.csv
+	#cat -n keys.csv | sort -uk2 | sort -nk1 | cut -f2-  > uniquekeys.csv 
+	echo "do this next step manually while its a quick fix"
+	echo "gtimeout 20s kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic consume extractcsv  | jq -r .key > uniquekeys.csv"
 	awk '{printf "\"%s\",\n", $$0}' uniquekeys.csv > output.csv
 	paste -s -d ' ' output.csv > one_line_list.txt
 	export HASHLIST=$(cat one_line_list.txt)
@@ -186,7 +190,7 @@ tetragon-install: helm
 .PHONY: vector
 vector:
 	-$(HELM) repo add vector https://helm.vector.dev
-	-$(HELM) upgrade --install vector vector/vector --namespace vector --create-namespace --values vector/rke2values.yaml
+	-$(HELM) upgrade --install vector vector/vector --namespace vector --create-namespace --values vector/values.yaml
 
 
 .PHONY: traces
