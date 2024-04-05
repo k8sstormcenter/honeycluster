@@ -24,11 +24,6 @@ func doTransform(e transform.WriteEvent, w transform.RecordWriter) error {
 	lock.Lock()
 	defer lock.Unlock()
 
-	// Check if the counter has reached 200
-	//if counter >= 200 {
-	//return nil
-	//}
-
 	// Get the key
 	key := string(e.Record().Key)
 
@@ -37,11 +32,6 @@ func doTransform(e transform.WriteEvent, w transform.RecordWriter) error {
 		// If the key has not been seen before, add it to the set and increment the counter
 		keys[key] = struct{}{}
 		counter++
-
-		// Append the key to the CSV file
-		//appendToCSV(key)
-		//fmt.Println(key)
-		//fmt.Println(counter)
 
 		// Create a new record with the JSON data
 		record := &transform.Record{
@@ -54,7 +44,6 @@ func doTransform(e transform.WriteEvent, w transform.RecordWriter) error {
 
 		// Write the record to the destination topic
 		w.Write(*record)
-		totalkeys = append(totalkeys, key)
 
 	}
 
