@@ -14,7 +14,7 @@ DIRS :=  signal tracessshpre tracesssh
 
 ##@ put all on rke2
 .PHONY: all-up
-all-up: redpanda tetragon-install vector jupyter traces ssh-install redpanda-wasm
+all-up: redpanda tetragon-install vector  traces ssh-install redpanda-wasm #jupyter 
 
 
 .PHONY: detect-on
