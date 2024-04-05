@@ -1,12 +1,12 @@
 NAME ?= honeycluster
 CLUSTER_NAME := $(NAME)
 
+
 OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 BASEDIRS := baseline extractcsv 
 DIRS :=   tracessshpre tracesssh 
-# tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
-#DIRS := kprobe tracessshpre tracesssh tracesapipre tracesapi tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
+#DIRS :=   tracessshpre tracesssh tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
 
 
 
@@ -138,15 +138,10 @@ redpanda-baseline:
 # for LINUX, use timeout instead of gtimeout
 .PHONY: redpanda-keys
 redpanda-keys:
-	#kubectl logs -n redpanda redpanda-src-0 -c redpanda |grep "transform - extractcsv" > redpanda/extractcsv/extract
-	#cut -f 11- -d ' ' redpanda/extractcsv/extract >> keys.csv
-	#cat -n keys.csv | sort -uk2 | sort -nk1 | cut -f2-  > uniquekeys.csv 
-	echo "do this next step manually while its a quick fix"
-	echo "gtimeout 20s kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic consume extractcsv  | jq -r .key > uniquekeys.csv"
+	gtimeout 20s kubectl --namespace redpanda exec  redpanda-src-0 -c redpanda -- rpk topic consume extractcsv  | jq -r .key | tee uniquekeys.csv
 	awk '{printf "\"%s\",\n", $$0}' uniquekeys.csv > output.csv
 	paste -s -d ' ' output.csv > one_line_list.txt
-	export HASHLIST=$(cat one_line_list.txt)
-	envsubst < redpanda/smb/keys.txt > redpanda/smb/keys/keys.go
+	sh -c 'export HASHLIST=$$(cat one_line_list.txt); envsubst < redpanda/smb/keys.txt > redpanda/smb/keys/keys.go'
 
 .PHONY: redpanda-smb-wasm
 redpanda-smb-wasm:
