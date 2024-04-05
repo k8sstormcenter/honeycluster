@@ -4,8 +4,8 @@ CLUSTER_NAME := $(NAME)
 
 OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
-BASEDIRS := baseline extractcsv 
-DIRS :=   tracessshpre tracesssh 
+
+DIRS :=  signal tracessshpre tracesssh 
 #DIRS :=   tracessshpre tracesssh tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
 
 
@@ -119,37 +119,6 @@ redpanda-topic-delete:
 	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete signalminusbaseline
 	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete smb
 
-.PHONY: redpanda-baseline
-redpanda-baseline:
-	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create baseline && rpk topic alter-config baseline --set cleanup.policy=compact"
-	@for dir in $(BASEDIRS); do \
-		cd redpanda/$$dir/ && go mod tidy && rpk transform build && cd ../.. ;\
-		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
-		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/$$dir" ;\
-		kubectl cp redpanda/$$dir/transform.yaml redpanda/redpanda-src-0:/tmp/$$dir/. ;\
-		kubectl cp redpanda/$$dir/$$dir.wasm redpanda/redpanda-src-0:/tmp/$$dir/. ;\
-		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/$$dir/ && rpk transform deploy" ;\
-	done
-
-
-
-# This is a way to extract the unique hashes from the redpanda logs (WASM cant write to file)
-# Make sure to run this before compiling the SMB wasm transform as it is needed to remove the baseline
-# for LINUX, use timeout instead of gtimeout
-.PHONY: redpanda-keys
-redpanda-keys:
-	gtimeout 20s kubectl --namespace redpanda exec  redpanda-src-0 -c redpanda -- rpk topic consume extractcsv  | jq -r .key | tee uniquekeys.csv
-	awk '{printf "\"%s\",\n", $$0}' uniquekeys.csv > output.csv
-	paste -s -d ' ' output.csv > one_line_list.txt
-	sh -c 'export HASHLIST=$$(cat one_line_list.txt); envsubst < redpanda/smb/keys.txt > redpanda/smb/keys/keys.go'
-
-.PHONY: redpanda-smb-wasm
-redpanda-smb-wasm:
-	-cd redpanda/smb/transform && go mod tidy && rpk transform build &&  cd ../../..;
-	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/smb/ && rpk topic create smb" 
-	-kubectl cp redpanda/smb/transform/transform.yaml redpanda/redpanda-src-0:/tmp/smb/.
-	-kubectl cp redpanda/smb/transform/smb.wasm redpanda/redpanda-src-0:/tmp/smb/.
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/smb/ && rpk transform deploy"
 
 
 .PHONY: redpanda-wasm

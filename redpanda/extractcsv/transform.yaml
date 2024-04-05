@@ -1,4 +1,0 @@
-name: extractcsv
-input-topic: "baseline"
-output-topic: "extractcsv"
-language: tinygo-no-goroutines

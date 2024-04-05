@@ -1,4 +1,4 @@
 name: tracessymlinkpre
-input-topic: "smb"
+input-topic: "signal"
 output-topic: "tracessymlinkpre"
 language: tinygo-no-goroutines

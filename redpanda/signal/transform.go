@@ -5,28 +5,55 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"keys"
 	"strings"
+	"sync"
 
 	"github.com/redpanda-data/redpanda/src/transform-sdk/go/transform"
 )
 
+var counter int
+var keys map[string]struct{}
+var lock sync.Mutex
+
 func main() {
 	// Register your transform function.
 	// This is a good place to perform other setup too.
-	keysSet = make(map[string]struct{}, len(bkeys))
-	for _, key := range bkeys {
-		keysSet[key] = struct{}{}
-	}
+	counter = 0
+	keys = make(map[string]struct{})
 	transform.OnRecordWritten(doTransform)
 }
+
+var fieldsToRemove = []string{"pid", "tid", "auid", "uid", "exec_id", "parent_exec_id"}
 
 type Message struct {
 	Timestamp string                 `json:"timestamp"`
 	Data      map[string]interface{} `json:",inline"`
 }
 
-// To create the "hash" of a known message, focused on avoiding false negatives
+func removeTimeFields(obj interface{}) {
+	switch v := obj.(type) {
+	case map[string]interface{}:
+		for key, value := range v {
+			// If the key contains "time", delete it
+			for _, field := range fieldsToRemove {
+				if strings.EqualFold(key, field) {
+					delete(v, key)
+					break
+				}
+			}
+			if strings.Contains(strings.ToLower(key), "time") {
+				delete(v, key)
+			} else {
+				// If the value is a map or a slice, recursively remove time fields
+				removeTimeFields(value)
+			}
+		}
+	case []interface{}:
+		for i := range v {
+			removeTimeFields(v[i])
+		}
+	}
+}
 
 var topLevelFields = []string{"process_exec", "process_exit", "process_kprobe"}
 var subFieldsToConcatenate = []string{"process.pod.container.id", "process.binary", "process.arguments"}
@@ -78,35 +105,29 @@ func createKey(incomingMessage map[string]interface{}) string {
 
 	hash := sha256.Sum256([]byte(key))
 	return hex.EncodeToString(hash[:])
-
 }
-
-var bkeys = keys.Baselinekeys
-
-var keysSet map[string]struct{}
 
 func doTransform(e transform.WriteEvent, w transform.RecordWriter) error {
 	// Unmarshal the incoming message into a map
-	record := e.Record()
-	if strings.Contains(string(record.Value), "/var/lib/rancher-data/local-catalogs/v2/rancher") {
-		return nil
-	}
-	if strings.Contains(string(record.Value), "/opt/spyderbat/tmp/") {
-		return nil
-	}
-
 	var incomingMessage map[string]interface{}
 	err := json.Unmarshal(e.Record().Value, &incomingMessage)
 	if err != nil {
 		return err
 	}
 
+	// Remove the time fields from the message
+	removeTimeFields(incomingMessage)
 	// Extract 3 fields from the JSON and concat them as key
 	key := createKey(incomingMessage)
 
-	// Check if the key is in the CSV keys
-	if _, ok := keysSet[key]; !ok {
-		// If the key is not in the CSV keys, write the message
+	lock.Lock()
+	defer lock.Unlock()
+
+	// Check if the key has been seen before
+	if _, seen := keys[key]; !seen {
+		// If the key has not been seen before, add it to the set and increment the counter
+		keys[key] = struct{}{}
+		counter++
 
 		// Marshal the result back to JSON
 		jsonData, err := json.Marshal(incomingMessage)
