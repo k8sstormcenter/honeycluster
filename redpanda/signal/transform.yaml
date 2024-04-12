@@ -1,4 +1,4 @@
-name: baseline
+name: signal
 input-topic: "cr1"
-output-topic: "baseline"
+output-topic: "signal"
 language: tinygo-no-goroutines

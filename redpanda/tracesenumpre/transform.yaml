@@ -1,4 +1,4 @@
 name: tracesenumpre
-input-topic: "smb"
+input-topic: "signal"
 output-topic: "tracesenumpre"
 language: tinygo-no-goroutines
