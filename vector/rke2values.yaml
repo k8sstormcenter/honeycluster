@@ -298,6 +298,7 @@ customConfig:
       type: file
       include:
         - /var/run/cilium/tetragon/tetragon.log
+  sinks:
     redpanda:
       type: kafka
       inputs:
