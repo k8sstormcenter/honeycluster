@@ -5,7 +5,7 @@ CLUSTER_NAME := $(NAME)
 OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 
-DIRS :=  signal tracessshpre tracesssh 
+DIRS :=  signal  tracessshpre tracesssh 
 #DIRS :=   tracessshpre tracesssh tracesenumpre tracesenum tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
 
 
@@ -13,55 +13,18 @@ DIRS :=  signal tracessshpre tracesssh
 .EXPORT_ALL_VARIABLES:
 
 ##@ put all on rke2
-.PHONY: all-up
-all-up: redpanda tetragon-install vector  traces ssh-install redpanda-wasm #jupyter 
+.PHONY: install-honeycluster
+install-honeycluster: redpanda tetragon-install vector traces redpanda-wasm-hosted 
 
+##@ remove all honeycluster instrumentation from rke2
+.PHONY: clean-honeycluster
+clean-honeycluster: #TODO
 
 .PHONY: detect-on
 detect-on: traces
 
-## Run this in a second shell to observe the STDOUT
-.PHONY: secondshell-on
-secondshell-on: 
-	-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f |\
-	jq 'select( .process_kprobe != null  \
-	        and .process_kprobe.process.pod.namespace != "jupyter"   \
-			and .process_kprobe.process.pod.namespace != "cert-manager" \
-			and .process_kprobe.process.pod.namespace != "redpanda" \
-			and .process_kprobe.process.pod.namespace != "spark" \
-			and .process_kprobe.process.pod.namespace != "parseable" \
-			and .process_kprobe.process.pod.namespace != "vector"  \
-			and .process_kprobe.process.binary != "/usr/bin/rancher"  \
-			and .process_kprobe.process.binary != "/usr/bin/webhook") | \
-			"\(.)"'
-
-# "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.process.pod.namespace) \(.process_kprobe.args[] | select(.sock_arg != null) | .sock_arg)"'
-
-
-.PHONY: jquery-tracesscp
-jquery-tracesscp:
-	-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f |\
-	jq 'select( .process_kprobe.process.pod.namespace == "default" | .)'
-
-
-.PHONY: jquery-traces1
-jquery-traces1:
-	-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f |\
-	jq 'select( .process_kprobe != null  \
-	        and .process_kprobe.process.pod.namespace != "jupyter"   \
-			and .process_kprobe.process.pod.namespace != "cert-manager" \
-			and .process_kprobe.process.pod.namespace != "redpanda" \
-			and .process_kprobe.process.pod.namespace != "spark" \
-			and .process_kprobe.process.pod.namespace != "parseable" \
-			and .process_kprobe.process.binary == "/usr/sbin/sshd" \
-			and .process_kprobe.process.pod.namespace != "vector" )| \
-	 "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.process.pod.namespace) \(.process_kprobe.args[] )"'
-
-
 .PHONY: attack
 attack: copy-scripts create-bad exec
-
-
 
 
 .PHONY: sc-delete
@@ -132,6 +95,16 @@ redpanda-wasm:
 		kubectl cp redpanda/$$dir/$$dir.wasm redpanda/redpanda-src-0:/tmp/$$dir/. ;\
 		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/$$dir/ && rpk transform deploy" ;\
 	done
+
+# NOTE: you might want to change the branch in the remote file location, if somebody is pushing newer wasm binaries
+# still not sure if pushing binaries to git is the solution, but its better than before
+.PHONY: redpanda-wasm-hosted
+redpanda-wasm-hosted:	
+	@for dir in $(DIRS); do \
+		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
+		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/$$dir.wasm --name $$dir --input-topic=cr1 --output-topic=$$dir --var language=tinygo-no-goroutines " ;\
+	done
+
 
 .PHONY: jupyter
 jupyter:
@@ -224,13 +197,45 @@ ssh-connect:
 exec:
 	-kubectl exec my-pod  -- /bin/bash -c "cd /hostlogs/pods/default_my-pod_6aa2708d-b320-4d5f-8016-439457127f22/my-pod/ && rm  0.log & ln -s /home/ansible/.id_rsa_tmp 0.log"
 
-.PHONY: influxdb
-influxdb:
-	-$(HELM) repo add influxdata https://helm.influxdata.com
-	-$(HELM) repo add grafana https://grafana.github.io/helm-charts
-	-$(HELM) repo update
-	-$(HELM) upgrade --install influxdb influxdata/influxdb --namespace influxdb -f influxdb/rke2values.yaml --create-namespace
-	-$(HELM) upgrade --install grafana grafana/grafana --namespace influxdb -f grafana/rke2values.yaml
+
+##@ Manual debug and observe
+## Run this in a second shell to observe the STDOUT
+.PHONY: secondshell-on
+secondshell-on: 
+	-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f |\
+	jq 'select( .process_kprobe != null  \
+	        and .process_kprobe.process.pod.namespace != "jupyter"   \
+			and .process_kprobe.process.pod.namespace != "cert-manager" \
+			and .process_kprobe.process.pod.namespace != "redpanda" \
+			and .process_kprobe.process.pod.namespace != "spark" \
+			and .process_kprobe.process.pod.namespace != "parseable" \
+			and .process_kprobe.process.pod.namespace != "vector"  \
+			and .process_kprobe.process.binary != "/usr/bin/rancher"  \
+			and .process_kprobe.process.binary != "/usr/bin/webhook") | \
+			"\(.)"'
+
+# "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.process.pod.namespace) \(.process_kprobe.args[] | select(.sock_arg != null) | .sock_arg)"'
+
+
+.PHONY: jquery-tracesscp
+jquery-tracesscp:
+	-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f |\
+	jq 'select( .process_kprobe.process.pod.namespace == "default" | .)'
+
+
+.PHONY: jquery-traces1
+jquery-traces1:
+	-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f |\
+	jq 'select( .process_kprobe != null  \
+	        and .process_kprobe.process.pod.namespace != "jupyter"   \
+			and .process_kprobe.process.pod.namespace != "cert-manager" \
+			and .process_kprobe.process.pod.namespace != "redpanda" \
+			and .process_kprobe.process.pod.namespace != "spark" \
+			and .process_kprobe.process.pod.namespace != "parseable" \
+			and .process_kprobe.process.binary == "/usr/sbin/sshd" \
+			and .process_kprobe.process.pod.namespace != "vector" )| \
+	 "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.process.pod.namespace) \(.process_kprobe.args[] )"'
+
 
 ##@ Tools
 

@@ -3,7 +3,7 @@ bin/
 venv/
 
 # Byte-compiled / optimized / DLL files
-*.wasm
+redpanda/**/*.wasm
 *.DS_Store
 
 # Secrets #
