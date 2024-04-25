@@ -32,17 +32,24 @@ func createKey(incomingMessage map[string]interface{}) (string, string) {
 
 	for _, topLevelField := range topLevelFields {
 		if valtop, ok := incomingMessage[topLevelField].(map[string]interface{}); ok {
-			value, ok := valtop["process"].(map[string]interface{})
-			valpar, ok := valtop["parent"].(map[string]interface{})
-			if !ok {
-				return "", ""
+
+			containerID := ""
+			binary := ""
+			arguments := ""
+			if value, ok := valtop["process"].(map[string]interface{}); ok {
+
+				containerID, _ = value["pod"].(map[string]interface{})["container"].(map[string]interface{})["id"].(string)
+				binary, _ = value["binary"].(string)
+				arguments, _ = value["arguments"].(string)
 			}
 
-			containerID, _ := value["pod"].(map[string]interface{})["container"].(map[string]interface{})["id"].(string)
-			binary, _ := value["binary"].(string)
-			arguments, _ := value["arguments"].(string)
-			pbinary, _ := valpar["binary"].(string)
-			parguments, _ := valpar["arguments"].(string)
+			pbinary := ""
+			parguments := ""
+
+			if valpar, ok := valtop["parent"].(map[string]interface{}); ok {
+				pbinary, _ = valpar["binary"].(string)
+				parguments, _ = valpar["arguments"].(string)
+			}
 
 			keyParts = append(keyParts, containerID, binary, arguments, pbinary, parguments)
 
