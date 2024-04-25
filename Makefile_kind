@@ -5,8 +5,9 @@ EMAIL := "constanze.roedig@tuwien.ac.at"
 OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 
-#DIRS :=  signal  
-COMPILEDIRS  := signal keygen
+BRANCH= "feature/baselinedynamic"
+DIRS := keygen
+COMPILEDIRS  :=  signal 
 
 .EXPORT_ALL_VARIABLES:
 
@@ -79,7 +80,7 @@ redpanda: helm check-context
 
 .PHONY: redpanda-wasm
 redpanda-wasm:
-	
+## WIP : you need to execute the redpanda/script.sh first to extract the uniq keys for the baseline
 	@for dir in $(COMPILEDIRS); do \
 		cd redpanda/$$dir/ && go mod tidy && rpk transform build && cd ../.. ;\
 		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
@@ -93,7 +94,7 @@ redpanda-wasm:
 redpanda-wasm-hosted:	check-context
 	@for dir in $(DIRS); do \
 		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
-		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/$$dir.wasm --name $$dir --input-topic=cr1 --output-topic=$$dir --var language=tinygo-no-goroutines " ;\
+		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/features/$$branch/prebuilt/$$dir.wasm --name $$dir --input-topic=cr1 --output-topic=$$dir --var language=tinygo-no-goroutines " ;\
 	done
 
 
