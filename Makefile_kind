@@ -1,10 +1,12 @@
 NAME ?= honeycluster
 CLUSTER_NAME := $(NAME)
+EMAIL := "constanze.roedig@tuwien.ac.at"
 
 OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 
-DIRS :=  signal  tracessshpre tracesssh 
+#DIRS :=  signal  
+COMPILEDIRS  := signal keygen
 
 .EXPORT_ALL_VARIABLES:
 
@@ -66,7 +68,7 @@ redpanda: helm check-context
 	-$(HELM) upgrade --install cert-manager jetstack/cert-manager --set installCRDs=true --namespace cert-manager  --create-namespace
 	-$(HELM) repo add redpanda https://charts.redpanda.com
 	-$(HELM) repo update
-	-$(HELM) upgrade --install redpanda-src redpanda/redpanda -n redpanda --create-namespace --values redpanda/values.yaml 
+	-$(HELM) upgrade --install redpanda-src redpanda/redpanda -n redpanda --create-namespace --values redpanda/values.yaml --set image.repository=docker.redpanda.com/redpandadata/redpanda-unstable --set image.tag=v24.1.1-rc4
 	while [ "$$(kubectl -n redpanda get po -l app.kubernetes.io/name=redpanda -o jsonpath='{.items[0].metadata.generateName}')" != "redpanda-src-" ]; do \
 		sleep 5; \
    	echo "Waiting for Redpanda pod to be created."; \
@@ -75,7 +77,17 @@ redpanda: helm check-context
 	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create cr1"
 
 
-
+.PHONY: redpanda-wasm
+redpanda-wasm:
+	
+	@for dir in $(COMPILEDIRS); do \
+		cd redpanda/$$dir/ && go mod tidy && rpk transform build && cd ../.. ;\
+		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
+		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/$$dir" ;\
+		kubectl cp redpanda/$$dir/transform.yaml redpanda/redpanda-src-0:/tmp/$$dir/. ;\
+		kubectl cp redpanda/$$dir/$$dir.wasm redpanda/redpanda-src-0:/tmp/$$dir/. ;\
+		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/$$dir/ && rpk transform deploy" ;\
+	done
 	
 .PHONY: redpanda-wasm-hosted
 redpanda-wasm-hosted:	check-context
@@ -113,7 +125,7 @@ redpanda-keys: check-context
 tetragon-install: helm check-context
 	-$(HELM) repo add cilium https://helm.cilium.io
 	-$(HELM) repo update
-	-$(HELM) upgrade --install tetragon cilium/tetragon -n kube-system --set tetragon.grpc.enabled=true --set tetragon.grpc.address=localhost:54321
+	-$(HELM) upgrade --install tetragon cilium/tetragon -n kube-system --values tetragon/values.yaml
 	while [ "$$(kubectl -n kube-system get po -l app.kubernetes.io/name=tetragon -o jsonpath='{.items[0].metadata.generateName}')" != "tetragon-" ]; do \
 		sleep 5; \
    	echo "Waiting for Tetragon pod to be created."; \
@@ -240,8 +252,8 @@ endif
 
 .PHONY: check-context
 check-context:
-	-CURRENT_CONTEXT=$(kubectl config current-context)
-	-if [ "$${CURRENT_CONTEXT}" != "kind-$${CLUSTER_NAME}" ]; then \
-		echo "Error: kubectl context is not set to kind-$${CLUSTER_NAME}"; \
-		exit 1; \
-	fi
+    CURRENT_CONTEXT:=$(shell kubectl config current-context)
+    if [ "$${CURRENT_CONTEXT}" != "kind-$${CLUSTER_NAME}" ]; then \
+        echo "Error: kubectl context is not set to kind-$${CLUSTER_NAME}"; \
+        exit 1; \
+    fi

@@ -1,25 +1,20 @@
 package main
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"strings"
-	"sync"
 
 	"github.com/redpanda-data/redpanda/src/transform-sdk/go/transform"
 )
 
-var counter int
-var keys map[string]struct{}
-var lock sync.Mutex
+var (
+	keys = make(map[string]bool)
+)
 
 func main() {
 	// Register your transform function.
 	// This is a good place to perform other setup too.
-	counter = 0
-	keys = make(map[string]struct{})
+	keys = make(map[string]bool)
 	transform.OnRecordWritten(doTransform)
 }
 
@@ -55,58 +50,6 @@ func removeTimeFields(obj interface{}) {
 	}
 }
 
-var topLevelFields = []string{"process_exec", "process_exit", "process_kprobe"}
-var subFieldsToConcatenate = []string{"process.pod.container.id", "process.binary", "process.arguments"}
-
-func createKey(incomingMessage map[string]interface{}) string {
-	var keyParts []string
-
-	for _, topLevelField := range topLevelFields {
-		if value, ok := incomingMessage[topLevelField]; ok {
-			// If the top-level field exists, traverse its subfields
-			for _, subField := range subFieldsToConcatenate {
-				// Split the subfield into parts
-				parts := strings.Split(subField, ".")
-				subValue := value.(map[string]interface{})
-				for _, part := range parts {
-					// Traverse the map
-					if v, ok := subValue[part]; ok {
-						// If the part exists, add it to the key parts
-						switch v := v.(type) {
-						case map[string]interface{}:
-							subValue = v
-						default:
-							keyParts = append(keyParts, fmt.Sprint(v))
-						}
-					}
-				}
-			}
-		}
-	}
-
-	// Join the key parts with a separator
-	key := strings.Join(keyParts, "")
-	// Remove all whitespaces and escape characters
-	key = strings.ReplaceAll(key, " ", "")
-	key = strings.ReplaceAll(key, "\\", "")
-	key = strings.ReplaceAll(key, "/", "")
-	key = strings.ReplaceAll(key, "\"", "")
-	key = strings.ReplaceAll(key, "'", "")
-	key = strings.ReplaceAll(key, "\" ", "")
-	key = strings.ReplaceAll(key, "-", "")
-	key = strings.ReplaceAll(key, "/", "")
-	key = strings.ReplaceAll(key, "=", "")
-	key = strings.ReplaceAll(key, ".", "")
-	key = strings.ReplaceAll(key, "containerd", "")
-	key = strings.ReplaceAll(key, ":", "")
-	key = strings.ReplaceAll(key, "+", "")
-	key = strings.ReplaceAll(key, "$", "")
-	key = strings.ReplaceAll(key, "_", "")
-
-	hash := sha256.Sum256([]byte(key))
-	return hex.EncodeToString(hash[:])
-}
-
 func doTransform(e transform.WriteEvent, w transform.RecordWriter) error {
 	// Unmarshal the incoming message into a map
 	var incomingMessage map[string]interface{}
@@ -118,16 +61,11 @@ func doTransform(e transform.WriteEvent, w transform.RecordWriter) error {
 	// Remove the time fields from the message
 	removeTimeFields(incomingMessage)
 	// Extract 3 fields from the JSON and concat them as key
-	key := createKey(incomingMessage)
+	key := e.Record().Key
 
-	lock.Lock()
-	defer lock.Unlock()
-
-	// Check if the key has been seen before
-	if _, seen := keys[key]; !seen {
-		// If the key has not been seen before, add it to the set and increment the counter
-		keys[key] = struct{}{}
-		counter++
+	_, seen := keys[string(key)]
+	if !seen {
+		keys[string(key)] = true
 
 		// Marshal the result back to JSON
 		jsonData, err := json.Marshal(incomingMessage)
@@ -149,6 +87,7 @@ func doTransform(e transform.WriteEvent, w transform.RecordWriter) error {
 		if err != nil {
 			return err
 		}
+
 	}
 
 	return nil
