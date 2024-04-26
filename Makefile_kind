@@ -106,7 +106,7 @@ redpanda-wasm-hosted:	check-context
 .PHONY: baseline-signal
 baseline-signal: check-context
 	echo "this will error out with exit code 124"
-	- kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/sh -c "timeout 5 rpk topic consume keygen -f '%k\n' > /tmp/list"
+	- kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/sh -c "timeout 5 rpk topic consume keygen -f '%k\n'" > /tmp/list
 	sort -u /tmp/list  > /tmp/list.uniq
 	tail -n +2 /tmp/list.uniq > /tmp/list.clean
 	awk '{gsub(/\r/, ""); printf "\"%s\",\n", $$0}' /tmp/list.clean > /tmp/list.uniq.c
