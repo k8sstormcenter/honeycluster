@@ -46,7 +46,7 @@ make --makefile=Makefile_kind honey-up
 
 At this point, you might want to port-forward to Redpanda dashboard (service redpanda-src-console) and browse to the TOPIC = keygen. 
 ```bash
-kubectl port-forward service/redpanda-src-console 8080:30000
+kubectl port-forward service/redpanda-src-console -n redpanda 30000:8080
 ```
 http://localhost:30000/topics/keygen?p=-1&s=500&o=-2#messages
 
