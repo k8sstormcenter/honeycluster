@@ -13,14 +13,14 @@ COMPILEDIRS  := signal
 ##@ Scenario
 
 .PHONY: honey-up
-honey-up: tetragon-install redpanda vector redpanda-wasm-hosted ssh-install  traces
+honey-up: tetragon-install redpanda vector redpanda-wasm-hosted ssh-install port-forward traces
 
 .PHONY: honey-signal
 honey-signal: baseline-signal redpanda-wasm 
 
 ##@ remove all honeycluster instrumentation from rke2
 .PHONY: honey-down
-honey-down: traces-off redpanda-topic-delete sc-delete  wipe
+honey-down: traces-off redpanda-topic-delete sc-delete stop-local-port-forwarding  wipe
 
 .PHONY: wipe
 wipe: 
@@ -203,9 +203,10 @@ rbac:
 
 .PHONY: port-forward
 port-forward:
-	-kubectl cp id_rsa  ssh/ssh-proxy:/.
-	-kubectl exec -i -t ssh-proxy -- /bin/bash -c "chmod 600 id_rsa"
-	-kubectl exec -i -t ssh-proxy -- /bin/bash -c " ssh -R8888:localhost:22 paris@137.117.185.70 -i id_rsa &"
+	-kubectl port-forward -n ssh svc/ssh-proxy 5555:22 &
+	#-kubectl cp id_rsa  ssh/ssh-proxy:/.
+	#-kubectl exec -i -t ssh-proxy -- /bin/bash -c "chmod 600 id_rsa"
+	#-kubectl exec -i -t ssh-proxy -- /bin/bash -c " ssh -R8888:localhost:22 paris@137.117.185.70 -i id_rsa &"
 
 
 
@@ -220,7 +221,8 @@ copy-scripts:
 
 .PHONY: ssh-connect
 ssh-connect:
-	ssh root@137.117.185.70 -p 8888
+	ssh -p 5555 root@127.0.0.1
+#	ssh root@137.117.185.70 -p 8888
 
 .PHONY: exec 
 exec:
