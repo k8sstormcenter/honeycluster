@@ -1,0 +1,238 @@
+cattle-system
+enabled: true
+imagePullPolicy: IfNotPresent
+imagePullSecrets: []
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+podAnnotations: {}
+podSecurityContext: {}
+nodeSelector: {}
+tolerations:
+  - operator: Exists
+affinity: {}
+extraHostPathMounts: []
+extraConfigmapMounts: []
+daemonSetAnnotations: {}
+extraVolumes: []
+updateStrategy: {}
+daemonSetLabelsOverride: {}
+selectorLabelsOverride: {}
+podLabelsOverride: {}
+serviceLabelsOverride: {}
+# Set DNS policy for tetragon pods.
+#
+# Recommended DNS policy for tetragon pod depends on whether the export container
+# needs to resolve external DNS names (e.g. an S3 URL) or internal ones (e.g. a Kubernetes
+# DNS name for elasticsearch service).
+#
+# - For external DNS names, use "Default" so that the export container continues to function
+#   properly in case there is a connectivity issue between the export container and core-dns.
+# - For internal DNS names, use "ClusterFirstWithHostNet" so that the export container can
+#   resolve them.
+#
+# https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-dns-policy
+dnsPolicy: Default
+# exportDirectory specifies directory to put Hubble and FGS JSON export files.
+exportDirectory: "/var/run/cilium/tetragon"
+# exportFileRotationInterval specifies file creation interval for hubble-export-s3.
+exportFileCreationInterval: "120s"
+#
+# Configures whether Tetragon pods run on the host network.
+#
+# IMPORTANT: Tetragon must be on the host network for the process visibility to
+# function properly.
+#
+hostNetwork: true
+tetragon:
+  enabled: true
+  image:
+    override: ~
+    repository: quay.io/cilium/tetragon
+    tag: v1.0.3
+  resources: {}
+  extraArgs: {}
+  extraEnv: []
+  # extraEnv:
+  #   - name: foo
+  #     value: bar
+  extraVolumeMounts: []
+  securityContext:
+    privileged: true
+  # Tetragon puts processes in an LRU cache. The cache is used to find ancestors for subsequently exec'ed
+  # processes.
+  processCacheSize: 65536
+  # JSON export filename. Set it to an empty string to disable JSON export altogether.
+  exportFilename: tetragon.log
+  # JSON export file permissions as a string
+  exportFilePerm: "600"
+  # Size in megabytes at which to rotate JSON export files.
+  exportFileMaxSizeMB: 10
+  # Number of rotated files to retain.
+  exportFileMaxBackups: 5
+  # Compress rotated JSON export files.
+  exportFileCompress: false
+  # Rate-limit event export (events per minute), Set to -1 to export all events.
+  exportRateLimit: -1
+  # Allowlist for JSON export. For example, to export only process_connect events from
+  # the default namespace:
+  #
+  # exportAllowList: |
+  #   {"namespace":["default"],"event_set":["PROCESS_EXEC"]}
+  exportAllowList: |-
+    {"event_set":["PROCESS_EXEC",  "PROCESS_KPROBE", "PROCESS_UPROBE", "PROCESS_TRACEPOINT"]}
+  # Denylist for JSON export. For example, to exclude exec events that look similar to
+  # Kubernetes health checks and all the events from kube-system namespace and the host:
+  #
+  # exportDenyList: |
+  #   {"health_check":true}
+  #   {"namespace":["kube-system",""]}
+  #
+  exportDenyList: |-
+    {"health_check":true}
+    {"namespace":["", "cattle-system", "redpanda", "cilium", "kube-system"]}
+  # Filters to include or exclude fields from Tetragon events. Without any filters, all
+  # fields are included by default. The presence of at least one inclusion filter implies
+  # default-exclude (i.e. any fields that don't match an inclusion filter will be
+  # excluded). Field paths are expressed using dot notation like "a.b.c" and multiple
+  # field paths can be separated by commas like "a.b.c,d,e.f". An optional "event_set" may
+  # be specified to apply the field filter to a specific set of events.
+  #
+  # For example, to exclude the "parent" field from all events and include the "process"
+  # field in PROCESS_KPROBE events while excluding all others:
+  #
+  # fieldFilters: |
+  #   {"fields": "parent", "action": "EXCLUDE"}
+  #   {"event_set": ["PROCESS_KPROBE"], "fields": "process", "action": "INCLUDE"}
+  #
+  fieldFilters: ""
+  # Filters to redact secrets from string fields in Tetragon events.  To perform
+  # redactions, redaction filters define regular expressions in the `redact`
+  # field. Any capture groups in these regular expressions are redacted and
+  # replaced with "*****".
+  #
+  # Redaction filters select events using the `match` field, which contains one
+  # or more filters (these filters are defined the same way as export filters).
+  # If no match filter is defined, all events are selected.
+  #
+  # NOTE: When writing regular expressions in JSON, it is important to escape
+  # backslash characters. For instance `\Wpasswd\W?` would be written as
+  # `{"redact": "\\Wpasswd\\W?"}`.
+  #
+  # As a concrete example, the following will redact all passwords passed to
+  # processes with the "--password" argument:
+  #
+  #   {"redact": ["--password(?:\\s+|=)(\\S*)"]}
+  #
+  # Now, an event which contains the string "--password=foo" would have that
+  # string replaced with "--password=*****".
+  #
+  # Suppose we also see some passwords passed via the -p shorthand for a specific binary, foo.
+  # We can also redact these as follows:
+  #
+  #   {"match": [{"binary_regex": "(?:^|/)foo$"}], "redact": ["-p(?:\\s+|=)(\\S*)"]}
+  #
+  # With both of the above redaction filters in place, we are now redacting all
+  # password arguments.
+  redactionFilters: ""
+  # Access Kubernetes API to associate Tetragon events with Kubernetes pods.
+  enableK8sAPI: true
+  # enableProcessCred enables Capabilities visibility in exec and kprobe events.
+  enableProcessCred: false
+  # enableProcessNs enables Namespaces visibility in exec and kprobe events.
+  enableProcessNs: false
+  # Set --btf option to explicitly specify an absolute path to a btf file. For advanced users only.
+  btf: ""
+  # Override the command. For advanced users only.
+  commandOverride: []
+  # Override the arguments. For advanced users only.
+  argsOverride: []
+  prometheus:
+    # -- Whether to enable exposing Tetragon metrics.
+    enabled: false
+    # -- The address at which to expose metrics. Set it to "" to expose on all available interfaces.
+    address: ""
+    # -- The port at which to expose metrics.
+    port: 2112
+    # -- The labels to include with supporting metrics.
+    # The possible values are "namespace", "workload", "pod" and "binary".
+    metricsLabelFilter: "namespace,workload,pod,binary"
+    serviceMonitor:
+      # -- Whether to create a 'ServiceMonitor' resource targeting the 'tetragon' pods.
+      enabled: false
+      # -- The set of labels to place on the 'ServiceMonitor' resource.
+      labelsOverride: {}
+      # -- Interval at which metrics should be scraped. If not specified, Prometheus' global scrape interval is used.
+      scrapeInterval: "10s"
+  grpc:
+    # -- Whether to enable exposing Tetragon gRPC.
+    enabled: true
+    # -- The address at which to expose gRPC. Examples: localhost:54321, unix:///var/run/tetragon/tetragon.sock
+    address: "localhost:54321"
+  gops:
+    # -- The address at which to expose gops.
+    address: "localhost"
+    # -- The port at which to expose gops.
+    port: 8118
+  # Enable policy filter. This is required for K8s namespace filtering and pod label filters.
+  enablePolicyFilter: True
+  # Enable policy filter debug messages.
+  enablePolicyFilterDebug: false
+  # Enable latency monitoring in message handling
+  enableMsgHandlingLatency: false
+  # -- Location of the host proc filesystem in the runtime environment. If the runtime runs in the
+  # host, the path is /proc. Exceptions to this are environments like kind, where the runtime itself
+  # does not run on the host.
+  hostProcPath: "/proc"
+tetragonOperator:
+  # -- tetragon-operator image.
+  image:
+    override: ~
+    repository: quay.io/cilium/tetragon-operator
+    tag: v1.0.3
+    # tetragon-operator image-digest
+    suffix: ""
+    pullPolicy: IfNotPresent
+  # Skip CRD creation.
+  skipCRDCreation: false
+  podInfo:
+    # -- Enables the PodInfo CRD and the controller that reconciles PodInfo
+    # custom resources.
+    enabled: false
+export:
+  # "stdout". "" to disable.
+  mode: "stdout"
+  resources: {}
+  securityContext: {}
+  # filenames defines list of files for fluentd to tail and export.
+  filenames:
+    - tetragon.log
+  # stdout specific exporter settings
+  stdout:
+    extraEnv: []
+    # extraEnv:
+    #   - name: foo
+    #     value: bar
+
+    # * When enabledCommand=true and commandOverride is not set, the command inserted will be hubble-export-stdout.
+    #   This supports the default for the current deployment instructions to deploy stdout-export sidecar container.
+    # * When enabledCommand=true and commandOverride override is set, the command inserted will be the value of commandOverride.
+    #   This is useful for inserting another sidecar container that requires a command override.
+    # * When enabledCommand=false, no command will be specified in the manifest and container's default command will take over.
+    enabledCommand: true
+    # * When enabledArgs=true and argsOverride is not set, the args inserted will be the default ones for export-stdout.
+    # * When enabledArgs=true and argsOverride override is set, the args value inserted will be the value of argsOverride.
+    #   This is useful for inserting another sidecar container that requires args override.
+    # * When enabledArgs=false, no command will be specified in the manifest and container's default args value will take over.
+    enabledArgs: true
+    # specific manifest command to use
+    commandOverride: []
+    # specific manifest args to use
+    argsOverride: []
+    # Extra volume mounts to add to stdout export pod
+    extraVolumeMounts: []
+    image:
+      override: ~
+      repository: quay.io/cilium/hubble-export-stdout
+      tag: v1.0.3

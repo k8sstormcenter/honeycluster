@@ -1,4 +1,4 @@
 name: signal
-input-topic: "cr1"
+input-topic: "keygen"
 output-topic: "signal"
 language: tinygo-no-goroutines

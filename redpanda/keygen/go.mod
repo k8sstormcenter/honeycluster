@@ -1,4 +1,4 @@
-module transform
+module keygen
 
 go 1.20
 

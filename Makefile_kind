@@ -3,20 +3,24 @@ CLUSTER_NAME := $(NAME)
 
 OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
-BASEDIRS := baseline extractcsv
-##EXTRA_DIRS := tracesenumpre tracesenum
-DIRS :=    tracessshpre tracesssh tracesscppre tracesscp tracesk8sclientpre tracesk8sclient tracessymlinkpre tracessymlink
+
+
+DIRS := keygen
+COMPILEDIRS  := signal 
 
 .EXPORT_ALL_VARIABLES:
 
 ##@ Scenario
 
-.PHONY: all-up
-all-up: cluster-up tetragon-install redpanda redpanda-kind-smb redpanda-wasm vector ssh-install rbac sc-deploy port-forward traces
+.PHONY: honey-up
+honey-up: cluster-up redpanda tetragon-install vector redpanda-wasm-hosted traces  ssh-install rbac sc-deploy port-forward traces
+
+.PHONY: honey-signal
+honey-signal: baseline-signal redpanda-wasm 
 
 ## Run this in a second shell to observe the STDOUT
 .PHONY: secondshell-on
-secondshell-on: 
+secondshell-on: check-context
 	-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f | \
 	jq 'select( .process_kprobe != null and .process_kprobe.process.pod.namespace == "default" ) | "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.process.pod.namespace) \(.process_kprobe.args[] | select(.sock_arg != null) | .sock_arg)"'
 
@@ -24,35 +28,36 @@ secondshell-on:
 attack: copy-scripts create-bad exec
 
 .PHONY: teardown
-teardown: stop-port-forwarding sc-delete cluster-down
+teardown: stop-port-forwarding sc-delete traces-off cluster-down
 
 ##@ Kind
 
 .PHONY: cluster-up
 cluster-up: kind ## Create the kind cluster
-	-$(KIND) create cluster --name $(CLUSTER_NAME) --config config/kind-config.yaml
+	$(KIND) create cluster --name $(CLUSTER_NAME) 
 
 .PHONY: cluster-down
-cluster-down: kind ## Delete the kind cluster
+cluster-down: kind helm check-context  ## Delete the kind cluster
 	-$(HELM) uninstall vector -n vector
 	-$(HELM) uninstall redpanda-src -n redpanda
+	- kubectl delete -n redpanda pvc datadir-redpanda-src-0
 	-$(HELM) uninstall cert-manager -n cert-manager
 	-$(HELM) uninstall tetragon -n kube-system
 	-sleep 10
-	-$(KIND) delete cluster --name $(CLUSTER_NAME)
+	$(KIND) delete cluster --name $(CLUSTER_NAME)
 
 .PHONY: stop-port-forwarding
-stop-port-forwarding:
+stop-port-forwarding: check-context
 	-lsof -ti:5555 | xargs kill -9
 
 .PHONY: attack-delete
-attack-delete:
+attack-delete: check-context
 	-kubectl delete po my-pod
 	-kubectl delete pvc my-claim-vol 
 	-kubectl delete pv my-volume-vol
 
 .PHONY: sc-delete
-sc-delete:
+sc-delete: check-context
 	-kubectl delete po my-pod
 	-kubectl delete pvc my-claim-vol 
 	-kubectl delete pv my-volume-vol
@@ -61,15 +66,15 @@ sc-delete:
 ##@ Redpanda
 
 .PHONY: redpanda
-redpanda:
+redpanda: helm check-context
 	-$(HELM) repo add jetstack https://charts.jetstack.io
 	-$(HELM) repo update
 	-$(HELM) upgrade --install cert-manager jetstack/cert-manager --set installCRDs=true --namespace cert-manager  --create-namespace
 	-$(HELM) repo add redpanda https://charts.redpanda.com
 	-$(HELM) repo update
-	-$(HELM) upgrade --install redpanda-src redpanda/redpanda -n redpanda --create-namespace --values redpanda/values.yaml --set logging.logLevel=debug
+	-$(HELM) upgrade --install redpanda-src redpanda/redpanda -n redpanda --create-namespace --values redpanda/values.yaml --set image.repository=docker.redpanda.com/redpandadata/redpanda-unstable --set image.tag=v24.1.1-rc4
 	while [ "$$(kubectl -n redpanda get po -l app.kubernetes.io/name=redpanda -o jsonpath='{.items[0].metadata.generateName}')" != "redpanda-src-" ]; do \
-		sleep 5; \
+		sleep 2; \
    	echo "Waiting for Redpanda pod to be created."; \
 	done
 	-kubectl -n redpanda wait --timeout=30s --for=condition=Ready pod -l app.kubernetes.io/component=redpanda-statefulset
@@ -78,9 +83,9 @@ redpanda:
 
 .PHONY: redpanda-wasm
 redpanda-wasm:
-#	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create baseline && rpk topic alter-config baseline --set cleanup.policy=compact"
-	@for dir in $(DIRS); do \
-		cd redpanda/$$dir/ && go mod tidy && $(RPK) container start; $(RPK) transform build && cd ../.. ;\
+## WIP : you need to execute the redpanda/script.sh first to extract the uniq keys for the baseline
+	@for dir in $(COMPILEDIRS); do \
+		cd redpanda/$$dir/ && go mod tidy && rpk transform build && cd ../.. ;\
 		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
 		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/$$dir" ;\
 		kubectl cp redpanda/$$dir/transform.yaml redpanda/redpanda-src-0:/tmp/$$dir/. ;\
@@ -88,52 +93,54 @@ redpanda-wasm:
 		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/$$dir/ && rpk transform deploy" ;\
 	done
 	
-.PHONY: redpanda-kind-smb
-redpanda-kind-smb:
-	sed -i 's/REDPANDA_CONTAINER_ID/$(shell docker exec -it $(CLUSTER_NAME)-control-plane ls /var/log/containers | grep "redpanda-src-0_redpanda_redpanda-[a-z0-9]*\.log" | sed -e 's/redpanda-src-0_redpanda_redpanda-//' | sed -e 's/\.log//')/g' redpanda/kind-smb/transform/transform.go
-	-cd redpanda/kind-smb/transform; $(RPK) container start; $(RPK) transform build; cd ../../..;
-	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/kind-smb/ && rpk topic create smb" 
-	-kubectl cp redpanda/kind-smb/transform/transform.yaml redpanda/redpanda-src-0:/tmp/kind-smb/.
-	-kubectl cp redpanda/kind-smb/transform/kind-smb.wasm redpanda/redpanda-src-0:/tmp/kind-smb/.
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/kind-smb/ && rpk transform deploy"
-	sed -i 's/$(shell docker exec -it $(CLUSTER_NAME)-control-plane ls /var/log/containers | grep "redpanda-src-0_redpanda_redpanda-[a-z0-9]*\.log" | sed -e 's/redpanda-src-0_redpanda_redpanda-//' | sed -e 's/\.log//')/REDPANDA_CONTAINER_ID/g' redpanda/kind-smb/transform/transform.go
+# TODO: replace BRANCH to MAIN once PR is merged	
+.PHONY: redpanda-wasm-hosted
+redpanda-wasm-hosted:	check-context
+	@for dir in $(DIRS); do \
+		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
+		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/feature/baselinedynamic/prebuilt/$$dir.wasm --name $$dir --input-topic=cr1 --output-topic=$$dir --var language=tinygo-no-goroutines " ;\
+	done
 
 
-.PHONY: redpanda-keys
-redpanda-keys:
-	-kubectl logs -n redpanda redpanda-src-0 -c redpanda |grep "transform - extractcsv" > redpanda/extractcsv/extract
-	-cut -f 11- -d ' ' redpanda/extractcsv/extract >> keys.csv
-	-cat -n keys.csv | sort -uk2 | sort -nk1 | cut -f2-  > uniquekeys.csv 
-	-awk '{printf "\"%s\",\n", $$0}' uniquekeys.csv > output.csv
-	-paste -s -d ' ' output.csv > one_line_list.txt
-	-export HASHLIST=$(cat one_line_list.txt)
-	-envsubst < redpanda/smb/keys.txt > redpanda/smb/keys/key.go
+
+.PHONY: baseline-signal
+baseline-signal: check-context
+	echo "this will error out with exit code 124"
+	- kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/sh -c "timeout 5 rpk topic consume keygen -f '%k\n'" > /tmp/list
+	sort -u /tmp/list  > /tmp/list.uniq
+	tail -n +2 /tmp/list.uniq > /tmp/list.clean
+	awk '{gsub(/\r/, ""); printf "\"%s\",\n", $$0}' /tmp/list.clean > /tmp/list.uniq.c
+	paste -s -d ' ' /tmp/list.uniq.c > one_line_list.txt
+	-sh -c 'export HASHLIST=$$(cat one_line_list.txt); envsubst < redpanda/signal/keyless/transform.go > redpanda/signal/transform.go '
+
+
+
 ##@ Tetragon
 
 .PHONY: tetragon-install
-tetragon-install: helm
+tetragon-install: helm check-context
 	-$(HELM) repo add cilium https://helm.cilium.io
 	-$(HELM) repo update
-	-$(HELM) upgrade --install tetragon cilium/tetragon -n kube-system --set tetragon.grpc.enabled=true --set tetragon.grpc.address=localhost:54321
+	-$(HELM) upgrade --install tetragon cilium/tetragon -n kube-system --values tetragon/values.yaml
 	while [ "$$(kubectl -n kube-system get po -l app.kubernetes.io/name=tetragon -o jsonpath='{.items[0].metadata.generateName}')" != "tetragon-" ]; do \
-		sleep 5; \
+		sleep 2; \
    	echo "Waiting for Tetragon pod to be created."; \
 	done
-	-kubectl -n kube-system wait --timeout=120s --for=condition=Ready pod -l app.kubernetes.io/name=tetragon
+
 
 
 .PHONY: vector
-vector:
+vector: helm check-context
 	-$(HELM) repo add vector https://helm.vector.dev
 	-$(HELM) upgrade --install vector vector/vector --namespace vector --create-namespace --values vector/values.yaml
 	while [ "$$(kubectl -n vector get po -l app.kubernetes.io/name=vector -o jsonpath='{.items[0].metadata.generateName}')" != "vector-" ]; do \
-		sleep 5; \
+		sleep 2; \
    	echo "Waiting for Vector pod to be created."; \
 	done
-	-kubectl -n vector wait --timeout=120s --for=condition=Ready pod -l app.kubernetes.io/name=vector
+
 
 .PHONY: traces
-traces:
+traces: check-context
 	-kubectl apply -f traces/1sshd-probe-success.yaml
 	-kubectl apply -f traces/1sshd-probe-spawnbash.yaml
 	-kubectl apply -f traces/2enumerate-serviceaccount.yaml
@@ -144,7 +151,7 @@ traces:
 	-kubectl apply -f traces/7detect-sensitivefile-access.yaml
 
 .PHONY: traces-off
-traces-off:
+traces-off: check-context
 	-kubectl delete -f traces/1sshd-probe-success.yaml
 	-kubectl delete -f traces/1sshd-probe-spawnbash.yaml
 	-kubectl delete -f traces/2enumerate-serviceaccount.yaml
@@ -155,37 +162,37 @@ traces-off:
 	-kubectl delete -f traces/7detect-sensitivefile-access.yaml
 
 .PHONY: create-bad
-create-bad:
+create-bad: check-context
 	ssh -p 5555 -t root@127.0.0.1  'source priv-create.sh'
 	-kubectl wait --for=condition=Ready pod my-pod
 
 .PHONY: ssh-install
-ssh-install:
+ssh-install: check-context
 	-kubectl apply -f insecure-ssh/insecure-ssh.yaml
 	-kubectl -n default wait --timeout=120s --for=condition=Ready pod -l app.kubernetes.io/name=ssh-proxy
 
 .PHONY: rbac
-rbac: 
+rbac: check-context
 	kubectl apply -f scenario/rbac.yaml
 
 .PHONY: sc-deploy
-sc-deploy:
+sc-deploy: check-context
 	kubectl apply -f scenario/sc.yaml
 
 .PHONY: port-forward
-port-forward:
+port-forward: check-context
 	kubectl port-forward svc/ssh-proxy 5555:22 &
 
 .PHONY: copy-scripts
-copy-scripts:
+copy-scripts: 
 	scp -P 5555 scripts/create.py scripts/priv-create.sh root@127.0.0.1:/root
 
 .PHONY: ssh-connect
-ssh-connect:
+ssh-connect: check-context
 	ssh -p 5555 root@127.0.0.1
 
 .PHONY: exec 
-exec:
+exec: check-context
 	-kubectl exec -it my-pod -- /bin/bash -c "cd /hostlogs/pods/default_my-pod_**/my-pod/ && rm 0.log && ln -s /etc/kubernetes/pki/apiserver.key 0.log"
 	-kubectl logs my-pod
 
@@ -238,3 +245,11 @@ else
 RPK = $(shell which rpk)
 endif
 endif
+
+.PHONY: check-context
+check-context:
+    CURRENT_CONTEXT:=$(shell kubectl config current-context) \
+    if [ "$${CURRENT_CONTEXT}" != "kind-$${CLUSTER_NAME}" ]; then \
+        echo "Error: kubectl context is not set to kind-$${CLUSTER_NAME}"; \
+        exit 1; \
+    fi

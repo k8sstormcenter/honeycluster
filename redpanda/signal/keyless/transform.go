@@ -27,9 +27,8 @@ type Message struct {
 // apt install -y python3-pip
 // pip3 install kubernetes
 // this is a demo and because it creates so much noise, we filter it , you can still see it in all other topics
-var keys = []string
-{
-	
+var keys = []string{
+	$HASHLIST
 }
 var keysSet map[string]struct{}
 

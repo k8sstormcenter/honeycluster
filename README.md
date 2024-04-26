@@ -16,7 +16,8 @@ or
 
 4 Disseminate the Threat Intelligence
 
-## (A) Simple Attack Tree
+## (A) Reference Implementation plus example attack
+### 1 Example Attack Tree
 
 As a simple example attack tree, we will look at the attack path made possible if an attacker can create `/var/log` hostPath Persistent Volumes on a cluster, inspired by [this blog post](https://jackleadford.github.io/containers/2020/03/06/pvpost.html).
 
@@ -33,25 +34,78 @@ flowchart TD
     E --> G[Initial access \nto Pod]
 ```
 
-## Known Issues
 
-Works on linux, but MACs are still having some hiccups WIP
 
-## Demo
+### 2 Setup a Honeycluster (kind = local , RKE2 = cluster)
+First, please note, that there are two Makefiles `Makefile_kind` and `Makefile_rke2` . They differ quite a bit especially in the size of the installs. Please choose.
 
-Bring all the infra up (known issue: wait conditions):
+Also, there are `helm-value` files associatedly called from within the respective `Makefiles` for either `kind` or `RKE2`, and while the defaults will very likely work, you may have to adapt them.
 
-```bash
-make --makefile=Makefile_kind all-up
-```
-
-You can view the Redpanda dashboard by browsing to: <http://localhost:30000/>
-
-Note that `smb` (signal minus baseline), `tracessshpre` and `tracesssh` topics have been created in Redpanda. Make an SSH connection to the server, and note the corresponding message in the `tracesssh` topic:
+Bring all the infra up:
 
 ```bash
-make --makefile=Makefile_kind ssh-connect
+make --makefile=Makefile_kind honey-up
+or 
+make --makefile=Makefile_rke2 honey-up
 ```
+
+At this point, you might want to port-forward to Redpanda dashboard (service redpanda-src-console) and browse to the TOPIC = keygen. 
+```bash
+kubectl port-forward service/redpanda-src-console -n redpanda 30000:8080
+```
+http://localhost:30000/topics/keygen?p=-1&s=500&o=-2#messages
+
+In my case on `kind`, I see 5 messages. I will judge them as "BENIGN" because I know thats the install, but check please. (on `RKE2` I have 150 messages)
+
+### 3 Setup Baseline redaction
+For this to work you need GO installed. Currently also RPK, there might still be some dependency issues for some OS, and we are working hard to avoid the local compiling.
+
+```bash
+export PATH="/usr/local/opt/go@1.21/bin:$PATH"
+make --makefile=Makefile_kind honey-signal
+or
+make --makefile=Makefile_rke2 honey-signal
+
+...
+stuff....
+build successful
+deploy your transform to a topic:
+        rpk transform deploy
+TOPIC   STATUS
+signal  OK
+transform "signal" deployed.
+```
+
+Test your detection on topic = `signal` . 
+
+
+### 4 Execute the sample attack
+(currently we disabled the redpanda topics `trace*` because we are rewriting them, you can compile and deploy them though)
+Make an SSH connection to the server, and note the corresponding message in the `signal` topic:
+
+```bash
+make --makefile=Makefile_*** ssh-connect
+ssh -p 5555 root@127.0.0.1
+Handling connection for 5555
+root@127.0.0.1's password: root
+...
+stuff
+...
+Ubuntu comes with ABSOLUTELY NO WARRANTY, to the extent permitted by
+applicable law.
+
+root@ssh-proxy:~# ls
+```
+At this point, you should see some `signal` in RedPanda. Approx 40-50 signals. Look out for a key starting with `kpro` and
+it might contain the `ssh-spawn-bash` detection.
+
+
+You could decide that you dont want to see all of the bash environment related signals, and copy paste the key e.g. exec69ef01cde4ec877c63652bf9d84e9210 into the `redpanda/signal/transform.go` and recompile using `make --makefile=Makefile_kind redpanda-wasm`  
+
+
+More self-attack-experimentation:
+
+
 
 Close the SSH connection, and run the full attack which will again make an SSH connection to our vulnerable server, run a malicious script which will create a HostPath type PersistentVolume, allowing a pod to access `/var/log` on the host (inspired by [this blog post](https://jackleadford.github.io/containers/2020/03/06/pvpost.html)), using the [Python Kubernetes client library](https://github.com/kubernetes-client/python). Note that you could modify the hostPath in the Python script to go directly for the data on the host that you want to compromise, however, in order to increase the number of attack steps in our scenario (and hence the number of indicators that we can look for), let's imagine that we are not able to create arbitrary hostPaths. In this scenario, perhaps a `hostPath` type `PersistentVolume` is allowed for `/var/log` so that a Pod can monitor other Pod's logs.
 
@@ -63,12 +117,12 @@ When prompted, the password is `root`.
 
 If the service account compromised by our attacker could inspect the logs of the containers it can create, running `kubectl logs bad-pv-pod --tail=-1` (or making an API call from within the bad pod) will enable an attacker to view arbitrary files (line by line) on the host. In this example, we have a single node cluster, so we can access control plane data.
 
-Note that we have a lot more messages in the `smb` topic following the attack. Additional topics can be configured to filter for the other attack steps by configuring `DIRS` in the Makefile.
+Note that we have a lot more messages in the `signal` topic following the attack. Additional topics can be configured to filter for the other attack steps by configuring `DIRS` in the Makefile.
 
 [![K8sstormcenterSSH](https://img.youtube.com/vi/EcZcLz3kkUs/0.jpg)](https://www.youtube.com/watch?v=EcZcLz3kkUs)
 
 
-The above screen recording shows the newly established ssh connection being picked up by the eBPF traces and appearing as anomaly in the topic `signalminusbaseline` (=`smb`) in the RedPandaUI and 
+The above screen recording shows the newly established ssh connection being picked up by the eBPF traces and appearing as anomaly in the topic `signalminusbaseline` (since, renamed to `signal` )  in the RedPandaUI and 
 filtered into the topic  `tracesssh`  on RedPanda (lower screen, shell `rpk topic consume tracesssh`).
 ### Teardown of Kind
 
@@ -89,6 +143,7 @@ Two different RKE2 clusters (intentionally running a vulnerable `runc`) are obse
 
 
 # Deploying a real Honeycluster
+WIP: It does work, but we are working on cleaning it all up. 
 
 ## Example on RKE2 (on openstack)
 
