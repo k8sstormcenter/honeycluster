@@ -2,12 +2,14 @@ package main
 
 import (
 	"encoding/json"
+	"os"
 	"strings"
 
 	"github.com/redpanda-data/redpanda/src/transform-sdk/go/transform"
 )
 
 func main() {
+	keys := strings.Split(os.Getenv("KEYS"), ",")
 	keysSet = make(map[string]struct{}, len(keys))
 	for _, key := range keys {
 		keysSet[key] = struct{}{}
@@ -27,10 +29,6 @@ type Message struct {
 // apt install -y python3-pip
 // pip3 install kubernetes
 // this is a demo and because it creates so much noise, we filter it , you can still see it in all other topics
-var keys = []string
-{
-	
-}
 var keysSet map[string]struct{}
 
 func removeTimeFields(obj interface{}) {

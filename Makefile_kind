@@ -6,7 +6,7 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 
 
 DIRS := keygen
-COMPILEDIRS  := signal 
+COMPILEDIRS := $(DIRS) signal
 
 .EXPORT_ALL_VARIABLES:
 
@@ -16,7 +16,7 @@ COMPILEDIRS  := signal
 honey-up: cluster-up redpanda tetragon-install vector redpanda-wasm-hosted traces  ssh-install rbac sc-deploy port-forward traces
 
 .PHONY: honey-signal
-honey-signal: baseline-signal redpanda-wasm 
+honey-signal: baseline-signal redpanda-wasm-hosted-signal
 
 ## Run this in a second shell to observe the STDOUT
 .PHONY: secondshell-on
@@ -81,25 +81,25 @@ redpanda: helm check-context
 	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create cr1"
 
 
-.PHONY: redpanda-wasm
-redpanda-wasm:
-## WIP : you need to execute the redpanda/script.sh first to extract the uniq keys for the baseline
+.PHONY: redpanda-wasm-compile
+redpanda-wasm-compile:
 	@for dir in $(COMPILEDIRS); do \
-		cd redpanda/$$dir/ && go mod tidy && rpk transform build && cd ../.. ;\
-		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
-		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/$$dir" ;\
-		kubectl cp redpanda/$$dir/transform.yaml redpanda/redpanda-src-0:/tmp/$$dir/. ;\
-		kubectl cp redpanda/$$dir/$$dir.wasm redpanda/redpanda-src-0:/tmp/$$dir/. ;\
-		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/$$dir/ && rpk transform deploy" ;\
+		cd redpanda/$$dir/ && go mod tidy && rpk transform build && mv $$dir.wasm ../../prebuilt && cd ../.. ;\
 	done
 	
-# TODO: replace BRANCH to MAIN once PR is merged	
+# TODO: replace BRANCH to MAIN before PR is merged	
 .PHONY: redpanda-wasm-hosted
 redpanda-wasm-hosted:	check-context
 	@for dir in $(DIRS); do \
 		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
-		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/feature/baselinedynamic/prebuilt/$$dir.wasm --name $$dir --input-topic=cr1 --output-topic=$$dir --var language=tinygo-no-goroutines " ;\
+		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/feature/no-recompile/prebuilt/$$dir.wasm --name $$dir --input-topic=cr1 --output-topic=$$dir --var language=tinygo-no-goroutines " ;\
 	done
+
+# TODO: replace BRANCH to MAIN before PR is merged
+.PHONY: redpanda-wasm-hosted-signal
+redpanda-wasm-hosted-signal: check-context
+	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create signal" ;\
+	kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/feature/no-recompile/prebuilt/signal.wasm --name signal --input-topic=keygen --output-topic=signal --var language=tinygo-no-goroutines --var KEYS=$$(<one_line_list.txt)" ;
 
 
 
@@ -109,9 +109,7 @@ baseline-signal: check-context
 	- kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/sh -c "timeout 5 rpk topic consume keygen -f '%k\n'" > /tmp/list
 	sort -u /tmp/list  > /tmp/list.uniq
 	tail -n +2 /tmp/list.uniq > /tmp/list.clean
-	awk '{gsub(/\r/, ""); printf "\"%s\",\n", $$0}' /tmp/list.clean > /tmp/list.uniq.c
-	paste -s -d ' ' /tmp/list.uniq.c > one_line_list.txt
-	-sh -c 'export HASHLIST=$$(cat one_line_list.txt); envsubst < redpanda/signal/keyless/transform.go > redpanda/signal/transform.go '
+	awk '{gsub(/\r/, ""); printf "%s,", $$0}' /tmp/list.clean | head -c -1 > one_line_list.txt
 
 
 
