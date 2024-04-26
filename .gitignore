@@ -2,6 +2,7 @@
 bin/
 venv/
 one_line_list.txt
+redpanda/signal/transform.go
 
 # Byte-compiled / optimized / DLL files
 redpanda/**/*.wasm
