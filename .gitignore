@@ -1,10 +1,12 @@
 .idea/
 bin/
 venv/
+one_line_list.txt
 
 # Byte-compiled / optimized / DLL files
 redpanda/**/*.wasm
 *.DS_Store
+
 
 # Secrets #
 ###########

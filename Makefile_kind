@@ -111,17 +111,8 @@ baseline-signal: check-context
 	tail -n +2 /tmp/list.uniq > /tmp/list.clean
 	awk '{gsub(/\r/, ""); printf "\"%s\",\n", $$0}' /tmp/list.clean > /tmp/list.uniq.c
 	paste -s -d ' ' /tmp/list.uniq.c > one_line_list.txt
-	HASHLIST=$(cat one_line_list.txt ) && envsubst < redpanda/signal/keyless/transform.go > redpanda/signal/transform.go
+	-sh -c 'export HASHLIST=$$(cat one_line_list.txt); envsubst < redpanda/signal/keyless/transform.go > redpanda/signal/transform.go '
 
-.PHONY: redpanda-keys
-redpanda-keys: check-context
-	-kubectl logs -n redpanda redpanda-src-0 -c redpanda |grep "transform - extractcsv" > redpanda/extractcsv/extract
-	-cut -f 11- -d ' ' redpanda/extractcsv/extract >> keys.csv
-	-cat -n keys.csv | sort -uk2 | sort -nk1 | cut -f2-  > uniquekeys.csv 
-	-awk '{printf "\"%s\",\n", $$0}' uniquekeys.csv > output.csv
-	-paste -s -d ' ' output.csv > one_line_list.txt
-	-export HASHLIST=$(cat one_line_list.txt)
-	-envsubst < redpanda/smb/keys.txt > redpanda/smb/keys/key.go
 
 
 ##@ Tetragon
