@@ -248,7 +248,7 @@ endif
 
 .PHONY: check-context
 check-context:
-    CURRENT_CONTEXT:=$(shell kubectl config current-context)
+    CURRENT_CONTEXT:=$(shell kubectl config current-context) \
     if [ "$${CURRENT_CONTEXT}" != "kind-$${CLUSTER_NAME}" ]; then \
         echo "Error: kubectl context is not set to kind-$${CLUSTER_NAME}"; \
         exit 1; \
