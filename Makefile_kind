@@ -4,7 +4,7 @@ CLUSTER_NAME := $(NAME)
 OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 
-BRANCH= "feature/baselinedynamic"
+
 DIRS := keygen
 COMPILEDIRS  := signal 
 
@@ -12,11 +12,11 @@ COMPILEDIRS  := signal
 
 ##@ Scenario
 
-.PHONY: cluster-up
-all-up: cluster-up redpanda tetragon-install vector traces redpanda-wasm-hosted  ssh-install rbac sc-deploy port-forward traces
+.PHONY: honey-up
+honey-up: cluster-up redpanda tetragon-install vector redpanda-wasm-hosted traces  ssh-install rbac sc-deploy port-forward traces
 
-.PHONY: cluster-signal
-cluster-signal: baseline-signal redpanda-wasm 
+.PHONY: honey-signal
+honey-signal: baseline-signal redpanda-wasm 
 
 ## Run this in a second shell to observe the STDOUT
 .PHONY: secondshell-on
@@ -34,7 +34,7 @@ teardown: stop-port-forwarding sc-delete traces-off cluster-down
 
 .PHONY: cluster-up
 cluster-up: kind ## Create the kind cluster
-	$(KIND) create cluster --name $(CLUSTER_NAME) --config config/kind-config.yaml
+	$(KIND) create cluster --name $(CLUSTER_NAME) 
 
 .PHONY: cluster-down
 cluster-down: kind helm check-context  ## Delete the kind cluster
@@ -93,11 +93,12 @@ redpanda-wasm:
 		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/$$dir/ && rpk transform deploy" ;\
 	done
 	
+# TODO: replace BRANCH to MAIN once PR is merged	
 .PHONY: redpanda-wasm-hosted
 redpanda-wasm-hosted:	check-context
 	@for dir in $(DIRS); do \
 		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
-		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/features/$$branch/prebuilt/$$dir.wasm --name $$dir --input-topic=cr1 --output-topic=$$dir --var language=tinygo-no-goroutines " ;\
+		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/feature/baselinedynamic/prebuilt/$$dir.wasm --name $$dir --input-topic=cr1 --output-topic=$$dir --var language=tinygo-no-goroutines " ;\
 	done
 
 
@@ -105,7 +106,6 @@ redpanda-wasm-hosted:	check-context
 .PHONY: baseline-signal
 baseline-signal: check-context
 	echo "this will error out with exit code 124"
-#- kubectl  --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- timeout 5 rpk topic consume keygen -f '%k\n' > /tmp/list 
 	- kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/sh -c "timeout 5 rpk topic consume keygen -f '%k\n' > /tmp/list"
 	sort -u /tmp/list  > /tmp/list.uniq
 	tail -n +2 /tmp/list.uniq > /tmp/list.clean
