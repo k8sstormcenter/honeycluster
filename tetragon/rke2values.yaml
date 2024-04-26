@@ -1,4 +1,3 @@
-cattle-system
 enabled: true
 imagePullPolicy: IfNotPresent
 imagePullSecrets: []
