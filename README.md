@@ -7,6 +7,7 @@ or
 
 (B) to simply observe  how your cluster will be attacked by interpreting the anomalous signals
 
+
 ## The four fold path to threat intelligence
 1 Threat Model -> Attack Model -> Critical Attack Path
 
@@ -17,8 +18,12 @@ or
 4 Disseminate the Threat Intelligence
 
 ## (A) Reference Implementation plus example attack
-### 1 Example Attack Tree
 
+The idea is to take a cluster you have, copy/shrink it, replace sensitive data and the `honey-stack` on it 
+<img width="1083" alt="Screenshot 2024-04-26 at 22 32 32" src="https://github.com/k8sstormcenter/honeycluster/assets/70207455/f574e663-fb7b-4c43-af6f-b3544b8b63a6">
+
+
+### 1 Example Attack Tree
 As a simple example attack tree, we will look at the attack path made possible if an attacker can create `/var/log` hostPath Persistent Volumes on a cluster, inspired by [this blog post](https://jackleadford.github.io/containers/2020/03/06/pvpost.html).
 
 ```mermaid
@@ -58,6 +63,9 @@ http://localhost:30000/topics/keygen?p=-1&s=500&o=-2#messages
 In my case on `kind`, I see 5 messages. I will judge them as "BENIGN" because I know thats the install, but check please. (on `RKE2` I have 150 messages)
 
 ### 3 Setup Baseline redaction
+
+<img width="1119" alt="Screenshot 2024-04-26 at 22 35 28" src="https://github.com/k8sstormcenter/honeycluster/assets/70207455/3931d5b2-9f07-4ebb-8bd6-82675f0c6313">
+
 For this to work you need GO installed. Currently also RPK, there might still be some dependency issues for some OS, and we are working hard to avoid the local compiling.
 
 ```bash
