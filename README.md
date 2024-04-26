@@ -150,14 +150,8 @@ Two different RKE2 clusters (intentionally running a vulnerable `runc`) are obse
 
 
 
-# Deploying a real Honeycluster
-WIP: It does work, but we are working on cleaning it all up. 
-
-## Example on RKE2 (on openstack)
-
-In the KubeCon EU talk, we present two "real" clusters, they are hosted on a RKE2 1.27 with Rancher running.
-This type of honeycluster is supposed to look like a experimental kubernetes-cluster on which an SRE is actively debugging something.
-This SRE is useing insecure reverse SSH to login to the cluster via a jump-host, no modifications to the corporate firewall are required.
+# Bait
+Please join us on Slack to talk about that
 
 
 ## Security Considerations
@@ -165,24 +159,11 @@ This SRE is useing insecure reverse SSH to login to the cluster via a jump-host,
 Given this is an insecure and experimental setup of a honeypot-infrastructure, there are several additional measures taken that are not covered in the talk or this repo.
 This repo is for demonstration purposes only.
 
-## Setup
 
-1) Edit all values "rke2values.yaml" for your own cluster. We assume that you have cert-manager, an ingress-class (we use nginx) and some storage. You dont need to be running cilium as CNI, but we are. 
+# Contributing
+Contributions are welcome
 
-2) For the leaky vessel exploit: it likely doesnt work, as must runc are patched now. In the talk we presented a intentionally downgraded runc. 
-
-```bash
-make --makefile=Makefile_rke2 install-honeycluster
-```
-
-## WASM compilation for any transform not in the prebuilt folder
-(you STILL need Go 1.21 installed, WIP to remove this requirement from the base-install)
-IF in the above step you have GO errors, it is because the following command compiles the WASM binaries:
-
-```bash
-make --makefile=Makefile_rke2 redpanda-wasm
-```
-
+In the form of testing, feedback, code, PRs, eBPF tripwires, realistic threatmodels, mappings onto the critical attack path...
 
 
 
