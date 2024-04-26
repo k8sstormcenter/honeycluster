@@ -69,7 +69,7 @@ redpanda-wasm:
 redpanda-wasm-hosted:	
 	@for dir in $(DIRS); do \
 		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
-		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/feature/baselinedynamic/prebuilt/$$dir.wasm --name $$dir --input-topic=cr1 --output-topic=$$dir --var language=tinygo-no-goroutines " ;\
+		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/$$dir.wasm --name $$dir --input-topic=cr1 --output-topic=$$dir --var language=tinygo-no-goroutines " ;\
 	done
 
 
