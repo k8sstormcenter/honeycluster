@@ -88,8 +88,13 @@ Test your detection on topic = `signal` .
 
 
 ### 4 Execute the sample attack
-(currently we disabled the redpanda topics `trace*` because we are rewriting them, you can compile and deploy them though)
-Make an SSH connection to the server, and note the corresponding message in the `signal` topic:
+Depending on which eBPF traces you have deployed under traces/*.yaml , you can now deploy custom JQueries via WASM to stream/transform your data.
+
+We prebuild in the example 6 Indicators of Compromise, using 10 tracingpolicies, and we deploy 6 wasm transform to seperate them into topics.
+A deployment is currently manual (see Makefile_kind and find the jq-binary under prebuilt/jq.wasm )
+![Custom JQ with precompiled jq.wasm](/docs/customJQ.png)
+
+Make an SSH connection to the server, and note the corresponding message in the `signal` , `tracessh` and `traceenum` topic:
 
 ```bash
 make --makefile=Makefile_*** ssh-connect
