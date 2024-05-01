@@ -1,4 +1,0 @@
-name: tracesenum
-input-topic: "tracesenumpre"
-output-topic: "tracesenum"
-language: tinygo-no-goroutines

@@ -1,4 +1,0 @@
-name: tracesapipre
-input-topic: "signal"
-output-topic: "tracesapipre"
-language: tinygo-no-goroutines

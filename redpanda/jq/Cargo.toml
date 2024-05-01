@@ -1,0 +1,13 @@
+[package]
+name = "jq"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.81"
+jaq-core = "1.2.1"
+jaq-interpret = "1.2.1"
+jaq-parse = "1.0.2"
+jaq-std = "1.2.1"
+redpanda-transform-sdk = "0.2.0"
+serde_json = "1.0.114"

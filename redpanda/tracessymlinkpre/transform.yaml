@@ -1,4 +1,0 @@
-name: tracessymlinkpre
-input-topic: "signal"
-output-topic: "tracessymlinkpre"
-language: tinygo-no-goroutines

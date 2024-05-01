@@ -1,0 +1,9 @@
+CompileFlags:                     
+  Add: 
+    - -xc++
+    - -Wall
+    - -std=c++23
+    - -stdlib=libc++
+    - -Ithird_party
+    - -fno-exceptions
+  Compiler: clang++-17
