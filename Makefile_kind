@@ -28,7 +28,7 @@ secondshell-on: check-context
 attack: copy-scripts create-bad exec
 
 .PHONY: teardown
-teardown: stop-port-forwarding sc-delete traces-off redpanda-topic-deletecluster-down
+teardown: stop-port-forwarding sc-delete traces-off redpanda-topic-delete cluster-down
 
 ##@ Kind
 
