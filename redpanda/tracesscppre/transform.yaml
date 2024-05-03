@@ -1,4 +1,0 @@
-name: tracesscppre
-input-topic: "signal"
-output-topic: "tracesscppre"
-language: tinygo-no-goroutines

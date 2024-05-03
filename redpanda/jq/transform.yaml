@@ -1,0 +1,4 @@
+name: jq
+input-topic: ""
+output-topic: ""
+language: rust

@@ -63,7 +63,6 @@ redpanda-wasm:
 	done
 
 
-#kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/$$dir.wasm --name $$dir --input-topic=cr1 --output-topic=$$dir --var language=tinygo-no-goroutines " ;\
 
 .PHONY: redpanda-wasm-hosted
 redpanda-wasm-hosted:	
@@ -84,44 +83,49 @@ baseline-signal:
 	paste -s -d ' ' /tmp/list.uniq.c > one_line_list.txt
 	-sh -c 'export HASHLIST=$$(cat one_line_list.txt); envsubst < redpanda/signal/keyless/transform.go > redpanda/signal/transform.go '
 
+# TODO : you need to copy paste the second cmd into your terminal, cant find the right combo of escape chars
+.PHONY: redpanda-wasm-jq
+redpanda-wasm-jq:	check-context
+	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create tracesymlink" 
+	kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/jq.wasm --name tracesymlink --input-topic=signal --output-topic=tracesymlink --var language=rust  --var=FILTER='select(.process_kprobe.policy_name == \"detect-symlinkat\") | \"\(.time) \(.process_kprobe.policy_name)  \(.process_kprobe.process.pod.namespace) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.args[])\"'"
+
+	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create traceapi" 
+	kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/jq.wasm --name traceapi --input-topic=signal --output-topic=traceapi --var language=rust  --var=FILTER='select(.process_kprobe != null and ( .process_kprobe.policy_name == \"k8s-api-call\" or .process_kprobe.policy_name == \"enumerate-service-account\" ))| \"\(.time) \(.process_kprobe.policy_name)  \(.process_kprobe.process.pod.namespace) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.args[])\"'"
+
+	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create traceenum" 
+	kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/jq.wasm --name traceenum --input-topic=signal --output-topic=traceenum --var language=rust  --var=FILTER='select( .process_kprobe != null and  .process_kprobe.policy_name == \"enumerate-util\" )| \"\(.time) \(.process_kprobe.policy_name)  \(.process_kprobe.process.pod.namespace) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.args[])\"'"
+
+	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create tracek8sclient" 
+	kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/jq.wasm --name tracek8sclient --input-topic=signal --output-topic=tracek8sclient --var language=rust  --var=FILTER='select( .process_kprobe != null and  .process_kprobe.policy_name == \"detect-k8sapi-invoke\" )| \"\(.time) \(.process_kprobe.policy_name)  \(.process_kprobe.process.pod.namespace) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.args[])\"'"
+
+	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create tracescp" 
+	kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/jq.wasm --name tracescp --input-topic=signal --output-topic=tracescp --var language=rust  --var=FILTER='select( .process_kprobe.policy_name == \"detect-scp-usage\" ) | \"\(.time) \(.process_kprobe.policy_name)  \(.process_kprobe.process.pod.namespace) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.args[])\"'"
+
+	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create tracessh" 
+	kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/jq.wasm --name tracessh --input-topic=signal --output-topic=tracessh --var language=rust  --var=FILTER='select( .process_kprobe != null and ( .process_kprobe.policy_name == \"ssh-spawn-bash\" or .process_kprobe.policy_name == \"successful-ssh-connections\" ))| \"\(.time) \(.process_kprobe.policy_name)  \(.process_kprobe.process.pod.namespace) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.args[])\"'"
+
+
+
 
 .PHONY: redpanda-topic-delete
 redpanda-topic-delete:
 	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete signal
 	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete cr1
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete tracesapi
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete tracesapipre
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete tracesenum
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete tracesenumpre
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete tracesk8sclient
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete tracesk8sclientpre
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete tracesscp
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete tracesscppre
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete tracesssh
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete tracessshpre
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete tracessymlink
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete tracessymlinkpre
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete traceapi
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete traceenum
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete tracek8sclient
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete tracescp
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete tracessh
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete tracesymlink
 	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete keygen
 	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete signal
 	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete keygen
-	# -kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete tracessshpre
-	# -kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete tracesssh
-	# -kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete tracesenumpre
-	# -kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete tracesenum
-	# -kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete tracessymlink
-	# -kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete tracessymlinkpre
-	# -kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete tracesscppre
-	# -kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete tracesscp
-	# -kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete tracesk8sclientpre
-	# -kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete tracesk8sclient
-
-
-
-.PHONY: jupyter
-jupyter:
-	-$(HELM) repo add jupyterhub https://jupyterhub.github.io/helm-chart/
-	-$(HELM) repo update
-	-$(HELM) upgrade --install jupyterhub jupyterhub/jupyterhub --namespace jupyter --create-namespace  --values jupyterhub/rke2values.yaml
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete traceapi
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete traceenum
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete tracek8sclient
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete tracescp
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete tracessh
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete tracesymlink
 
 
 
@@ -254,18 +258,6 @@ jquery-tracesscp:
 	jq 'select( .process_kprobe.process.pod.namespace == "default" | .)'
 
 
-.PHONY: jquery-traces1
-jquery-traces1:
-	-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f |\
-	jq 'select( .process_kprobe != null  \
-	        and .process_kprobe.process.pod.namespace != "jupyter"   \
-			and .process_kprobe.process.pod.namespace != "cert-manager" \
-			and .process_kprobe.process.pod.namespace != "redpanda" \
-			and .process_kprobe.process.pod.namespace != "spark" \
-			and .process_kprobe.process.pod.namespace != "parseable" \
-			and .process_kprobe.process.binary == "/usr/sbin/sshd" \
-			and .process_kprobe.process.pod.namespace != "vector" )| \
-	 "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.process.pod.namespace) \(.process_kprobe.args[] )"'
 
 
 ##@ Tools

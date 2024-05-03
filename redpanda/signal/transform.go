@@ -27,9 +27,8 @@ type Message struct {
 // apt install -y python3-pip
 // pip3 install kubernetes
 // this is a demo and because it creates so much noise, we filter it , you can still see it in all other topics
-var keys = []string
-{
-	
+var keys = []string{
+	"exec3dcadad895698940965ce0923977d4ff", "exec4abd0f984be603cb27b9652795f0898f", "exec82adccdcfde7cfe761b6db02198b3ba6", "exec9b9d0e26c3ff1f706a2fef6786f0a1d7", "exec9fa74e748cf08ab56d28420f189d65bb", "execa0c1a7ee57012e241ac204e411be0738", "execa3d6a223da7449ef0e0eb04422fa23da", "execb7149f188575528980608068575774f1", "execc4c49914c36b5a768be277365ca86e85", "execc6b935ba7043d7dfa66f5815c6cec99d", "execd6629707c2e612deaccc0931220d2c34", "execfa2e399cd1c48204c3a7a3802fc8f3c3", "execfca4e79619681b5bbaaccd8d46cf913a",
 }
 var keysSet map[string]struct{}
 

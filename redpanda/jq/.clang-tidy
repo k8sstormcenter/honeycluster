@@ -1,0 +1,3 @@
+---
+Checks:          'clang-diagnostic-*,clang-analyzer-*,cert-*,cppcoreguidelines-*,hicpp-*,modernize-*,performance-*,misc-*,bugprone-*,-modernize-use-trailing-return-type,-modernize-use-nodiscard,-hicpp-named-parameter'
+

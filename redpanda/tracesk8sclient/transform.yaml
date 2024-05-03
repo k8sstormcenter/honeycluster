@@ -1,4 +1,0 @@
-name: tracesk8sclient
-input-topic: "tracesk8sclientpre"
-output-topic: "tracesk8sclient"
-language: tinygo-no-goroutines
