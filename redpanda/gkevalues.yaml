@@ -1,0 +1,333 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This file contains values for variables referenced from yaml files in the templates directory.
+#
+# For further information on Helm templating see the documentation at:
+#  https://helm.sh/docs/chart_template_guide/values_files/
+
+#
+# >>> This chart requires Helm version 3.6.0 or greater <<<
+#
+
+
+
+
+# -- Audit logging for a redpanda cluster, must have enabled sasl and have one kafka listener supporting sasl authentication
+# for audit logging to work. Note this feature is only available for redpanda versions >= v23.3.0.
+auditLogging:
+  # -- Enable or disable audit logging, for production clusters we suggest you enable,
+  # however, this will only work if you also enable sasl and a listener with sasl enabled.
+  enabled: false
+  # -- Kafka listener name, note that it must have `authenticationMethod` set to `sasl`.
+  # For external listeners, use the external listener name, such as `default`.
+
+
+
+
+#
+# -- Redpanda Console settings.
+# For a reference of configuration settings,
+# see the [Redpanda Console documentation](https://docs.redpanda.com/docs/reference/console/config/).
+console:
+  enabled: true
+  configmap:
+    create: false
+  secret:
+    create: false
+  deployment:
+    create: false
+  config: {}
+
+config:
+  rpk: {}
+    # additional_start_flags:                                      # List of flags to pass to rpk, e.g., ` "--idle-poll-time-us=0"`
+  cluster:
+    default_topic_replications: 1                                  # Default replication factor for new topics
+    data_transforms_enabled: true  
+
+
+# -- TLS settings.
+# For details, see the [TLS documentation](https://docs.redpanda.com/docs/manage/kubernetes/security/kubernetes-tls/).
+tls:
+  # -- Enable TLS globally for all listeners.
+  # Each listener must include a Certificate name in its `<listener>.tls` object.
+  # To allow you to enable TLS for individual listeners,
+  # Certificates in `auth.tls.certs` are always loaded, even if `tls.enabled` is `false`.
+  # See `listeners.<listener-name>.tls.enabled`.
+  enabled: false
+  # -- List all Certificates here,
+  # then you can reference a specific Certificate's name
+  # in each listener's `listeners.<listener name>.tls.cert` setting.
+   # -- To use a custom pre-installed Issuer,
+
+
+
+
+# -- Persistence settings.
+# For details, see the [storage documentation](https://docs.redpanda.com/docs/manage/kubernetes/configure-storage/).
+storage:
+  # -- Absolute path on the host to store Redpanda's data.
+  # If unspecified, then an `emptyDir` volume is used.
+  # If specified but `persistentVolume.enabled` is true, `storage.hostPath` has no effect.
+  hostPath: ""
+  # -- If `persistentVolume.enabled` is true, a PersistentVolumeClaim is created and
+  # used to store Redpanda's data. Otherwise, `storage.hostPath` is used.
+  persistentVolume:
+    enabled: true
+    size: 2Gi
+    # -- To disable dynamic provisioning, set to `-`.
+    # If undefined or empty (default), then no storageClassName spec is set,
+    # and the default dynamic provisioner is chosen (gp2 on AWS, standard on
+    # GKE, AWS & OpenStack).
+    storageClass: ""
+    # -- Additional labels to apply to the created PersistentVolumeClaims.
+    labels: {}
+    # -- Additional annotations to apply to the created PersistentVolumeClaims.
+    annotations: {}
+    # -- Option to change volume claim template name for tiered storage persistent volume
+    # if tiered.mountType is set to `persistentVolume`
+    nameOverwrite: ""
+  #
+
+resources: {}
+
+statefulset:
+  # -- Number of Redpanda brokers (Redpanda Data recommends setting this to the number of worker nodes in the cluster)
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+  budget:
+    maxUnavailable: 1
+  # -- DEPRECATED Please use statefulset.podTemplate.annotations.
+  # Annotations are used only for `Statefulset.spec.template.metadata.annotations`. The StatefulSet does not have
+  #	any dedicated annotation.
+  annotations: {}
+  # -- Additional labels to be added to statefulset label selector.
+  # For example, `my.k8s.service: redpanda`.
+  additionalSelectorLabels: {}
+  podTemplate:
+    # -- Additional labels to apply to the Pods of this StatefulSet.
+    labels: {}
+    # -- Additional annotations to apply to the Pods of this StatefulSet.
+    annotations: {}
+    # -- A subset of Kubernetes' PodSpec type that will be merged into the redpanda StatefulSet via a [strategic merge patch](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/update-api-object-kubectl-patch/#use-a-strategic-merge-patch-to-update-a-deployment).
+    spec:
+      containers: []
+      # - name: redpanda
+      #   env:
+      #   - name: EXTRA_ENV_VAR
+      #     value: THIS_IS_AN_EXAMPLE
+  # -- Adjust the period for your probes to meet your needs.
+  # For details,
+  # see the [Kubernetes documentation](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes).
+  startupProbe:
+    initialDelaySeconds: 1
+    failureThreshold: 120
+    periodSeconds: 10
+  livenessProbe:
+    initialDelaySeconds: 10
+    failureThreshold: 3
+    periodSeconds: 10
+  readinessProbe:
+    initialDelaySeconds: 1
+    failureThreshold: 3
+    periodSeconds: 10
+    successThreshold: 1
+  #
+  # StatefulSet resources:
+  # Resources are set through the top-level resources section above.
+  # It is recommended to set resource values in that section rather than here, as this will guarantee
+  # memory is allocated across containers, Redpanda, and the Seastar subsystem correctly.
+  # This automatic memory allocation is in place because Repanda and the Seastar subsystem require flags
+  # at startup that set the amount of memory available to each process.
+  # Kubernetes (mainly statefulset), Redpanda, and Seastar memory values are tightly coupled.
+  # Adding a resource section here will be ignored.
+  #
+  # -- Inter-Pod Affinity rules for scheduling Pods of this StatefulSet.
+  # For details,
+  # see the [Kubernetes documentation](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#inter-pod-affinity-and-anti-affinity).
+  podAffinity: {}
+    # -- Anti-affinity rules for scheduling Pods of this StatefulSet.
+  # For details,
+  # see the [Kubernetes documentation](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#inter-pod-affinity-and-anti-affinity).
+  # You may either edit the default settings for anti-affinity rules,
+  # or specify new anti-affinity rules to use instead of the defaults.
+  podAntiAffinity:
+    # -- The topologyKey to be used.
+    # Can be used to spread across different nodes, AZs, regions etc.
+    topologyKey: kubernetes.io/hostname
+    # -- Valid anti-affinity types are `soft`, `hard`, or `custom`.
+    # Use `custom` if you want to supply your own anti-affinity rules in the `podAntiAffinity.custom` object.
+    type: hard
+    # -- Weight for `soft` anti-affinity rules.
+    # Does not apply to other anti-affinity types.
+    weight: 100
+    # -- Change `podAntiAffinity.type` to `custom` and provide your own podAntiAffinity rules here.
+    custom: {}
+  # -- Node selection constraints for scheduling Pods of this StatefulSet.
+  # These constraints override the global `nodeSelector` value.
+  # For details,
+  # see the [Kubernetes documentation](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector).
+  nodeSelector: {}
+  # -- PriorityClassName given to Pods of this StatefulSet.
+  # For details,
+  # see the [Kubernetes documentation](https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/#priorityclass).
+  priorityClassName: ""
+  # -- Taints to be tolerated by Pods of this StatefulSet.
+  # These tolerations override the global tolerations value.
+  # For details,
+  # see the [Kubernetes documentation](https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/).
+  tolerations: []
+  # For details,
+  # see the [Kubernetes documentation](https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/).
+  topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: ScheduleAnyway
+  resources:
+    limits: {}
+  securityContext:
+    fsGroup: 101
+    runAsUser: 101
+    fsGroupChangePolicy: OnRootMismatch
+  sideCars:
+    configWatcher:
+      enabled: true
+      # -- To create `Guaranteed` Pods for Redpanda brokers, provide both requests and limits for CPU and memory. For details, see
+      # https://kubernetes.io/docs/tasks/configure-pod-container/quality-service-pod/#create-a-pod-that-gets-assigned-a-qos-class-of-guaranteed
+      # * Every container in the Pod must have a memory limit and a memory request.
+      # * For every container in the Pod, the memory limit must equal the memory request.
+      # * Every container in the Pod must have a CPU limit and a CPU request.
+      # * For every container in the Pod, the CPU limit must equal the CPU request.
+      #
+      # To maximize efficiency, use the `static` CPU manager policy by specifying an even integer for
+      # CPU resource requests and limits. This policy gives the Pods running Redpanda brokers
+      # access to exclusive CPUs on the node. For details, see
+      # https://kubernetes.io/docs/tasks/administer-cluster/cpu-management-policies/#static-policy
+      resources: {}
+      securityContext: {}
+      extraVolumeMounts: |-
+    # Configure extra controllers to run as sidecars inside the Pods running Redpanda brokers.
+    # Available controllers:
+    # - Decommission Controller: The Decommission Controller ensures smooth scaling down operations.
+    # This controller is responsible for monitoring changes in the number of StatefulSet replicas and orchestrating
+    # the decommissioning of brokers when necessary. It also sets the reclaim policy for the decommissioned
+    # broker's PersistentVolume to `Retain` and deletes the corresponding PersistentVolumeClaim.
+    # - Node-PVC Controller: The Node-PVC Controller handles the PVCs of deleted brokers.
+    # By setting the PV Retain policy to retain, it facilitates the rescheduling of brokers to new, healthy nodes when
+    # an existing node is removed.
+    controllers:
+      image:
+        tag: v2.1.10-23.2.18
+        repository: docker.redpanda.com/redpandadata/redpanda-operator
+      # You must also enable RBAC, `rbac.enabled=true`, to deploy this sidecar
+      enabled: false
+      # -- To create `Guaranteed` Pods for Redpanda brokers, provide both requests and limits for CPU and memory. For details, see
+      # https://kubernetes.io/docs/tasks/configure-pod-container/quality-service-pod/#create-a-pod-that-gets-assigned-a-qos-class-of-guaranteed
+      #
+      # * Every container in the Pod must have a CPU limit and a CPU request.
+      # * For every container in the Pod, the CPU limit must equal the CPU request.
+      # * Every container in the Pod must have a CPU limit and a CPU request.
+      # * For every container in the Pod, the CPU limit must equal the CPU request.
+      #
+      # To maximize efficiency, use the `static` CPU manager policy by specifying an even integer for
+      # CPU resource requests and limits. This policy gives the Pods running Redpanda brokers
+      # access to exclusive CPUs on the node. For details, see
+      # https://kubernetes.io/docs/tasks/administer-cluster/cpu-management-policies/#static-policy
+      resources: {}
+      securityContext: {}
+      healthProbeAddress: ":8085"
+      metricsAddress: ":9082"
+      run:
+        - all
+      createRBAC: true
+  initContainers:
+    fsValidator:
+      enabled: false
+      expectedFS: xfs
+      # -- To create `Guaranteed` Pods for Redpanda brokers, provide both requests and limits for CPU and memory. For details, see
+      # https://kubernetes.io/docs/tasks/configure-pod-container/quality-service-pod/#create-a-pod-that-gets-assigned-a-qos-class-of-guaranteed
+      # * Every container in the Pod must have a CPU limit and a CPU request.
+      # * For every container in the Pod, the CPU limit must equal the CPU request.
+      resources: {}
+      extraVolumeMounts: |-
+    tuning:
+      # -- To create `Guaranteed` Pods for Redpanda brokers, provide both requests and limits for CPU and memory. For details, see
+      # https://kubernetes.io/docs/tasks/configure-pod-container/quality-service-pod/#create-a-pod-that-gets-assigned-a-qos-class-of-guaranteed
+      # * Every container in the Pod must have a CPU limit and a CPU request.
+      # * For every container in the Pod, the CPU limit must equal the CPU request.
+      resources: {}
+      extraVolumeMounts: |-
+    setDataDirOwnership:
+      # -- In environments where root is not allowed, you cannot change the ownership of files and directories.
+      # Enable `setDataDirOwnership` when using default minikube cluster configuration.
+      enabled: false
+      # -- To create `Guaranteed` Pods for Redpanda brokers, provide both requests and limits for CPU and memory. For details, see
+      # https://kubernetes.io/docs/tasks/configure-pod-container/quality-service-pod/#create-a-pod-that-gets-assigned-a-qos-class-of-guaranteed
+      # * Every container in the Pod must have a CPU limit and a CPU request.
+      # * For every container in the Pod, the CPU limit must equal the CPU request.
+      resources: {}
+      extraVolumeMounts: |-
+    setTieredStorageCacheDirOwnership:
+      # -- To create `Guaranteed` Pods for Redpanda brokers, provide both requests and limits for CPU and memory. For details, see
+      # https://kubernetes.io/docs/tasks/configure-pod-container/quality-service-pod/#create-a-pod-that-gets-assigned-a-qos-class-of-guaranteed
+      # * Every container in the Pod must have a CPU limit and a CPU request.
+      # * For every container in the Pod, the CPU limit must equal the CPU request.
+      resources: {}
+      extraVolumeMounts: |-
+    configurator:
+      # -- To create `Guaranteed` Pods for Redpanda brokers, provide both requests and limits for CPU and memory. For details, see
+      # https://kubernetes.io/docs/tasks/configure-pod-container/quality-service-pod/#create-a-pod-that-gets-assigned-a-qos-class-of-guaranteed
+      # * Every container in the Pod must have a CPU limit and a CPU request.
+      # * For every container in the Pod, the CPU limit must equal the CPU request.
+      resources: {}
+      extraVolumeMounts: |-
+    ## Additional init containers
+    extraInitContainers: |-
+#      - name: "test-init-container"
+#        image: "mintel/docker-alpine-bash-curl-jq:latest"
+#        command: [ "/bin/bash", "-c" ]
+#        args:
+#          - |
+#            set -xe
+#            echo "Hello World!"
+  initContainerImage:
+    repository: busybox
+    tag: latest
+  # -- Additional flags to pass to redpanda,
+  additionalRedpandaCmdFlags: []
+#    - --unsafe-bypass-fsync
+  # -- Termination grace period in seconds is time required to execute preStop hook
+  # which puts particular Redpanda Pod (process/container) into maintenance mode.
+  # Before settle down on particular value please put Redpanda under load and perform
+  # rolling upgrade or rolling restart. That value needs to accommodate two processes:
+  # * preStop hook needs to put Redpanda into maintenance mode
+  # * after preStop hook Redpanda needs to handle gracefully SIGTERM signal
+  #
+  # Both processes are executed sequentially where preStop hook has hard deadline in the
+  # middle of terminationGracePeriodSeconds.
+  #
+  # REF:
+  # https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/#hook-handler-execution
+  # https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination
+  terminationGracePeriodSeconds: 90
+  ## Additional Volumes that you mount
+  extraVolumes: |-
+  ## Additional Volume mounts for redpanda container
+  extraVolumeMounts: |-
+
+
+

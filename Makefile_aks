@@ -1,0 +1,278 @@
+NAME ?= stage_h
+CLUSTER_NAME := $(NAME)
+
+
+OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
+ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
+
+DIRS := keygen
+COMPILEDIRS  := signal 
+
+.EXPORT_ALL_VARIABLES:
+
+##@ Scenario
+
+.PHONY: honey-up
+honey-up:  tetragon-install redpanda vector redpanda-wasm-hosted ssh-install port-forward traces
+
+.PHONY: honey-signal
+honey-signal: baseline-signal redpanda-wasm 
+
+##@ remove all honeycluster instrumentation from rke2
+.PHONY: honey-down
+honey-down: traces-off redpanda-topic-delete sc-delete stop-local-port-forwarding  wipe
+
+.PHONY: wipe
+wipe: 
+	- kubectl delete namespace ssh
+	-$(HELM) uninstall vector -n vector
+	-kubectl delete namespace vector
+	-$(HELM) uninstall redpanda-src -n redpanda
+	- kubectl delete -n redpanda pvc datadir-redpanda-src-0
+	-kubectl delete namespace redpanda
+	-$(HELM) uninstall tetragon -n kube-system
+
+.PHONY: detect-on
+detect-on: traces
+
+.PHONY: attack
+attack: copy-scripts create-bad exec
+
+# useful:  alias internal-rpk="kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk"
+.PHONY: certman
+certman: helm 
+	-$(HELM) repo add jetstack https://charts.jetstack.io
+	-$(HELM) repo update
+	-$(HELM) upgrade --install cert-manager jetstack/cert-manager --set installCRDs=true --namespace cert-manager  --create-namespace
+	- kubectl apply -f cert-manager/cluster-issuer.yaml -n cert-manager
+
+.PHONY: redpanda
+redpanda: helm 
+	-$(HELM) repo add redpanda https://charts.redpanda.com
+	-$(HELM) repo update
+	-$(HELM) upgrade --install redpanda-src redpanda/redpanda -n redpanda --create-namespace --values redpanda/aksvalues.yaml --set image.repository=docker.redpanda.com/redpandadata/redpanda-unstable --set image.tag=v24.1.1-rc4
+	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create cr1"
+
+.PHONY: redpanda-wasm
+redpanda-wasm:
+	
+	@for dir in $(COMPILEDIRS); do \
+		cd redpanda/$$dir/ && go mod tidy && rpk transform build && cd ../.. ;\
+		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
+		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/$$dir" ;\
+		kubectl cp redpanda/$$dir/transform.yaml redpanda/redpanda-src-0:/tmp/$$dir/. ;\
+		kubectl cp redpanda/$$dir/$$dir.wasm redpanda/redpanda-src-0:/tmp/$$dir/. ;\
+		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/$$dir/ && rpk transform deploy" ;\
+	done
+
+
+
+.PHONY: redpanda-wasm-hosted
+redpanda-wasm-hosted:	
+	@for dir in $(DIRS); do \
+		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
+		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/$$dir.wasm --name $$dir --input-topic=cr1 --output-topic=$$dir --var language=tinygo-no-goroutines " ;\
+	done
+
+
+
+.PHONY: baseline-signal
+baseline-signal: 
+	echo "this will error out with exit code 124"
+	- kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/sh -c "timeout 5 rpk topic consume keygen -f '%k\n'" > /tmp/list
+	sort -u /tmp/list  > /tmp/list.uniq
+	tail -n +2 /tmp/list.uniq > /tmp/list.clean
+	awk '{gsub(/\r/, ""); printf "\"%s\",\n", $$0}' /tmp/list.clean > /tmp/list.uniq.c
+	paste -s -d ' ' /tmp/list.uniq.c > one_line_list.txt
+	-sh -c 'export HASHLIST=$$(cat one_line_list.txt); envsubst < redpanda/signal/keyless/transform.go > redpanda/signal/transform.go '
+
+# TODO : you need to copy paste the second cmd into your terminal, cant find the right combo of escape chars
+.PHONY: redpanda-wasm-jq
+redpanda-wasm-jq:	check-context
+	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create tracesymlink" 
+	kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/jq.wasm --name tracesymlink --input-topic=signal --output-topic=tracesymlink --var language=rust  --var=FILTER='select(.process_kprobe.policy_name == \"detect-symlinkat\") | \"\(.time) \(.process_kprobe.policy_name)  \(.process_kprobe.process.pod.namespace) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.args[])\"'"
+
+	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create traceapi" 
+	kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/jq.wasm --name traceapi --input-topic=signal --output-topic=traceapi --var language=rust  --var=FILTER='select(.process_kprobe != null and ( .process_kprobe.policy_name == \"k8s-api-call\" or .process_kprobe.policy_name == \"enumerate-service-account\" ))| \"\(.time) \(.process_kprobe.policy_name)  \(.process_kprobe.process.pod.namespace) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.args[])\"'"
+
+	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create traceenum" 
+	kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/jq.wasm --name traceenum --input-topic=signal --output-topic=traceenum --var language=rust  --var=FILTER='select( .process_kprobe != null and  .process_kprobe.policy_name == \"enumerate-util\" )| \"\(.time) \(.process_kprobe.policy_name)  \(.process_kprobe.process.pod.namespace) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.args[])\"'"
+
+	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create tracek8sclient" 
+	kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/jq.wasm --name tracek8sclient --input-topic=signal --output-topic=tracek8sclient --var language=rust  --var=FILTER='select( .process_kprobe != null and  .process_kprobe.policy_name == \"detect-k8sapi-invoke\" )| \"\(.time) \(.process_kprobe.policy_name)  \(.process_kprobe.process.pod.namespace) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.args[])\"'"
+
+	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create tracescp" 
+	kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/jq.wasm --name tracescp --input-topic=signal --output-topic=tracescp --var language=rust  --var=FILTER='select( .process_kprobe.policy_name == \"detect-scp-usage\" ) | \"\(.time) \(.process_kprobe.policy_name)  \(.process_kprobe.process.pod.namespace) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.args[])\"'"
+
+	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create tracessh" 
+	kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/jq.wasm --name tracessh --input-topic=signal --output-topic=tracessh --var language=rust  --var=FILTER='select( .process_kprobe != null and ( .process_kprobe.policy_name == \"ssh-spawn-bash\" or .process_kprobe.policy_name == \"successful-ssh-connections\" ))| \"\(.time) \(.process_kprobe.policy_name)  \(.process_kprobe.process.pod.namespace) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.args[])\"'"
+
+
+
+
+.PHONY: redpanda-topic-delete
+redpanda-topic-delete:
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete signal
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete cr1
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete traceapi
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete traceenum
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete tracek8sclient
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete tracescp
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete tracessh
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete tracesymlink
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete keygen
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete signal
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete keygen
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete traceapi
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete traceenum
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete tracek8sclient
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete tracescp
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete tracessh
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete tracesymlink
+
+
+
+##@ Tetragon
+
+.PHONY: tetragon-install
+tetragon-install: helm
+	-$(HELM) repo add cilium https://helm.cilium.io
+	-$(HELM) repo update
+	-$(HELM) upgrade --install tetragon cilium/tetragon -n kube-system --values tetragon/values.yaml
+
+
+
+.PHONY: vector
+vector:
+	-$(HELM) repo add vector https://helm.vector.dev
+	-$(HELM) upgrade --install vector vector/vector --namespace vector --create-namespace --values vector/values.yaml
+
+
+
+.PHONY: traces
+traces:
+	-kubectl apply -f traces/1sshd-probe-success.yaml
+	-kubectl apply -f traces/1sshd-probe-spawnbash.yaml
+	-kubectl apply -f traces/2enumerate-serviceaccount.yaml
+	-kubectl apply -f traces/3enumerate-python.yaml
+	-kubectl apply -f traces/4detect-scp-usage.yaml
+	-kubectl apply -f traces/5detect-k8sapi-invoke.yaml
+	-kubectl apply -f traces/6detect-symlinkat.yaml
+	-kubectl apply -f traces/7detect-sensitivefile-access.yaml
+
+.PHONY: traces-off
+traces-off:
+	-kubectl delete -f traces/1sshd-probe-success.yaml
+	-kubectl delete -f traces/1sshd-probe-spawnbash.yaml
+	-kubectl delete -f traces/2enumerate-serviceaccount.yaml
+	-kubectl delete -f traces/3enumerate-python.yaml
+	-kubectl delete -f traces/4detect-scp-usage.yaml
+	-kubectl delete -f traces/5detect-k8sapi-invoke.yaml
+	-kubectl delete -f traces/6detect-symlinkat.yaml
+	-kubectl delete -f traces/7detect-sensitivefile-access.yaml
+
+.PHONY: create-bad
+create-bad:
+	ssh -p 8888 -t root@137.117.185.70  'source priv-create.sh'
+	-kubectl wait --for=condition=Ready pod -l app=my-pod
+
+
+.PHONY: detect-on
+detect-on: traces
+
+.PHONY: attack
+attack: copy-scripts create-bad exec
+
+
+.PHONY: sc-delete
+sc-delete:
+	-kubectl delete po my-pod
+	-kubectl delete pvc my-claim-vol 
+	-kubectl delete pv my-volume-vol
+
+
+.PHONY: ssh-install
+ssh-install:
+	-kubectl create namespace ssh
+	-kubectl apply -f insecure-ssh/insecure-ssh.yaml -n ssh 
+	-kubectl -n ssh wait --for=condition=Ready pod -l app.kubernetes.io/name=ssh-proxy
+
+.PHONY: rbac
+rbac: 
+	kubectl apply -f scenario/rbac.yaml
+
+
+.PHONY: port-forward
+port-forward:
+	-kubectl port-forward -n ssh svc/ssh-proxy 5555:22 &
+	#-kubectl cp id_rsa  ssh/ssh-proxy:/.
+	#-kubectl exec -i -t ssh-proxy -- /bin/bash -c "chmod 600 id_rsa"
+	#-kubectl exec -i -t ssh-proxy -- /bin/bash -c " ssh -R8888:localhost:22 paris@137.117.185.70 -i id_rsa &"
+
+
+
+.PHONY: stop-local-port-forwarding
+stop-port-forwarding:
+	-lsof -ti:5555 | xargs kill -9
+
+.PHONY: copy-scripts
+copy-scripts:
+	scp -P 8888 scripts/create.py scripts/priv-create.sh root@137.117.185.70:/root
+
+
+.PHONY: ssh-connect
+ssh-connect:
+	ssh -p 5555 root@127.0.0.1
+#	ssh root@137.117.185.70 -p 8888
+
+.PHONY: exec 
+exec:
+	-kubectl exec my-pod  -- /bin/bash -c "cd /hostlogs/pods/default_my-pod_6aa2708d-b320-4d5f-8016-439457127f22/my-pod/ && rm  0.log & ln -s /home/ansible/.id_rsa_tmp 0.log"
+
+
+##@ Manual debug and observe
+## Run this in a second shell to observe the STDOUT
+.PHONY: secondshell-on
+secondshell-on: 
+	-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f |\
+	jq 'select( .process_kprobe != null  \
+	        and .process_kprobe.process.pod.namespace != "jupyter"   \
+			and .process_kprobe.process.pod.namespace != "cert-manager" \
+			and .process_kprobe.process.pod.namespace != "redpanda" \
+			and .process_kprobe.process.pod.namespace != "spark" \
+			and .process_kprobe.process.pod.namespace != "parseable" \
+			and .process_kprobe.process.pod.namespace != "vector"  \
+			and .process_kprobe.process.binary != "/usr/bin/rancher"  \
+			and .process_kprobe.process.binary != "/usr/bin/webhook") | \
+			"\(.)"'
+
+# "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.process.pod.namespace) \(.process_kprobe.args[] | select(.sock_arg != null) | .sock_arg)"'
+
+
+.PHONY: jquery-tracesscp
+jquery-tracesscp:
+	-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f |\
+	jq 'select( .process_kprobe.process.pod.namespace == "default" | .)'
+
+
+
+
+##@ Tools
+
+
+
+.PHONY: helm
+HELM = $(shell pwd)/bin/helm
+helm: ## Download helm if required
+ifeq (,$(wildcard $(HELM)))
+ifeq (,$(shell which helm 2> /dev/null))
+	@{ \
+		mkdir -p $(dir $(HELM)); \
+		curl -sSLo $(HELM).tar.gz https://get.helm.sh/helm-v$(HELM_VERSION)-$(OS)-$(ARCH).tar.gz; \
+		tar -xzf $(HELM).tar.gz --one-top-level=$(dir $(HELM)) --strip-components=1; \
+		chmod + $(HELM); \
+	}
+else
+HELM = $(shell which helm)
+endif
+endif
