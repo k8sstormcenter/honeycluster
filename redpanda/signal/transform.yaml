@@ -1,0 +1,4 @@
+name: signal
+input-topic: "signal_text"
+output-topic: "signal"
+language: tinygo-no-goroutines

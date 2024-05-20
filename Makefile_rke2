@@ -8,7 +8,8 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 ##@ Used to deploy transforms to redpanda
 # keygen: generates hash for every message
 # baseline: collects all hashes that should be filtered out in the signal
-DIRS := keygen baseline
+# signal: unescapes escaped json in signal_text
+DIRS := keygen baseline signal
 
 TOPICS := signal cr1 traceapi traceenum tracek8sclient tracescp tracessh tracesymlink keygen baseline baseline_unique
 
@@ -20,7 +21,7 @@ TOPICS := signal cr1 traceapi traceenum tracek8sclient tracescp tracessh tracesy
 honey-up: tetragon-install redpanda vector redpanda-wasm-hosted ksqldb ssh-install port-forward traces
 
 .PHONY: honey-signal
-honey-signal: baseline-signal redpanda-wasm 
+honey-signal: baseline-signal
 
 ##@ remove all honeycluster instrumentation from rke2
 .PHONY: honey-down
@@ -71,9 +72,10 @@ redpanda-wasm:
 # TODO: replace BRANCH to MAIN before PR is merged
 .PHONY: redpanda-wasm-hosted
 redpanda-wasm-hosted:
+	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create signal_text"
 	@for dir in $(DIRS); do \
 		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
-		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/feature/ksqldb-baseline-removal/prebuilt/$$dir.wasm --name $$dir --input-topic=$$(sed -n -e 's/^input-topic: *//p' redpanda/$$dir/transform.yaml) --output-topic=$$dir --var language=tinygo-no-goroutines " ;\
+		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/feature/ksqldb-baseline-removal-json/prebuilt/$$dir.wasm --name $$dir --input-topic=$$(sed -n -e 's/^input-topic: *//p' redpanda/$$dir/transform.yaml) --output-topic=$$dir --var language=tinygo-no-goroutines " ;\
 	done
 
 
@@ -87,7 +89,7 @@ ksqldb:
 ##@ Stops the population of the baseline topic
 .PHONY: baseline-signal
 baseline-signal:
-	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform delete baseline --no-confirm && rpk topic trim-prefix signal -o @$$(date +%s) --no-confirm"
+	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform delete baseline --no-confirm"
 
 
 # TODO : you need to copy paste the second cmd into your terminal, cant find the right combo of escape chars
