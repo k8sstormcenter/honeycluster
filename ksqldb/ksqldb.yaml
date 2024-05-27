@@ -53,12 +53,6 @@ spec:
       containers:
       - name: ksqldb-server
         image: confluentinc/ksqldb-server:0.29.0
-        resources:
-          limits:
-            memory: 2Gi
-            cpu: 1
-          requests:
-            memory: 1Gi
         ports:
         - containerPort: 8088
         volumeMounts:
@@ -80,8 +74,18 @@ spec:
       - name: ksqldb-queries
         configMap:
           name: ksqldb-queries
-      tolerations:
-        - effect: "NoSchedule"
-          key: "sandbox.gke.io/runtime"
-          operator: "Equal"
-          value: "gvisor"
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #       - matchExpressions:
+      #         - key: topology.kubernetes.io/zone
+      #           operator: In
+      #           values:
+      #           - antarctica-east1
+      #           - antarctica-west1
+      # tolerations:
+      #   - effect: "NoSchedule"
+      #     key: "sandbox.gke.io/runtime"
+      #     operator: "Equal"
+      #     value: "gvisor"
