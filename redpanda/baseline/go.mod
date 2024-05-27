@@ -1,4 +1,4 @@
-module singal
+module baseline
 
 go 1.20
 

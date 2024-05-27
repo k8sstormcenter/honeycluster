@@ -1,8 +1,6 @@
 package main
 
 import (
-	"strconv"
-
 	"github.com/redpanda-data/redpanda/src/transform-sdk/go/transform"
 )
 
@@ -10,14 +8,13 @@ func main() {
 	transform.OnRecordWritten(doTransform)
 }
 
-func doTransform(e transform.WriteEvent, w transform.RecordWriter) error {
-	// Unescape value
-	value, _ := strconv.Unquote(string(e.Record().Value))
+var value = []byte("null")
 
-	// Create a new record with unescaped value
+func doTransform(e transform.WriteEvent, w transform.RecordWriter) error {
+	// Create a new record with null value
 	record := &transform.Record{
 		Key:       e.Record().Key,
-		Value:     []byte(value),
+		Value:     value,
 		Offset:    e.Record().Offset,
 		Timestamp: e.Record().Timestamp,
 		Headers:   e.Record().Headers,

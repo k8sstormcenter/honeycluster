@@ -1,0 +1,4 @@
+name: baseline
+input-topic: "keygen"
+output-topic: "baseline"
+language: tinygo-no-goroutines
