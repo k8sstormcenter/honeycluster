@@ -1,0 +1,15 @@
+storage:
+  persistentVolume:
+    enabled: true
+    size: 2Gi
+
+config:
+  rpk: {}
+    # additional_start_flags:                                      # List of flags to pass to rpk, e.g., ` "--idle-poll-time-us=0"`
+  cluster:
+    default_topic_replications: 1                                  # Default replication factor for new topics
+    data_transforms_enabled: true
+
+statefulset:
+  # -- Number of Redpanda brokers (Redpanda Data recommends setting this to the number of worker nodes in the cluster)
+  replicas: 1
