@@ -1,6 +1,6 @@
 NAME ?= stage_h
 CLUSTER_NAME := $(NAME)
-
+HELM = $(shell which helm)
 
 OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
@@ -8,20 +8,22 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 ##@ Used to deploy transforms to redpanda
 # keygen: generates hash for every message
 # baseline: collects all hashes that should be filtered out in the signal
-# signal: unescapes escaped json in signal_text
 DIRS := keygen baseline signal
 
-TOPICS := signal cr1 traceapi traceenum tracek8sclient tracescp tracessh tracesymlink keygen baseline baseline_unique
 
 .EXPORT_ALL_VARIABLES:
 
 ##@ Scenario
+.PHONY: redpandaSTOP 
+redpandaSTOP: 
+	echo "run manual commands as first thing, please , see lines 50ff"
 
+# first do the redpanda thing manually and patch the resource requirements out of the statefulset -> TODO find out how to set them correctly in helm
 .PHONY: honey-up
-honey-up: tetragon-install redpanda vector redpanda-wasm-hosted ksqldb ssh-install port-forward traces
+honey-up: tetragon-install vector redpanda-wasm-hosted ksqldb  traces
 
 .PHONY: honey-signal
-honey-signal: baseline-signal
+honey-signal: baseline-signal 
 
 ##@ remove all honeycluster instrumentation from rke2
 .PHONY: honey-down
@@ -44,20 +46,26 @@ detect-on: traces
 .PHONY: attack
 attack: copy-scripts create-bad exec
 
+
+# FOR GKE : you must run the following 3 commands manually in two different shells, as the helm will get stuck until you patch it
+#helm repo add redpanda-data https://charts.redpanda.com && helm repo update && helm upgrade --install redpanda-src redpanda-data/redpanda --version 5.8.3 -n redpanda --create-namespace --values redpanda/gkevalues.yaml
+#kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk cluster config set data_transforms_enabled true" && kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create cr1"
+#kubectl patch statefulset redpanda-src -n redpanda --type='json' -p='[{op: remove, path: /spec/template/spec/containers/0/resources/limits}]'
+
 # useful:  alias internal-rpk="kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk"
 .PHONY: redpanda
-redpanda: helm 
-	-$(HELM) repo add redpanda https://charts.redpanda.com
-	-$(HELM) repo update
-	-$(HELM) upgrade --install redpanda-src redpanda/redpanda -n redpanda --create-namespace --values redpanda/rke2values.yaml --set image.repository=docker.redpanda.com/redpandadata/redpanda-unstable --set image.tag=v24.1.1-rc4
-	while [ "$$(kubectl -n redpanda get po -l app.kubernetes.io/name=redpanda -o jsonpath='{.items[0].metadata.generateName}')" != "redpanda-src-" ]; do \
-		sleep 2; \
-   	echo "Waiting for Redpanda pod to be created."; \
-	done
-	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create cr1"
+redpanda: 
+	echo "for GKE please run these steps manually until patch has been sorted"
+#-$(HELM) repo add redpanda-data https://charts.redpanda.com 
+#-$(HELM) repo update
+#-$(HELM) upgrade --install redpanda-src redpanda-data/redpanda --version 5.8.3 -n redpanda --create-namespace --values redpanda/gkevalues.yaml  
+#kubectl patch statefulset redpanda-src -n redpanda --type='json' -p='[{op: remove, path: /spec/template/spec/containers/0/resources/limits}]'
+#-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk cluster config set data_transforms_enabled true"
+#-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create cr1"
 
 .PHONY: redpanda-wasm
 redpanda-wasm:
+	
 	@for dir in $(DIRS); do \
 		cd redpanda/$$dir/ && go mod tidy && rpk transform build && cd ../.. ;\
 		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
@@ -70,13 +78,11 @@ redpanda-wasm:
 
 
 .PHONY: redpanda-wasm-hosted
-redpanda-wasm-hosted:
-	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create signal_text"
+redpanda-wasm-hosted:	
 	@for dir in $(DIRS); do \
 		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
 		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/$$dir.wasm --name $$dir --input-topic=$$(sed -n -e 's/^input-topic: *//p' redpanda/$$dir/transform.yaml) --output-topic=$$dir --var language=tinygo-no-goroutines " ;\
 	done
-
 
 ##@ Filters out the hashes in the baseline topic from the keygen topic and writes result to signal
 # To exclude further hashes from the signal, add them to the baseline topic
@@ -85,11 +91,11 @@ ksqldb:
 	kubectl apply -f ksqldb/ksqldb.yaml -n redpanda
 
 
+
 ##@ Stops the population of the baseline topic
 .PHONY: baseline-signal
 baseline-signal:
 	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform delete baseline --no-confirm"
-
 
 # TODO : you need to copy paste the second cmd into your terminal, cant find the right combo of escape chars
 .PHONY: redpanda-wasm-jq
@@ -117,17 +123,30 @@ redpanda-wasm-jq:	check-context
 
 .PHONY: redpanda-topic-delete
 redpanda-topic-delete:
-	@for topic in $(TOPICS); do \
-		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform delete --no-confirm $$topic" || true; \
-		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic delete $$topic" || true; \
-	done
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete signal
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete cr1
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete traceapi
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete traceenum
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete tracek8sclient
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete tracescp
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete tracessh
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete tracesymlink
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete keygen
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete signal --no-confirm
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete keygen --no-confirm
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete traceapi --no-confirm
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete traceenum --no-confirm
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete tracek8sclient --no-confirm
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete tracescp --no-confirm
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete tracessh --no-confirm
+	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete tracesymlink --no-confirm
 
 
 
 ##@ Tetragon
 
 .PHONY: tetragon-install
-tetragon-install: helm
+tetragon-install: 
 	-$(HELM) repo add cilium https://helm.cilium.io
 	-$(HELM) repo update
 	-$(HELM) upgrade --install tetragon cilium/tetragon -n kube-system --values tetragon/values.yaml
@@ -140,7 +159,7 @@ tetragon-install: helm
 .PHONY: vector
 vector:
 	-$(HELM) repo add vector https://helm.vector.dev
-	-$(HELM) upgrade --install vector vector/vector --namespace vector --create-namespace --values vector/values.yaml
+	-$(HELM) upgrade --install vector vector/vector --namespace vector --create-namespace --values vector/gkevalues.yaml
 	while [ "$$(kubectl -n vector get po -l app.kubernetes.io/name=vector -o jsonpath='{.items[0].metadata.generateName}')" != "vector-" ]; do \
 	sleep 2; \
    	echo "Waiting for Vector pod to be created."; \
@@ -151,7 +170,7 @@ vector:
 traces:
 	-kubectl apply -f traces/1sshd-probe-success.yaml
 	-kubectl apply -f traces/1sshd-probe-spawnbash.yaml
-	-kubectl apply -f traces/2enumerate-serviceaccount.yaml
+	#-kubectl apply -f traces/2enumerate-serviceaccount.yaml
 	-kubectl apply -f traces/3enumerate-python.yaml
 	-kubectl apply -f traces/4detect-scp-usage.yaml
 	-kubectl apply -f traces/5detect-k8sapi-invoke.yaml
@@ -203,9 +222,6 @@ rbac:
 .PHONY: port-forward
 port-forward:
 	-kubectl port-forward -n ssh svc/ssh-proxy 5555:22 &
-	#-kubectl cp id_rsa  ssh/ssh-proxy:/.
-	#-kubectl exec -i -t ssh-proxy -- /bin/bash -c "chmod 600 id_rsa"
-	#-kubectl exec -i -t ssh-proxy -- /bin/bash -c " ssh -R8888:localhost:22 paris@137.117.185.70 -i id_rsa &"
 
 
 
@@ -227,50 +243,3 @@ ssh-connect:
 exec:
 	-kubectl exec my-pod  -- /bin/bash -c "cd /hostlogs/pods/default_my-pod_6aa2708d-b320-4d5f-8016-439457127f22/my-pod/ && rm  0.log & ln -s /home/ansible/.id_rsa_tmp 0.log"
 
-
-##@ Manual debug and observe
-## Run this in a second shell to observe the STDOUT
-.PHONY: secondshell-on
-secondshell-on: 
-	-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f |\
-	jq 'select( .process_kprobe != null  \
-	        and .process_kprobe.process.pod.namespace != "jupyter"   \
-			and .process_kprobe.process.pod.namespace != "cert-manager" \
-			and .process_kprobe.process.pod.namespace != "redpanda" \
-			and .process_kprobe.process.pod.namespace != "spark" \
-			and .process_kprobe.process.pod.namespace != "parseable" \
-			and .process_kprobe.process.pod.namespace != "vector"  \
-			and .process_kprobe.process.binary != "/usr/bin/rancher"  \
-			and .process_kprobe.process.binary != "/usr/bin/webhook") | \
-			"\(.)"'
-
-# "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.process.pod.namespace) \(.process_kprobe.args[] | select(.sock_arg != null) | .sock_arg)"'
-
-
-.PHONY: jquery-tracesscp
-jquery-tracesscp:
-	-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f |\
-	jq 'select( .process_kprobe.process.pod.namespace == "default" | .)'
-
-
-
-
-##@ Tools
-
-
-
-.PHONY: helm
-HELM = $(shell pwd)/bin/helm
-helm: ## Download helm if required
-ifeq (,$(wildcard $(HELM)))
-ifeq (,$(shell which helm 2> /dev/null))
-	@{ \
-		mkdir -p $(dir $(HELM)); \
-		curl -sSLo $(HELM).tar.gz https://get.helm.sh/helm-v$(HELM_VERSION)-$(OS)-$(ARCH).tar.gz; \
-		tar -xzf $(HELM).tar.gz --one-top-level=$(dir $(HELM)) --strip-components=1; \
-		chmod + $(HELM); \
-	}
-else
-HELM = $(shell which helm)
-endif
-endif

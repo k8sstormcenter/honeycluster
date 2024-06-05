@@ -5,18 +5,18 @@ OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 
 
-DIRS := keygen
-COMPILEDIRS  := signal 
+
+DIRS := keygen baseline signal
 
 .EXPORT_ALL_VARIABLES:
 
 ##@ Scenario
 
 .PHONY: honey-up
-honey-up: cluster-up redpanda tetragon-install vector redpanda-wasm-hosted traces  ssh-install rbac sc-deploy port-forward traces
+honey-up: cluster-up redpanda tetragon-install vector redpanda-wasm-hosted traces ksqldb ssh-install rbac sc-deploy port-forward traces
 
 .PHONY: honey-signal
-honey-signal: baseline-signal redpanda-wasm 
+honey-signal: baseline-signal 
 
 ## Run this in a second shell to observe the STDOUT
 .PHONY: secondshell-on
@@ -84,7 +84,7 @@ redpanda: helm check-context
 .PHONY: redpanda-wasm
 redpanda-wasm:
 ## WIP : you need to execute the redpanda/script.sh first to extract the uniq keys for the baseline
-	@for dir in $(COMPILEDIRS); do \
+	@for dir in $(DIRS); do \
 		cd redpanda/$$dir/ && go mod tidy && rpk transform build && cd ../.. ;\
 		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
 		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/$$dir" ;\
@@ -93,7 +93,7 @@ redpanda-wasm:
 		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/$$dir/ && rpk transform deploy" ;\
 	done
 	
-# TODO: replace BRANCH to MAIN once PR is merged	
+
 .PHONY: redpanda-wasm-hosted
 redpanda-wasm-hosted:	check-context
 	@for dir in $(DIRS); do \
@@ -101,7 +101,7 @@ redpanda-wasm-hosted:	check-context
 		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/$$dir.wasm --name $$dir --input-topic=cr1 --output-topic=$$dir --var language=tinygo-no-goroutines " ;\
 	done
 
-# TODO: replace BRANCH to MAIN once PR is merged	
+	
 # TODO : you need to copy paste the second cmd into your terminal, cant find the right combo of escape chars
 .PHONY: redpanda-wasm-jq
 redpanda-wasm-jq:	check-context
@@ -123,18 +123,19 @@ redpanda-wasm-jq:	check-context
 	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create tracessh" 
 	kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/jq.wasm --name tracessh --input-topic=signal --output-topic=tracessh --var language=rust  --var=FILTER='select( .process_kprobe != null and ( .process_kprobe.policy_name == \"ssh-spawn-bash\" or .process_kprobe.policy_name == \"successful-ssh-connections\" ))| \"\(.time) \(.process_kprobe.policy_name)  \(.process_kprobe.process.pod.namespace) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.args[])\"'"
 
+##@ Filters out the hashes in the baseline topic from the keygen topic and writes result to signal
+# To exclude further hashes from the signal, add them to the baseline topic
+.PHONY: ksqldb
+ksqldb:
+	kubectl apply -f ksqldb/ksqldb.yaml -n redpanda
 
 
 
+
+##@ Stops the population of the baseline topic
 .PHONY: baseline-signal
-baseline-signal: check-context
-	echo "this will error out with exit code 124"
-	- kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/sh -c "timeout 5 rpk topic consume keygen -f '%k\n'" > /tmp/list
-	sort -u /tmp/list  > /tmp/list.uniq
-	tail -n +2 /tmp/list.uniq > /tmp/list.clean
-	awk '{gsub(/\r/, ""); printf "\"%s\",\n", $$0}' /tmp/list.clean > /tmp/list.uniq.c
-	paste -s -d ' ' /tmp/list.uniq.c > one_line_list.txt
-	-sh -c 'export HASHLIST=$$(cat one_line_list.txt); envsubst < redpanda/signal/keyless/transform.go > redpanda/signal/transform.go '
+baseline-signal:
+	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform delete baseline --no-confirm"
 
 
 .PHONY: redpanda-topic-delete
