@@ -132,15 +132,10 @@ ksqldb:
 
 
 
+##@ Stops the population of the baseline topic
 .PHONY: baseline-signal
-baseline-signal: check-context
-	echo "this will error out with exit code 124"
-	- kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/sh -c "timeout 5 rpk topic consume keygen -f '%k\n'" > /tmp/list
-	sort -u /tmp/list  > /tmp/list.uniq
-	tail -n +2 /tmp/list.uniq > /tmp/list.clean
-	awk '{gsub(/\r/, ""); printf "\"%s\",\n", $$0}' /tmp/list.clean > /tmp/list.uniq.c
-	paste -s -d ' ' /tmp/list.uniq.c > one_line_list.txt
-	-sh -c 'export HASHLIST=$$(cat one_line_list.txt); envsubst < redpanda/signal/keyless/transform.go > redpanda/signal/transform.go '
+baseline-signal:
+	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform delete baseline --no-confirm && rpk topic trim-prefix signal -o @$$(date +%s) --no-confirm"
 
 
 .PHONY: redpanda-topic-delete
