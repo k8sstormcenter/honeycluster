@@ -95,7 +95,7 @@ ksqldb:
 ##@ Stops the population of the baseline topic
 .PHONY: baseline-signal
 baseline-signal:
-	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform delete baseline --no-confirm
+	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform delete baseline --no-confirm"
 
 # TODO : you need to copy paste the second cmd into your terminal, cant find the right combo of escape chars
 .PHONY: redpanda-wasm-jq
