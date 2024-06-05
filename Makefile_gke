@@ -10,8 +10,6 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 # baseline: collects all hashes that should be filtered out in the signal
 DIRS := keygen baseline
 
-TOPICS := signal cr1 traceapi traceenum tracek8sclient tracescp tracessh tracesymlink keygen baseline baseline_unique
-
 
 .EXPORT_ALL_VARIABLES:
 
@@ -46,15 +44,19 @@ detect-on: traces
 attack: copy-scripts create-bad exec
 
 
+# FOR GKE : you must run the following 3 commands manually in two different shells, as the helm will get stuck until you patch it
 #helm repo add redpanda-data https://charts.redpanda.com && helm repo update && helm upgrade --install redpanda-src redpanda-data/redpanda --version 5.8.3 -n redpanda --create-namespace --values redpanda/gkevalues.yaml
 #kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk cluster config set data_transforms_enabled true" && kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create cr1"
+#kubectl patch statefulset redpanda-src -n redpanda --type='json' -p='[{op: remove, path: /spec/template/spec/containers/0/resources/limits}]'
+
 # useful:  alias internal-rpk="kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk"
 .PHONY: redpanda
 redpanda: 
-	-$(HELM) repo add redpanda-data https://charts.redpanda.com 
-	-$(HELM) repo update
-	-$(HELM) upgrade --install redpanda-src redpanda-data/redpanda --version 5.8.3 -n redpanda --create-namespace --values redpanda/gkevalues.yaml  
-    kubectl patch statefulset redpanda-src -n redpanda --type='json' -p='[{op: remove, path: /spec/template/spec/containers/0/resources/limits}]'
+    echo 'for GKE please run these steps manually until patch has been sorted'
+	#-$(HELM) repo add redpanda-data https://charts.redpanda.com 
+	#-$(HELM) repo update
+	#-$(HELM) upgrade --install redpanda-src redpanda-data/redpanda --version 5.8.3 -n redpanda --create-namespace --values redpanda/gkevalues.yaml  
+    #kubectl patch statefulset redpanda-src -n redpanda --type='json' -p='[{op: remove, path: /spec/template/spec/containers/0/resources/limits}]'
     #-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk cluster config set data_transforms_enabled true"
     #-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create cr1"
 
