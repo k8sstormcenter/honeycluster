@@ -5,8 +5,8 @@ OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 
 
-DIRS := keygen
-COMPILEDIRS  := signal 
+
+DIRS := keygen baseline signal
 
 .EXPORT_ALL_VARIABLES:
 
@@ -16,7 +16,7 @@ COMPILEDIRS  := signal
 honey-up: cluster-up redpanda tetragon-install vector redpanda-wasm-hosted traces  ssh-install rbac sc-deploy port-forward traces
 
 .PHONY: honey-signal
-honey-signal: baseline-signal redpanda-wasm 
+honey-signal: baseline-signal 
 
 ## Run this in a second shell to observe the STDOUT
 .PHONY: secondshell-on
@@ -84,7 +84,7 @@ redpanda: helm check-context
 .PHONY: redpanda-wasm
 redpanda-wasm:
 ## WIP : you need to execute the redpanda/script.sh first to extract the uniq keys for the baseline
-	@for dir in $(COMPILEDIRS); do \
+	@for dir in $(DIRS); do \
 		cd redpanda/$$dir/ && go mod tidy && rpk transform build && cd ../.. ;\
 		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
 		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "mkdir -p /tmp/$$dir" ;\
@@ -93,7 +93,7 @@ redpanda-wasm:
 		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/$$dir/ && rpk transform deploy" ;\
 	done
 	
-# TODO: replace BRANCH to MAIN once PR is merged	
+
 .PHONY: redpanda-wasm-hosted
 redpanda-wasm-hosted:	check-context
 	@for dir in $(DIRS); do \
@@ -101,7 +101,7 @@ redpanda-wasm-hosted:	check-context
 		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/$$dir.wasm --name $$dir --input-topic=cr1 --output-topic=$$dir --var language=tinygo-no-goroutines " ;\
 	done
 
-# TODO: replace BRANCH to MAIN once PR is merged	
+	
 # TODO : you need to copy paste the second cmd into your terminal, cant find the right combo of escape chars
 .PHONY: redpanda-wasm-jq
 redpanda-wasm-jq:	check-context

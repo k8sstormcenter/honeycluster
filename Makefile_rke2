@@ -69,7 +69,6 @@ redpanda-wasm:
 
 
 
-# TODO: replace BRANCH to MAIN before PR is merged
 .PHONY: redpanda-wasm-hosted
 redpanda-wasm-hosted:
 	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create signal_text"

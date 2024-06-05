@@ -8,19 +8,22 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 ##@ Used to deploy transforms to redpanda
 # keygen: generates hash for every message
 # baseline: collects all hashes that should be filtered out in the signal
-DIRS := keygen baseline
+DIRS := keygen baseline signal
 
 
 .EXPORT_ALL_VARIABLES:
 
 ##@ Scenario
+.PHONY: redpandaSTOP 
+redpandaSTOP: 
+	echo "run manual commands as first thing, please , see lines 50ff"
 
 # first do the redpanda thing manually and patch the resource requirements out of the statefulset -> TODO find out how to set them correctly in helm
 .PHONY: honey-up
 honey-up: tetragon-install vector redpanda-wasm-hosted ksqldb  traces
 
 .PHONY: honey-signal
-honey-signal: baseline-signal redpanda-wasm 
+honey-signal: baseline-signal 
 
 ##@ remove all honeycluster instrumentation from rke2
 .PHONY: honey-down
@@ -52,13 +55,13 @@ attack: copy-scripts create-bad exec
 # useful:  alias internal-rpk="kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk"
 .PHONY: redpanda
 redpanda: 
-    echo 'for GKE please run these steps manually until patch has been sorted'
-	#-$(HELM) repo add redpanda-data https://charts.redpanda.com 
-	#-$(HELM) repo update
-	#-$(HELM) upgrade --install redpanda-src redpanda-data/redpanda --version 5.8.3 -n redpanda --create-namespace --values redpanda/gkevalues.yaml  
-    #kubectl patch statefulset redpanda-src -n redpanda --type='json' -p='[{op: remove, path: /spec/template/spec/containers/0/resources/limits}]'
-    #-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk cluster config set data_transforms_enabled true"
-    #-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create cr1"
+	echo "for GKE please run these steps manually until patch has been sorted"
+#-$(HELM) repo add redpanda-data https://charts.redpanda.com 
+#-$(HELM) repo update
+#-$(HELM) upgrade --install redpanda-src redpanda-data/redpanda --version 5.8.3 -n redpanda --create-namespace --values redpanda/gkevalues.yaml  
+#kubectl patch statefulset redpanda-src -n redpanda --type='json' -p='[{op: remove, path: /spec/template/spec/containers/0/resources/limits}]'
+#-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk cluster config set data_transforms_enabled true"
+#-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create cr1"
 
 .PHONY: redpanda-wasm
 redpanda-wasm:
@@ -73,7 +76,7 @@ redpanda-wasm:
 	done
 
 
-# TODO: replace BRANCH to MAIN before PR is merged
+
 .PHONY: redpanda-wasm-hosted
 redpanda-wasm-hosted:	
 	@for dir in $(DIRS); do \
@@ -167,7 +170,7 @@ vector:
 traces:
 	-kubectl apply -f traces/1sshd-probe-success.yaml
 	-kubectl apply -f traces/1sshd-probe-spawnbash.yaml
-	-kubectl apply -f traces/2enumerate-serviceaccount.yaml
+	#-kubectl apply -f traces/2enumerate-serviceaccount.yaml
 	-kubectl apply -f traces/3enumerate-python.yaml
 	-kubectl apply -f traces/4detect-scp-usage.yaml
 	-kubectl apply -f traces/5detect-k8sapi-invoke.yaml
