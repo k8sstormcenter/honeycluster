@@ -65,7 +65,6 @@ redpanda:
 
 .PHONY: redpanda-wasm
 redpanda-wasm:
-	
 	@for dir in $(DIRS); do \
 		cd redpanda/$$dir/ && go mod tidy && rpk transform build && cd ../.. ;\
 		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
@@ -79,6 +78,7 @@ redpanda-wasm:
 
 .PHONY: redpanda-wasm-hosted
 redpanda-wasm-hosted:	
+	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create signal_text"
 	@for dir in $(DIRS); do \
 		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
 		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/$$dir.wasm --name $$dir --input-topic=$$(sed -n -e 's/^input-topic: *//p' redpanda/$$dir/transform.yaml) --output-topic=$$dir --var language=tinygo-no-goroutines " ;\
