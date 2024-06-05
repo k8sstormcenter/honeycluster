@@ -42,11 +42,6 @@ detect-on: traces
 attack: copy-scripts create-bad exec
 
 
-# FOR GKE : you must run the following 3 commands manually in two different shells, as the helm will get stuck until you patch it
-#helm repo add redpanda-data https://charts.redpanda.com && helm repo update && helm upgrade --install redpanda-src redpanda-data/redpanda --version 5.8.3 -n redpanda --create-namespace --values redpanda/gkevalues.yaml
-#helm repo add redpanda-data https://charts.redpanda.com && helm repo update && helm upgrade --install redpanda-src redpanda-data/redpanda --version 5.8.8 -n redpanda --create-namespace --values redpanda/diffvalues.yaml
-#kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk cluster config set data_transforms_enabled true" && kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create cr1"
-#kubectl patch statefulset redpanda-src -n redpanda --type='json' -p='[{op: remove, path: /spec/template/spec/containers/0/resources/limits}]'
 
 # useful:  alias internal-rpk="kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk"
 .PHONY: redpanda
@@ -55,8 +50,6 @@ redpanda:
 	-$(HELM) repo update
 	-$(HELM) upgrade --install redpanda-src redpanda-data/redpanda --version 5.8.8 -n redpanda --create-namespace --values redpanda/diffvalues.yaml 
 	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create cr1" 
-#kubectl patch statefulset redpanda-src -n redpanda --type='json' -p='[{op: remove, path: /spec/template/spec/containers/0/resources/limits}]'
-#-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk cluster config set data_transforms_enabled true"
 
 
 .PHONY: redpanda-wasm
