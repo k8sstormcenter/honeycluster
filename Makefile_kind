@@ -13,7 +13,7 @@ DIRS := keygen baseline signal
 ##@ Scenario
 
 .PHONY: honey-up
-honey-up: cluster-up redpanda tetragon-install vector redpanda-wasm-hosted traces  ssh-install rbac sc-deploy port-forward traces
+honey-up: cluster-up redpanda tetragon-install vector redpanda-wasm-hosted traces ksqldb ssh-install rbac sc-deploy port-forward traces
 
 .PHONY: honey-signal
 honey-signal: baseline-signal 
@@ -122,6 +122,12 @@ redpanda-wasm-jq:	check-context
 
 	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create tracessh" 
 	kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/jq.wasm --name tracessh --input-topic=signal --output-topic=tracessh --var language=rust  --var=FILTER='select( .process_kprobe != null and ( .process_kprobe.policy_name == \"ssh-spawn-bash\" or .process_kprobe.policy_name == \"successful-ssh-connections\" ))| \"\(.time) \(.process_kprobe.policy_name)  \(.process_kprobe.process.pod.namespace) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.args[])\"'"
+
+##@ Filters out the hashes in the baseline topic from the keygen topic and writes result to signal
+# To exclude further hashes from the signal, add them to the baseline topic
+.PHONY: ksqldb
+ksqldb:
+	kubectl apply -f ksqldb/ksqldb.yaml -n redpanda
 
 
 
