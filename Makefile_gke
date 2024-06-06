@@ -13,19 +13,14 @@ DIRS := keygen baseline signal
 
 .EXPORT_ALL_VARIABLES:
 
-##@ Scenario
-.PHONY: redpandaSTOP 
-redpandaSTOP: 
-	echo "run manual commands as first thing, please , see lines 50ff"
 
-# first do the redpanda thing manually and patch the resource requirements out of the statefulset -> TODO find out how to set them correctly in helm
 .PHONY: honey-up
-honey-up: tetragon-install vector redpanda-wasm-hosted ksqldb  traces
+honey-up: tetragon-install redpanda vector redpanda-wasm-hosted ksqldb  traces
 
 .PHONY: honey-signal
 honey-signal: baseline-signal 
 
-##@ remove all honeycluster instrumentation from rke2
+##@ remove all honeycluster instrumentation from k8s
 .PHONY: honey-down
 honey-down: traces-off redpanda-topic-delete sc-delete stop-local-port-forwarding  wipe
 
@@ -47,21 +42,15 @@ detect-on: traces
 attack: copy-scripts create-bad exec
 
 
-# FOR GKE : you must run the following 3 commands manually in two different shells, as the helm will get stuck until you patch it
-#helm repo add redpanda-data https://charts.redpanda.com && helm repo update && helm upgrade --install redpanda-src redpanda-data/redpanda --version 5.8.3 -n redpanda --create-namespace --values redpanda/gkevalues.yaml
-#kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk cluster config set data_transforms_enabled true" && kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create cr1"
-#kubectl patch statefulset redpanda-src -n redpanda --type='json' -p='[{op: remove, path: /spec/template/spec/containers/0/resources/limits}]'
 
 # useful:  alias internal-rpk="kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk"
 .PHONY: redpanda
 redpanda: 
-	echo "for GKE please run these steps manually until patch has been sorted"
-#-$(HELM) repo add redpanda-data https://charts.redpanda.com 
-#-$(HELM) repo update
-#-$(HELM) upgrade --install redpanda-src redpanda-data/redpanda --version 5.8.3 -n redpanda --create-namespace --values redpanda/gkevalues.yaml  
-#kubectl patch statefulset redpanda-src -n redpanda --type='json' -p='[{op: remove, path: /spec/template/spec/containers/0/resources/limits}]'
-#-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk cluster config set data_transforms_enabled true"
-#-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create cr1"
+	-$(HELM) repo add redpanda-data https://charts.redpanda.com 
+	-$(HELM) repo update
+	-$(HELM) upgrade --install redpanda-src redpanda-data/redpanda --version 5.8.8 -n redpanda --create-namespace --values redpanda/diffvalues.yaml 
+	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create cr1" 
+
 
 .PHONY: redpanda-wasm
 redpanda-wasm:

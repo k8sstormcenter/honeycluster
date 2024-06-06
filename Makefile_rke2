@@ -47,9 +47,9 @@ attack: copy-scripts create-bad exec
 # useful:  alias internal-rpk="kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk"
 .PHONY: redpanda
 redpanda: helm 
-	-$(HELM) repo add redpanda https://charts.redpanda.com
+	-$(HELM) repo add redpanda-data https://charts.redpanda.com 
 	-$(HELM) repo update
-	-$(HELM) upgrade --install redpanda-src redpanda/redpanda -n redpanda --create-namespace --values redpanda/rke2values.yaml --set image.repository=docker.redpanda.com/redpandadata/redpanda-unstable --set image.tag=v24.1.1-rc4
+	-$(HELM) upgrade --install redpanda-src  redpanda-data/redpanda --version 5.8.8 -n redpanda --create-namespace --values redpanda/diffvalues.yaml 
 	while [ "$$(kubectl -n redpanda get po -l app.kubernetes.io/name=redpanda -o jsonpath='{.items[0].metadata.generateName}')" != "redpanda-src-" ]; do \
 		sleep 2; \
    	echo "Waiting for Redpanda pod to be created."; \
