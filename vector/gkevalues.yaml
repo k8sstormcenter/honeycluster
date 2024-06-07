@@ -314,7 +314,7 @@ customConfig:
         - "**/redpanda_*/**"
         - "**/kube-system_*/**"
         - "**/gke-managed*/**"
-        - "**Error getting SSL certificate**"
+        - "**/Error getting SSL certificate*"
   sinks:
     redpanda:
       type: kafka
