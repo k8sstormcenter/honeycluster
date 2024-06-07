@@ -50,6 +50,7 @@ redpanda:
 	-$(HELM) repo update
 	-$(HELM) upgrade --install redpanda-src redpanda-data/redpanda --version 5.8.8 -n redpanda --create-namespace --values redpanda/diffvalues.yaml 
 	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create cr1" 
+	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create applogs" 
 
 
 .PHONY: redpanda-wasm
