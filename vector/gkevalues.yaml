@@ -292,6 +292,12 @@ customConfig:
         - kubernetes_logs
       source: |
               . = parse_json!(.message)
+    podlogs:
+       type: remap
+       inputs:
+          - flink_logs
+       source: |
+              . = parse_json!(.message)
   data_dir: /vector-data-dir
   api:
     enabled: true
@@ -302,6 +308,13 @@ customConfig:
       type: file
       include:
         - /var/run/cilium/tetragon/tetragon.log
+    flink_logs:
+      type: kubernetes_logs
+      exclude_paths_glob_patterns:
+        - "**/redpanda_*/**"
+        - "**/kube-system_*/**"
+        - "**/gke-managed*/**"
+        - "**Error getting SSL certificate**"
   sinks:
     redpanda:
       type: kafka
@@ -311,6 +324,14 @@ customConfig:
       encoding:
         codec: json
       topic: cr1
+    app_rp:
+      type: kafka
+      inputs:
+        - podlogs
+      bootstrap_servers: redpanda-src.redpanda.svc.cluster.local:9093
+      encoding:
+        codec: json
+      topic: applogs
     
 
         
