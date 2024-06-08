@@ -7,8 +7,6 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 
 ##@ Used to deploy transforms to redpanda
 # keygen: generates hash for every message
-# baseline: collects all hashes that should be filtered out in the signal
-# signal: unescapes escaped json in signal_text
 DIRS := keygen
 
 TOPICS := signal cr1 traceapi traceenum tracek8sclient tracescp tracessh tracesymlink keygen baseline baseline_unique
