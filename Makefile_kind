@@ -4,16 +4,18 @@ CLUSTER_NAME := $(NAME)
 OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 
+##@ Used to deploy transforms to redpanda
+# keygen: generates hash for every message
+DIRS := keygen
 
-
-DIRS := keygen baseline signal
+TOPICS := signal cr1 traceapi traceenum tracek8sclient tracescp tracessh tracesymlink keygen baseline baseline_unique
 
 .EXPORT_ALL_VARIABLES:
 
 ##@ Scenario
 
 .PHONY: honey-up
-honey-up: cluster-up redpanda tetragon-install vector redpanda-wasm-hosted traces ksqldb ssh-install rbac sc-deploy port-forward traces
+honey-up: cluster-up redpanda tetragon-install vector redpanda-wasm-hosted redis redpanda-connect ssh-install rbac sc-deploy port-forward traces
 
 .PHONY: honey-signal
 honey-signal: baseline-signal 
@@ -41,6 +43,9 @@ cluster-down: kind helm check-context  ## Delete the kind cluster
 	-$(HELM) uninstall vector -n vector
 	-$(HELM) uninstall redpanda-src -n redpanda
 	- kubectl delete -n redpanda pvc datadir-redpanda-src-0
+	-$(HELM) delete -n redpanda redpanda-connect-baseline
+	-$(HELM) delete -n redpanda redpanda-connect
+	-$(HELM) delete -n redpanda redis
 	-$(HELM) uninstall cert-manager -n cert-manager
 	-$(HELM) uninstall tetragon -n kube-system
 	-sleep 10
@@ -96,11 +101,30 @@ redpanda-wasm:
 
 .PHONY: redpanda-wasm-hosted
 redpanda-wasm-hosted:	check-context
-	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create signal_text"
 	@for dir in $(DIRS); do \
 		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
-		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/$$dir.wasm --name $$dir --input-topic=cr1 --output-topic=$$dir --var language=tinygo-no-goroutines " ;\
+		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/$$dir.wasm --name $$dir --input-topic=$$(sed -n -e 's/^input-topic: *//p' redpanda/$$dir/transform.yaml) --output-topic=$$dir --var language=tinygo-no-goroutines " ;\
 	done
+
+
+.PHONY: redis
+redis:
+	$(HELM) repo add bitnami https://charts.bitnami.com/bitnami
+	$(HELM) repo update
+	$(HELM) upgrade --install redis bitnami/redis -n redpanda --create-namespace --values redis/values.yaml
+
+
+##@ Filters out the hashes in the baseline topic from the keygen topic and writes result to signal
+.PHONY: redpanda-connect
+redpanda-connect:
+	$(HELM) upgrade --install -n redpanda redpanda-connect-baseline --set connect.configs=baseline/*.yaml ./redpanda/connect
+	$(HELM) upgrade --install -n redpanda redpanda-connect ./redpanda/connect
+
+
+##@ Stops the population of the baseline topic
+.PHONY: baseline-signal
+baseline-signal:
+	$(HELM) delete -n redpanda redpanda-connect-baseline
 
 	
 # TODO : you need to copy paste the second cmd into your terminal, cant find the right combo of escape chars
@@ -124,42 +148,16 @@ redpanda-wasm-jq:	check-context
 	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create tracessh" 
 	kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/jq.wasm --name tracessh --input-topic=signal --output-topic=tracessh --var language=rust  --var=FILTER='select( .process_kprobe != null and ( .process_kprobe.policy_name == \"ssh-spawn-bash\" or .process_kprobe.policy_name == \"successful-ssh-connections\" ))| \"\(.time) \(.process_kprobe.policy_name)  \(.process_kprobe.process.pod.namespace) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.args[])\"'"
 
-##@ Filters out the hashes in the baseline topic from the keygen topic and writes result to signal
-# To exclude further hashes from the signal, add them to the baseline topic
-.PHONY: ksqldb
-ksqldb:
-	kubectl apply -f ksqldb/ksqldb.yaml -n redpanda
-
-
-
-
-##@ Stops the population of the baseline topic
-.PHONY: baseline-signal
-baseline-signal:
-	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform delete baseline --no-confirm"
-
 
 .PHONY: redpanda-topic-delete
 redpanda-topic-delete:
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete signal
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete cr1
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete traceapi
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete traceenum
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete tracek8sclient
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete tracescp
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete tracessh
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete tracesymlink
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk topic delete keygen
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete signal
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete keygen
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete traceapi
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete traceenum
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete tracek8sclient
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete tracescp
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete tracessh
-	-kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk transform delete tracesymlink
-##@ Tetragon
+	@for topic in $(TOPICS); do \
+		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform delete --no-confirm $$topic" || true; \
+		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic delete $$topic" || true; \
+	done
 
+
+##@ Tetragon
 .PHONY: tetragon-install
 tetragon-install: helm check-context
 	-$(HELM) repo add cilium https://helm.cilium.io
