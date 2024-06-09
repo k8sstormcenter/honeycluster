@@ -15,7 +15,7 @@ TOPICS := signal cr1 traceapi traceenum tracek8sclient tracescp tracessh tracesy
 
 
 .PHONY: honey-up
-honey-up: tetragon-install redpanda vector redpanda-wasm-hosted redis redpanda-connect traces
+honey-up: tetragon-install redpanda vector redpanda-wasm-hosted redis redpanda-connect-baseline redpanda-connect traces
 
 .PHONY: honey-signal
 honey-signal: baseline-signal 
@@ -82,11 +82,16 @@ redis:
 	$(HELM) upgrade --install redis bitnami/redis -n redpanda --create-namespace --values redis/values.yaml
 
 
-##@ Filters out the hashes in the baseline topic from the keygen topic and writes result to signal
+##@ Filters out the hashes in the baseline from the keygen topic and writes result to signal
 .PHONY: redpanda-connect
 redpanda-connect:
-	$(HELM) upgrade --install -n redpanda redpanda-connect-baseline --set connect.configs=baseline/*.yaml ./redpanda/connect
 	$(HELM) upgrade --install -n redpanda redpanda-connect ./redpanda/connect
+
+
+##@ Adds all hashes from the keygen topic to a set used to filter out messages for the signal topics
+.PHONY: redpanda-connect-baseline
+redpanda-connect-baseline:
+	$(HELM) upgrade --install -n redpanda redpanda-connect-baseline --set connect.configs=baseline/*.yaml ./redpanda/connect
 
 
 ##@ Stops the population of the baseline topic
