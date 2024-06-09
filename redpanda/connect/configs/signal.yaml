@@ -15,11 +15,6 @@ pipeline:
               args_mapping: 'root = [ "baseline", @kafka_key ]'
         result_map: meta baseline = this == 1
     - mapping: root = if @baseline { deleted() }
-    - log:
-        level: info
-        message: "baseline"
-        fields_mapping: |-
-          root.baseline = @baseline
 
 output:
   kafka:
