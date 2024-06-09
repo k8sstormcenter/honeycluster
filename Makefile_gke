@@ -52,6 +52,7 @@ redpanda:
 	-$(HELM) repo update
 	-$(HELM) upgrade --install redpanda-src redpanda-data/redpanda --version 5.8.8 -n redpanda --create-namespace --values redpanda/diffvalues.yaml 
 	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create cr1" 
+	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create applogs" 
 
 
 .PHONY: redpanda-wasm
@@ -70,8 +71,8 @@ redpanda-wasm:
 .PHONY: redpanda-wasm-hosted
 redpanda-wasm-hosted:	
 	@for dir in $(DIRS); do \
-		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
-		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/$$dir.wasm --name $$dir --input-topic=$$(sed -n -e 's/^input-topic: *//p' redpanda/$$dir/transform.yaml) --output-topic=$$dir --var language=tinygo-no-goroutines " ;\
+		-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
+		-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/$$dir.wasm --name $$dir --input-topic=$$(sed -n -e 's/^input-topic: *//p' redpanda/$$dir/transform.yaml) --output-topic=$$dir --var language=tinygo-no-goroutines " ;\
 	done
 
 
@@ -161,7 +162,7 @@ vector:
 traces:
 	-kubectl apply -f traces/1sshd-probe-success.yaml
 	-kubectl apply -f traces/1sshd-probe-spawnbash.yaml
-	#-kubectl apply -f traces/2enumerate-serviceaccount.yaml
+	-kubectl apply -f traces/2enumerate-serviceaccount.yaml
 	-kubectl apply -f traces/3enumerate-python.yaml
 	-kubectl apply -f traces/4detect-scp-usage.yaml
 	-kubectl apply -f traces/5detect-k8sapi-invoke.yaml
