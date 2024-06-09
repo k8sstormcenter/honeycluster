@@ -295,7 +295,7 @@ customConfig:
     podlogs:
        type: remap
        inputs:
-          - flink_logs
+          - app_logs
        source: |
               . = parse_json!(.message)
   data_dir: /vector-data-dir
@@ -308,13 +308,14 @@ customConfig:
       type: file
       include:
         - /var/run/cilium/tetragon/tetragon.log
-    flink_logs:
+    app_logs:
       type: kubernetes_logs
       exclude_paths_glob_patterns:
         - "**/redpanda_*/**"
         - "**/kube-system_*/**"
         - "**/gke-managed*/**"
         - "**/*Error getting SSL certificate*"
+        - "*garbage collection completed*"
   sinks:
     redpanda:
       type: kafka
