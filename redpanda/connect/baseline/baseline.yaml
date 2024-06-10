@@ -1,0 +1,16 @@
+input:
+  kafka:
+    addresses: [ "${REDPANDA_HOSTS}" ]
+    topics:
+      - keygen
+    consumer_group: "redpanda-connect-baseline"
+  
+pipeline:
+  processors:
+    - redis:
+        url: "redis://${REDIS_HOST}"
+        command: SADD
+        args_mapping: 'root = [ "baseline", @kafka_key ]'
+
+output:
+  drop: {}
