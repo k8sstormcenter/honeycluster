@@ -43,9 +43,9 @@ cluster-down: kind helm check-context  ## Delete the kind cluster
 	-$(HELM) uninstall vector -n vector
 	-$(HELM) uninstall redpanda-src -n redpanda
 	- kubectl delete -n redpanda pvc datadir-redpanda-src-0
-	-$(HELM) delete -n redpanda redpanda-connect-baseline
-	-$(HELM) delete -n redpanda redpanda-connect
-	-$(HELM) delete -n redpanda redis
+	-$(HELM) uninstall -n redpanda redpanda-connect-baseline
+	-$(HELM) uninstall -n redpanda redpanda-connect
+	-$(HELM) uninstall -n redpanda redis
 	-$(HELM) uninstall cert-manager -n cert-manager
 	-$(HELM) uninstall tetragon -n kube-system
 	-sleep 10
@@ -109,8 +109,8 @@ redpanda-wasm-hosted:	check-context
 
 .PHONY: redis
 redis:
-	$(HELM) repo add bitnami https://charts.bitnami.com/bitnami
-	$(HELM) repo update
+	-$(HELM) repo add bitnami https://charts.bitnami.com/bitnami
+	-$(HELM) repo update
 	$(HELM) upgrade --install redis bitnami/redis -n redpanda --create-namespace --values redis/values.yaml
 
 
@@ -129,7 +129,7 @@ redpanda-connect-baseline:
 ##@ Stops the population of the baseline topic
 .PHONY: baseline-signal
 baseline-signal:
-	$(HELM) delete -n redpanda redpanda-connect-baseline
+	-$(HELM) uninstall -n redpanda redpanda-connect-baseline
 
 	
 # TODO : you need to copy paste the second cmd into your terminal, cant find the right combo of escape chars
