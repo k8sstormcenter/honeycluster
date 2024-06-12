@@ -51,6 +51,14 @@ spec:
           {{- with .Values.volumeMounts }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: 4195
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 4195
       volumes:
         - name: configs
           configMap:
