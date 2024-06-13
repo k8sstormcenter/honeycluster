@@ -25,7 +25,10 @@ env:
     value: "redis-headless:6379"
   - name: GOOGLE_APPLICATION_CREDENTIALS
     value: "/opt/conf/sa.json"
-
+  - name: OBSERVABILITY_PROJECT
+    value: "${OBSERVABILITY_PROJECT}"
+  - name: PROJECT
+    value: "${PROJECT}"
 podAnnotations: {}
 podLabels: {}
 

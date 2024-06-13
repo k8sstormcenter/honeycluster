@@ -86,7 +86,8 @@ redis:
 ##@ Filters out the hashes in the baseline from the keygen topic and writes result to signal
 .PHONY: redpanda-connect
 redpanda-connect:
-	$(HELM) upgrade --install -n redpanda redpanda-connect ./redpanda/connect
+	envsubst < values.yml > values.yml.tmp && mv values.yml.tmp values.yml
+	$(HELM) upgrade --install -n redpanda redpanda-connect ./redpanda/connect 
 
 
 ##@ Adds all hashes from the keygen topic to a set used to filter out messages for the signal topics
