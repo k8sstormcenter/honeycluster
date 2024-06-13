@@ -93,6 +93,7 @@ redpanda-connect:
 ##@ Adds all hashes from the keygen topic to a set used to filter out messages for the signal topics
 .PHONY: redpanda-connect-baseline
 redpanda-connect-baseline:
+	envsubst < redpanda/connect/values.yml > redpanda/connect/values.yml.tmp && mv redpanda/connect/values.yml.tmp redpanda/connect/values.yml
 	$(HELM) upgrade --install -n redpanda redpanda-connect-baseline --set connect.configs=baseline/*.yaml ./redpanda/connect
 
 
