@@ -1,0 +1,28 @@
+input:
+  kafka:
+    addresses: [ "${REDPANDA_HOSTS}" ]
+    topics:
+      - cr1
+    consumer_group: "redpanda-connect-cr"
+
+pipeline:
+  processors:
+    - mutation: |
+        root.message = json().string()
+        root.node_name = deleted()
+        root.process_exec = deleted()
+        root.time = deleted()
+        
+
+output:
+  gcp_bigquery:
+    project: "adls-qxz2iqfieehpjywbcszcavkqg"
+    dataset: "adls_observability" # No default (required)
+    table: "cr1" # No default (required)
+    format: NEWLINE_DELIMITED_JSON
+    max_in_flight: 64
+    auto_detect: true
+    create_disposition: CREATE_IF_NEEDED
+    batching:
+      count: 5
+      period: 20s
