@@ -16,7 +16,7 @@ pipeline:
 
 output:
   gcp_bigquery:
-    project: "adls-qxz2iqfieehpjywbcszcavkqg"
+    project: "adls-wf3589qchrfyj0uirtua04x9u"
     dataset: "adls_observability" # No default (required)
     table: "cr1" # No default (required)
     format: NEWLINE_DELIMITED_JSON
