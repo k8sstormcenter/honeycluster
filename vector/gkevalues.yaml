@@ -314,8 +314,12 @@ customConfig:
         - "**/redpanda_*/**"
         - "**/kube-system_*/**"
         - "**/gke-managed*/**"
+        - "**/cert-manager_cert-manager*/**"
+        - "**/vector*/**"
         - "**/*Error getting SSL certificate*"
         - "*garbage collection completed*"
+        - "*file:*"
+        - "*series*cache*go*224"
   sinks:
     redpanda:
       type: kafka

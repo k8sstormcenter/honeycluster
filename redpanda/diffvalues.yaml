@@ -1,7 +1,7 @@
 storage:
   persistentVolume:
     enabled: true
-    size: 20Gi
+    size: 50Gi
 
 config:
   rpk: {}
