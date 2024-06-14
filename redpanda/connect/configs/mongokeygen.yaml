@@ -16,7 +16,6 @@ output:
     database: #{DNSA}#-#{ENV}# 
     collection: "keygen" 
     operation: insert-one
-    upsert: true
     write_concern:
       w_timeout: 5000ms
     document_map: |
