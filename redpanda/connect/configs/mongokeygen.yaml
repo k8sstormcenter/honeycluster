@@ -1,0 +1,26 @@
+
+
+input:
+  kafka:
+    addresses: [ "${REDPANDA_HOSTS}" ]
+    topics:
+      - keygen
+    consumer_group: "redpanda-connect-keygen-mongo"
+
+output:
+  label: "mongokeygen"
+  mongodb:
+    url: #{MONGO_URL}# 
+    username: "k8sstormcenterru" # No default (required)
+    password: #{MONGO_PASSWORD}# 
+    database: #{DNSA}#-#{ENV}# 
+    collection: "keygen" 
+    operation: insert-one
+    upsert: true
+    write_concern:
+      w_timeout: 5000ms
+    filter_map: |
+      root._id = @kafka_key
+    document_map: |
+      root.key = @kafka_key
+      root.value = this
