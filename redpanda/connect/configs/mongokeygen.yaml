@@ -19,8 +19,6 @@ output:
     upsert: true
     write_concern:
       w_timeout: 5000ms
-    filter_map: |
-      root._id = @kafka_key
     document_map: |
       root.key = @kafka_key
       root.value = this
