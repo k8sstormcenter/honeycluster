@@ -32,3 +32,4 @@ spec:
         values:
         - "/usr/bin/rancher"
         - "/usr/bin/dumb-init"
+        - "/nginx-ingress-controller"
