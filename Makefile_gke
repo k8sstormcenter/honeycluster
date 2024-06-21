@@ -170,6 +170,7 @@ traces:
 	-kubectl apply -f traces/5detect-k8sapi-invoke.yaml
 	-kubectl apply -f traces/6detect-symlinkat.yaml
 	-kubectl apply -f traces/7detect-sensitivefile-access.yaml
+	-kubectl apply -f traces/8detect-tcp.yaml
 
 .PHONY: traces-off
 traces-off:

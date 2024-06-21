@@ -1,7 +1,7 @@
 apiVersion: cilium.io/v1alpha1
 kind: TracingPolicy
 metadata:
-  name: "k8s-api-calls"
+  name: "monitor-network-activity-outside-cluster-cidr-range"
 spec:
   kprobes:
   - call: "tcp_connect"
@@ -12,12 +12,8 @@ spec:
     selectors:
     - matchArgs:
       - index: 0
-        operator: "DAddr"
+        operator: "NotDAddr"
         values:
-        - "10.43.0.1"
-        - "10.1.0.0/20" 
-      matchBinaries:
-      - operator: "NotIn"
-        values:
-        - "/usr/bin/rancher"
-        - "/usr/bin/dumb-init"
+        - 127.0.0.1
+        - 172.16.0.0/28
+        - 192.168.64.0/24
