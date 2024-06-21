@@ -22,5 +22,9 @@ spec:
         - "/home/ansible/.id_rsa_tmp"
     - matchActions:
       - action: Post
+    - matchBinaries:
+      - operator: "NotIn"
+        values:
+        - "/usr/bin/dumb-init"
 
 
