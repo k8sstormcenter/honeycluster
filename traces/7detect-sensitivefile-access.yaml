@@ -27,7 +27,7 @@ spec:
         operator: "Equal"
         values:
         - "4" # MAY_READ
-    - matchBinaries:
+      matchBinaries:
       - operator: "NotIn"
         values:
         - "/usr/bin/rancher"
