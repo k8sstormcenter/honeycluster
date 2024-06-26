@@ -71,7 +71,7 @@ The messages on this topic, should be "BENIGN" as they stem from your apps, `kub
 
 <img width="1119" alt="Screenshot 2024-04-26 at 22 35 28" src="https://github.com/k8sstormcenter/honeycluster/assets/70207455/3931d5b2-9f07-4ebb-8bd6-82675f0c6313">
 
-Once, you believe that all baseline behaviour has been captured, run the `cut-off` . This will insert the known benign hashes into `redis` and henceforth filter them out of the signal.
+Once, you believe that all baseline behaviour has been captured, cut-off the hash-collection via `honey-signal` . This will insert the known benign hashes into `redis` and henceforth filter them out of the signal.
 
 ```bash
 make honey-signal

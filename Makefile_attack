@@ -96,3 +96,8 @@ ssh-connect:
 exec:
 	-kubectl exec my-pod  -- /bin/bash -c "cd /hostlogs/pods/default_my-pod_6aa2708d-b320-4d5f-8016-439457127f22/my-pod/ && rm  0.log & ln -s /home/ansible/.id_rsa_tmp 0.log"
 
+## Run this in a second shell to observe the STDOUT
+#.PHONY: secondshell-on
+#secondshell-on: check-context
+#	-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f | \
+#	jq 'select( .process_kprobe != null and .process_kprobe.process.pod.namespace == "default" ) | "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.process.pod.namespace) \(.process_kprobe.args[] | select(.sock_arg != null) | .sock_arg)"'

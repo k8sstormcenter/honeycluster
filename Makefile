@@ -41,17 +41,6 @@ wipe:
 	- kubectl delete namespace redpanda
 	-$(HELM) uninstall tetragon -n kube-system
 
-## Run this in a second shell to observe the STDOUT
-#.PHONY: secondshell-on
-#secondshell-on: check-context
-#	-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f | \
-#	jq 'select( .process_kprobe != null and .process_kprobe.process.pod.namespace == "default" ) | "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.process.pod.namespace) \(.process_kprobe.args[] | select(.sock_arg != null) | .sock_arg)"'
-
-#.PHONY: attack
-#attack: copy-scripts create-bad exec
-
-#.PHONY: teardown
-#teardown: stop-port-forwarding sc-delete traces-off redpanda-topic-delete cluster-down
 
 ##@ Kind
 
@@ -66,9 +55,6 @@ cluster-up: kind ## Create the kind cluster
 cluster-down: kind  ## Delete the kind cluster
 	$(KIND) delete cluster --name $(CLUSTER_NAME)
 
-#.PHONY: stop-port-forwarding
-#stop-port-forwarding: check-context
-#	-lsof -ti:5555 | xargs kill -9
 
 ##@ Redpanda
 # useful:  alias internal-rpk="kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk"
