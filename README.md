@@ -42,38 +42,39 @@ flowchart TD
 
 
 ### 2 Setup a Honeycluster (kind = local , RKE2 = cluster)
-First, please note, that there are two Makefiles `Makefile_kind` and `Makefile_rke2` . They differ quite a bit especially in the size of the installs. Please choose.
-
-Also, there are `helm-value` files associatedly called from within the respective `Makefiles` for either `kind` or `RKE2`, and while the defaults will very likely work, you may have to adapt them.
-
-Bring all the infra up:
+First, please note, that we prepared some local explorative scenarios for which we use `kind`. You will need to have certmanager installed and in case of `kind` you can achieve this by:
 
 ```bash
-make --makefile=Makefile_kind honey-up
-or 
-make --makefile=Makefile_rke2 honey-up
+make cluster-up 
 ```
 
+(if you have your own kuberentes, it should be in your KUBECONF contect and have all your own application already running on it)
+
+
+
+The next step, once all applications incl cert-manager are running stable, is to verify that all `traces` are the ones you want (see Section Traces) and that they are added in the Makefile Section `traces` . You may also want to verify the log-forwarding exclusions of `vector` in values.yaml: `app_logs.type: kubernetes_logs.exclude_paths_glob_patterns:` and `tetragon` exclusions in values.yaml `  exportDenyList: |-` . 
+
+```bash
+make  honey-up
+```
+This will install redpanda, vector, tetragon and some auxiliaries, and from here on the hashlists are being populated.
+It is important the cluster is `not yet` exposed to an `active threat`.
 At this point, you might want to port-forward to Redpanda dashboard (service redpanda-src-console) and browse to the TOPIC = keygen. 
 ```bash
 kubectl port-forward service/redpanda-src-console -n redpanda 30000:8080
 ```
 http://localhost:30000/topics/keygen?p=-1&s=500&o=-2#messages
 
-In my case on `kind`, I see 5 messages. I will judge them as "BENIGN" because I know thats the install, but check please. (on `RKE2` I have 150 messages)
+The messages on this topic, should be "BENIGN" as they stem from your apps, `kube-system` and the `honey-stack`. It is recommended to wait a while until all applications have gone through their typical behaviour.
 
 ### 3 Setup Baseline redaction
 
 <img width="1119" alt="Screenshot 2024-04-26 at 22 35 28" src="https://github.com/k8sstormcenter/honeycluster/assets/70207455/3931d5b2-9f07-4ebb-8bd6-82675f0c6313">
 
-For this to work you need GO installed. Currently also RPK, there might still be some dependency issues for some OS, and we are working hard to avoid the local compiling.
+Once, you believe that all baseline behaviour has been captured, run the `cut-off` . This will insert the known benign hashes into `redis` and henceforth filter them out of the signal.
 
 ```bash
-export PATH="/usr/local/opt/go@1.21/bin:$PATH"
-make --makefile=Makefile_kind honey-signal
-or
-make --makefile=Makefile_rke2 honey-signal
-
+make honey-signal
 ...
 stuff....
 build successful
@@ -86,6 +87,10 @@ transform "signal" deployed.
 
 Test your detection on topic = `signal` . 
 
+You can alternatively forward all logs and traces to mongodb (or central collection point of your choice -> modify `redpanda/connect/config-external`) and activate the forwarders like so:
+```bash
+make redpanda-connect-mongo
+```
 
 ### 4 Execute the sample attack
 Depending on which eBPF traces you have deployed under traces/*.yaml , you can now deploy custom JQueries via WASM to stream/transform your data.
