@@ -158,6 +158,38 @@ make --makefile=Makefile_attack bait-delete
 make wipe
 ```
 
+# Tailoring the instrumentation to your needs
+This repo (together with the threatintel repo) aim at giving people/teams a framework to run experiments, simulations and make threat-modelling very concrete and actionable.
+This is why we are working on providing some sample setups to understand what the various pieces do and how you can make them your own.
+
+## Your Threat Model
+e.g.
+```mermaid
+flowchart TD
+    A[Access sensitive data] --> B{Establish \npersistence}
+    A --> C{Command \nand Control}
+    B --> BB[Pod with \nwriteable hostPath]
+    A --> BB
+    A --> H[Pod uses PVC \nwhich references a \nhostPath PV]
+    B --> BC[crontab \non node]
+    B --> BD[OR static pod ]
+    B --> C
+    C --> D{Weapon \npod}
+    H --> D
+    C --> DE[ngrok\n reverse shell]
+    D --> E[App Vulnerability\nallows RCE]
+    D --> EE[ServiceAccount \n creates Pod]
+```
+
+## Your Traces
+This paragraph is about choosing tetragon tracingpolicies that work for you. See subfolder `/traces`
+## Your Logs
+This paragraph is about application and networking logs. WIP
+## Your IoCs (mapping and matching)
+INSERT LINK TO THREATINTEL REPO HERE
+## Explorative analysis
+INSERT Video-Clip from KCD Munich HERE
+
 ## (B) Experiment to detect Leaky Vessel on live clusters
 No additional cluster instrumentation is needed, no specific assumptions etc were made.
 
