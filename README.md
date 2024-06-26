@@ -41,8 +41,8 @@ flowchart TD
 
 
 
-### 2 Setup a Honeycluster (kind = local , RKE2 = cluster)
-First, please note, that we prepared some local explorative scenarios for which we use `kind`. You will need to have certmanager installed and in case of `kind` you can achieve this by:
+### 2 Setup a Honeycluster 
+First, please note, that we are preparing some local explorative scenarios for which we use `kind` (see feature-branches for now). You will need to have certmanager installed and in case of `kind` you can achieve this by:
 
 ```bash
 make cluster-up 
