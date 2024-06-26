@@ -183,15 +183,26 @@ flowchart TD
 
 ## Your Traces
 This paragraph is about choosing tetragon tracingpolicies that work for you. See subfolder `/traces`
+
+Coming soon: examples and how to test it locally
 ## Your Logs
 This paragraph is about application and networking logs. WIP
+
+Coming soon: examples and how to test it locally
 ## Your IoCs (mapping and matching)
 INSERT LINK TO THREATINTEL REPO HERE
+
+Coming soon
 ## Explorative analysis
 INSERT Video-Clip from KCD Munich HERE
 
+Coming soon
+
 ## (B) Experiment to detect Leaky Vessel on live clusters
-No additional cluster instrumentation is needed, no specific assumptions etc were made.
+We show a simple and unspecific detection of Leaky Vessel via Supply Chain (cf .KubeCon Europe 2024) and an elaborate breach using Leaky Vessel for `priviledge escalation` (cf. KCD Munich 2024).
+
+No additional cluster instrumentation was needed, no specific assumptions etc were made.
+
 
 The video below shows the poisoning of a registry with an image exploiting CVE-2024-21626 "Leaky-Vessel" by tagging and pushing the poisoned image with identical name/tag as the original image. (This is a type of Supply Chain Attack).
 
@@ -216,6 +227,8 @@ This repo is for demonstration purposes only.
 Contributions are welcome
 
 In the form of testing, feedback, code, PRs, eBPF tripwires, realistic threatmodels, mappings onto the critical attack path...
+
+TODO: write contributor guidelines
 
 
 
