@@ -48,7 +48,7 @@ First, please note, that we are preparing some local explorative scenarios for w
 make cluster-up 
 ```
 
-(if you have your own kuberentes, it should be in your KUBECONF contect and have all your own application already running on it)
+(if you have your own kuberentes, it should be in your KUBECONF context and have all your own application already running on it)
 
 
 
@@ -118,7 +118,11 @@ At this point, you should see some `signal` in RedPanda. Approx 40-50 signals. L
 it might contain the `ssh-spawn-bash` detection.
 
 
-You could decide that you dont want to see all of the bash environment related signals, and copy paste the key e.g. exec69ef01cde4ec877c63652bf9d84e9210 into the `redpanda/signal/transform.go` and recompile using `make --makefile=Makefile_kind redpanda-wasm`  
+You could decide that you dont want to see all of the bash environment related signals, and copy paste the key e.g. exec69ef01cde4ec877c63652bf9d84e9210 and put it into `redis`
+```bash
+kubectl exec -n redpanda svc/redis-headless -- redis-cli SADD baseline "<key>"
+```
+ 
 
 
 More self-attack-experimentation:
@@ -128,7 +132,8 @@ More self-attack-experimentation:
 Close the SSH connection, and run the full attack which will again make an SSH connection to our vulnerable server, run a malicious script which will create a HostPath type PersistentVolume, allowing a pod to access `/var/log` on the host (inspired by [this blog post](https://jackleadford.github.io/containers/2020/03/06/pvpost.html)), using the [Python Kubernetes client library](https://github.com/kubernetes-client/python). Note that you could modify the hostPath in the Python script to go directly for the data on the host that you want to compromise, however, in order to increase the number of attack steps in our scenario (and hence the number of indicators that we can look for), let's imagine that we are not able to create arbitrary hostPaths. In this scenario, perhaps a `hostPath` type `PersistentVolume` is allowed for `/var/log` so that a Pod can monitor other Pod's logs.
 
 ```bash
-make --makefile=Makefile_kind attack
+make --makefile=Makefile_attack bait
+make --makefile=Makefile_attack attack
 ```
 
 When prompted, the password is `root`.
@@ -142,10 +147,15 @@ Note that we have a lot more messages in the `signal` topic following the attack
 
 The above screen recording shows the newly established ssh connection being picked up by the eBPF traces and appearing as anomaly in the topic `signalminusbaseline` (since, renamed to `signal` )  in the RedPandaUI and 
 filtered into the topic  `tracesssh`  on RedPanda (lower screen, shell `rpk topic consume tracesssh`).
-### Teardown of Kind
+### Teardown 
+
+Removing the bait and attack
+```bash
+make --makefile=Makefile_attack bait-delete
+```
 
 ```bash
-make --makefile=Makefile_kind teardown
+make wipe
 ```
 
 ## (B) Experiment to detect Leaky Vessel on live clusters
