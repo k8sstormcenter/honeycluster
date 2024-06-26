@@ -27,3 +27,10 @@ spec:
         operator: "Equal"
         values:
         - "4" # MAY_READ
+      matchBinaries:
+      - operator: "NotIn"
+        values:
+        - "/usr/bin/rancher"
+        - "/usr/bin/dumb-init"
+        - "/nginx-ingress-controller"
+        - "/usr/bin/nginx"

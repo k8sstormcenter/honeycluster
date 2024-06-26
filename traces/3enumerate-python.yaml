@@ -33,3 +33,5 @@ spec:
          - "/usr/bin/env"
          - "/usr/bin/ls"
          - "/usr/bin/cp"
+         - "/usr/bin/wget"
+         - "/usr/bin/curl"

@@ -20,7 +20,11 @@ spec:
         values:
         - "/etc/kubernetes/pki/apiserver.key" 
         - "/home/ansible/.id_rsa_tmp"
-    - matchActions:
+      matchActions:
       - action: Post
+      matchBinaries:
+      - operator: "NotIn"
+        values:
+        - "/usr/bin/dumb-init"
 
 
