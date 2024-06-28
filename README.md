@@ -159,10 +159,11 @@ make wipe
 ```
 
 # Tailoring the instrumentation to your needs
-This repo (together with the threatintel repo) aim at giving people/teams a framework to run experiments, simulations and make threat-modelling very concrete and actionable.
+This repo (together with the threatintel repo) aims at giving people/teams a framework to run experiments, simulations and make threat-modelling very concrete and actionable.
 This is why we are working on providing some sample setups to understand what the various pieces do and how you can make them your own.
 
 ## Your Threat Model
+A relatively generic Threat Model could look like this 
 e.g.
 ```mermaid
 flowchart TD
@@ -176,20 +177,33 @@ flowchart TD
     B --> C
     C --> D{Weapon \npod}
     H --> D
-    C --> DE[ngrok\n reverse shell]
+    C --> DE[reverse shell]
     D --> E[App Vulnerability\nallows RCE]
     D --> EE[ServiceAccount \n creates Pod]
 ```
+## Your Attack Model (Calibration and Verification, Simulation)
+Based on the Threat Model, you now create a concrete AttackModel (or many).
 
-## Your Traces
+You can use this for multiple purposes: 
+
+to understand if a ThreatModel can be exploited IRL . You can attack yourself or hire an offensive expert, create a bug bounty program etc.
+
+to  calibrate all event-producing instrumentation in your deployment: can you see events from executing your attack-model, if not, you might need to add more TracingPolicies or change some filters.
+
+to verify the pattern-matching between your events and your STIX observables: is the attack correctly picked up in your Neo4J/Stix database.
+
+to simulate a breach: once you have at least one attack model implemented (e.g. via bash-script), you can test diverse detective/responsive processes in your deployment, e.g. if your pager starts blinking.
+
+
+## Instrumenting Events I: Your TracingPolicies
 This paragraph is about choosing tetragon tracingpolicies that work for you. See subfolder `/traces`
 
 Coming soon: examples and how to test it locally
-## Your Logs
-This paragraph is about application and networking logs. WIP
+## Instrumenting Events II: Your Logs
+This paragraph is about application (incl audit) and networking logs. WIP
 
 Coming soon: examples and how to test it locally
-## Your IoCs (mapping and matching)
+## Mapping and Matching: Stix Observables and Stix Indicators
 INSERT LINK TO THREATINTEL REPO HERE
 
 Coming soon
