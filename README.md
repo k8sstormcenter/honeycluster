@@ -41,39 +41,40 @@ flowchart TD
 
 
 
-### 2 Setup a Honeycluster (kind = local , RKE2 = cluster)
-First, please note, that there are two Makefiles `Makefile_kind` and `Makefile_rke2` . They differ quite a bit especially in the size of the installs. Please choose.
-
-Also, there are `helm-value` files associatedly called from within the respective `Makefiles` for either `kind` or `RKE2`, and while the defaults will very likely work, you may have to adapt them.
-
-Bring all the infra up:
+### 2 Setup a Honeycluster 
+First, please note, that we are preparing some local explorative scenarios for which we use `kind` (see feature-branches for now). You will need to have certmanager installed and in case of `kind` you can achieve this by:
 
 ```bash
-make --makefile=Makefile_kind honey-up
-or 
-make --makefile=Makefile_rke2 honey-up
+make cluster-up 
 ```
 
+(if you have your own kuberentes, it should be in your KUBECONF context and have all your own application already running on it)
+
+
+
+The next step, once all applications incl cert-manager are running stable, is to verify that all `traces` are the ones you want (see Section Traces) and that they are added in the Makefile Section `traces` . You may also want to verify the log-forwarding exclusions of `vector` in values.yaml: `app_logs.type: kubernetes_logs.exclude_paths_glob_patterns:` and `tetragon` exclusions in values.yaml `  exportDenyList: |-` . 
+
+```bash
+make  honey-up
+```
+This will install redpanda, vector, tetragon and some auxiliaries, and from here on the hashlists are being populated.
+It is important the cluster is `not yet` exposed to an `active threat`.
 At this point, you might want to port-forward to Redpanda dashboard (service redpanda-src-console) and browse to the TOPIC = keygen. 
 ```bash
 kubectl port-forward service/redpanda-src-console -n redpanda 30000:8080
 ```
 http://localhost:30000/topics/keygen?p=-1&s=500&o=-2#messages
 
-In my case on `kind`, I see 5 messages. I will judge them as "BENIGN" because I know thats the install, but check please. (on `RKE2` I have 150 messages)
+The messages on this topic, should be "BENIGN" as they stem from your apps, `kube-system` and the `honey-stack`. It is recommended to wait a while until all applications have gone through their typical behaviour.
 
 ### 3 Setup Baseline redaction
 
 <img width="1119" alt="Screenshot 2024-04-26 at 22 35 28" src="https://github.com/k8sstormcenter/honeycluster/assets/70207455/3931d5b2-9f07-4ebb-8bd6-82675f0c6313">
 
-For this to work you need GO installed. Currently also RPK, there might still be some dependency issues for some OS, and we are working hard to avoid the local compiling.
+Once, you believe that all baseline behaviour has been captured, cut-off the hash-collection via `honey-signal` . This will insert the known benign hashes into `redis` and henceforth filter them out of the signal.
 
 ```bash
-export PATH="/usr/local/opt/go@1.21/bin:$PATH"
-make --makefile=Makefile_kind honey-signal
-or
-make --makefile=Makefile_rke2 honey-signal
-
+make honey-signal
 ...
 stuff....
 build successful
@@ -86,6 +87,10 @@ transform "signal" deployed.
 
 Test your detection on topic = `signal` . 
 
+You can alternatively forward all logs and traces to mongodb (or central collection point of your choice -> modify `redpanda/connect/config-external`) and activate the forwarders like so:
+```bash
+make redpanda-connect-mongo
+```
 
 ### 4 Execute the sample attack
 Depending on which eBPF traces you have deployed under traces/*.yaml , you can now deploy custom JQueries via WASM to stream/transform your data.
@@ -113,7 +118,11 @@ At this point, you should see some `signal` in RedPanda. Approx 40-50 signals. L
 it might contain the `ssh-spawn-bash` detection.
 
 
-You could decide that you dont want to see all of the bash environment related signals, and copy paste the key e.g. exec69ef01cde4ec877c63652bf9d84e9210 into the `redpanda/signal/transform.go` and recompile using `make --makefile=Makefile_kind redpanda-wasm`  
+You could decide that you dont want to see all of the bash environment related signals, and copy paste the key e.g. exec69ef01cde4ec877c63652bf9d84e9210 and put it into `redis`
+```bash
+kubectl exec -n redpanda svc/redis-headless -- redis-cli SADD baseline "<key>"
+```
+ 
 
 
 More self-attack-experimentation:
@@ -123,7 +132,8 @@ More self-attack-experimentation:
 Close the SSH connection, and run the full attack which will again make an SSH connection to our vulnerable server, run a malicious script which will create a HostPath type PersistentVolume, allowing a pod to access `/var/log` on the host (inspired by [this blog post](https://jackleadford.github.io/containers/2020/03/06/pvpost.html)), using the [Python Kubernetes client library](https://github.com/kubernetes-client/python). Note that you could modify the hostPath in the Python script to go directly for the data on the host that you want to compromise, however, in order to increase the number of attack steps in our scenario (and hence the number of indicators that we can look for), let's imagine that we are not able to create arbitrary hostPaths. In this scenario, perhaps a `hostPath` type `PersistentVolume` is allowed for `/var/log` so that a Pod can monitor other Pod's logs.
 
 ```bash
-make --makefile=Makefile_kind attack
+make --makefile=Makefile_attack bait
+make --makefile=Makefile_attack attack
 ```
 
 When prompted, the password is `root`.
@@ -137,14 +147,76 @@ Note that we have a lot more messages in the `signal` topic following the attack
 
 The above screen recording shows the newly established ssh connection being picked up by the eBPF traces and appearing as anomaly in the topic `signalminusbaseline` (since, renamed to `signal` )  in the RedPandaUI and 
 filtered into the topic  `tracesssh`  on RedPanda (lower screen, shell `rpk topic consume tracesssh`).
-### Teardown of Kind
+### Teardown 
 
+Removing the bait and attack
 ```bash
-make --makefile=Makefile_kind teardown
+make --makefile=Makefile_attack bait-delete
 ```
 
+```bash
+make wipe
+```
+
+# Tailoring the instrumentation to your needs
+This repo (together with the threatintel repo) aims at giving people/teams a framework to run experiments, simulations and make threat-modelling very concrete and actionable.
+This is why we are working on providing some sample setups to understand what the various pieces do and how you can make them your own.
+
+## Your Threat Model
+A relatively generic Threat Model could look like this 
+e.g.
+```mermaid
+flowchart TD
+    A[Access sensitive data] --> B{Establish \npersistence}
+    A --> C{Command \nand Control}
+    B --> BB[Pod with \nwriteable hostPath]
+    A --> BB
+    A --> H[Pod uses PVC \nwhich references a \nhostPath PV]
+    B --> BC[crontab \non node]
+    B --> BD[OR static pod ]
+    B --> C
+    C --> D{Weapon \npod}
+    H --> D
+    C --> DE[reverse shell]
+    D --> E[App Vulnerability\nallows RCE]
+    D --> EE[ServiceAccount \n creates Pod]
+```
+## Your Attack Model (Calibration and Verification, Simulation)
+Based on the Threat Model, you now create a concrete AttackModel (or many).
+
+You can use this for multiple purposes: 
+
+to understand if a ThreatModel can be exploited IRL . You can attack yourself or hire an offensive expert, create a bug bounty program etc.
+
+to  calibrate all event-producing instrumentation in your deployment: can you see events from executing your attack-model, if not, you might need to add more TracingPolicies or change some filters.
+
+to verify the pattern-matching between your events and your STIX observables: is the attack correctly picked up in your Neo4J/Stix database.
+
+to simulate a breach: once you have at least one attack model implemented (e.g. via bash-script), you can test diverse detective/responsive processes in your deployment, e.g. if your pager starts blinking.
+
+
+## Instrumenting Events I: Your TracingPolicies
+This paragraph is about choosing tetragon tracingpolicies that work for you. See subfolder `/traces`
+
+Coming soon: examples and how to test it locally
+## Instrumenting Events II: Your Logs
+This paragraph is about application (incl audit) and networking logs. WIP
+
+Coming soon: examples and how to test it locally
+## Mapping and Matching: Stix Observables and Stix Indicators
+INSERT LINK TO THREATINTEL REPO HERE
+
+Coming soon
+## Explorative analysis
+INSERT Video-Clip from KCD Munich HERE
+
+Coming soon
+
 ## (B) Experiment to detect Leaky Vessel on live clusters
-No additional cluster instrumentation is needed, no specific assumptions etc were made.
+We show a simple and unspecific detection of Leaky Vessel via Supply Chain (cf .KubeCon Europe 2024) and an elaborate breach using Leaky Vessel for `priviledge escalation` (cf. KCD Munich 2024).
+
+No additional cluster instrumentation was needed, no specific assumptions etc were made.
+
 
 The video below shows the poisoning of a registry with an image exploiting CVE-2024-21626 "Leaky-Vessel" by tagging and pushing the poisoned image with identical name/tag as the original image. (This is a type of Supply Chain Attack).
 
@@ -169,6 +241,8 @@ This repo is for demonstration purposes only.
 Contributions are welcome
 
 In the form of testing, feedback, code, PRs, eBPF tripwires, realistic threatmodels, mappings onto the critical attack path...
+
+TODO: write contributor guidelines
 
 
 

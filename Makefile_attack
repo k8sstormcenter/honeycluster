@@ -1,0 +1,103 @@
+HELM = $(shell which helm)
+
+OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
+ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
+
+.EXPORT_ALL_VARIABLES:
+
+
+
+.PHONY:
+bait: ssh-install rbac port-forward
+	@echo "Bait is ready to be attacked"
+
+
+.PHONY: attack
+attack: copy-scripts create-bad exec
+
+.PHONY: bait-delete 
+bait-delete: sc-delete stop-local-port-forwarding
+	-kubectl delete namespace ssh
+	-kubectl delete -f scenario/rbac.yaml
+
+
+
+# TODO : you need to copy paste the second cmd into your terminal, cant find the right combo of escape chars
+.PHONY: redpanda-wasm-jq
+redpanda-wasm-jq:	check-context
+	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create tracesymlink" 
+	kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/jq.wasm --name tracesymlink --input-topic=signal --output-topic=tracesymlink --var language=rust  --var=FILTER='select(.process_kprobe.policy_name == \"detect-symlinkat\") | \"\(.time) \(.process_kprobe.policy_name)  \(.process_kprobe.process.pod.namespace) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.args[])\"'"
+
+	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create traceapi" 
+	kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/jq.wasm --name traceapi --input-topic=signal --output-topic=traceapi --var language=rust  --var=FILTER='select(.process_kprobe != null and ( .process_kprobe.policy_name == \"k8s-api-call\" or .process_kprobe.policy_name == \"enumerate-service-account\" ))| \"\(.time) \(.process_kprobe.policy_name)  \(.process_kprobe.process.pod.namespace) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.args[])\"'"
+
+	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create traceenum" 
+	kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/jq.wasm --name traceenum --input-topic=signal --output-topic=traceenum --var language=rust  --var=FILTER='select( .process_kprobe != null and  .process_kprobe.policy_name == \"enumerate-util\" )| \"\(.time) \(.process_kprobe.policy_name)  \(.process_kprobe.process.pod.namespace) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.args[])\"'"
+
+	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create tracek8sclient" 
+	kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/jq.wasm --name tracek8sclient --input-topic=signal --output-topic=tracek8sclient --var language=rust  --var=FILTER='select( .process_kprobe != null and  .process_kprobe.policy_name == \"detect-k8sapi-invoke\" )| \"\(.time) \(.process_kprobe.policy_name)  \(.process_kprobe.process.pod.namespace) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.args[])\"'"
+
+	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create tracescp" 
+	kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/jq.wasm --name tracescp --input-topic=signal --output-topic=tracescp --var language=rust  --var=FILTER='select( .process_kprobe.policy_name == \"detect-scp-usage\" ) | \"\(.time) \(.process_kprobe.policy_name)  \(.process_kprobe.process.pod.namespace) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.args[])\"'"
+
+	kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create tracessh" 
+	kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/jq.wasm --name tracessh --input-topic=signal --output-topic=tracessh --var language=rust  --var=FILTER='select( .process_kprobe != null and ( .process_kprobe.policy_name == \"ssh-spawn-bash\" or .process_kprobe.policy_name == \"successful-ssh-connections\" ))| \"\(.time) \(.process_kprobe.policy_name)  \(.process_kprobe.process.pod.namespace) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.args[])\"'"
+
+
+
+
+
+.PHONY: create-bad
+create-bad:
+	ssh -p 5555 -t root@127.0.0.1  'source priv-create.sh'
+	-kubectl wait --for=condition=Ready pod -l app=my-pod
+
+
+
+.PHONY: sc-delete
+sc-delete:
+	-kubectl delete po my-pod
+	-kubectl delete pvc my-claim-vol 
+	-kubectl delete pv my-volume-vol
+
+
+.PHONY: ssh-install
+ssh-install:
+	-kubectl create namespace ssh
+	-kubectl apply -f insecure-ssh/insecure-ssh.yaml -n ssh 
+	-kubectl -n ssh wait --for=condition=Ready pod -l app.kubernetes.io/name=ssh-proxy
+
+.PHONY: rbac
+rbac: 
+	kubectl apply -f scenario/rbac.yaml
+
+
+.PHONY: port-forward
+port-forward:
+	-kubectl port-forward -n ssh svc/ssh-proxy 5555:22 &
+
+
+
+.PHONY: stop-local-port-forwarding
+stop-port-forwarding:
+	-lsof -ti:5555 | xargs kill -9
+
+.PHONY: copy-scripts
+copy-scripts:
+	scp -P 8888 scripts/create.py scripts/priv-create.sh root@127.0.0.1:/root
+
+
+.PHONY: ssh-connect
+ssh-connect:
+	ssh -p 5555 root@127.0.0.1
+
+
+.PHONY: exec 
+exec:
+	-kubectl exec my-pod  -- /bin/bash -c "cd /hostlogs/pods/default_my-pod_6aa2708d-b320-4d5f-8016-439457127f22/my-pod/ && rm  0.log & ln -s /home/ansible/.id_rsa_tmp 0.log"
+
+## Run this in a second shell to observe the STDOUT
+#.PHONY: secondshell-on
+#secondshell-on: check-context
+#	-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f | \
+#	jq 'select( .process_kprobe != null and .process_kprobe.process.pod.namespace == "default" ) | "\(.time) \(.process_kprobe.policy_name) \(.process_kprobe.function_name) \(.process_kprobe.process.binary) \(.process_kprobe.process.arguments) \(.process_kprobe.process.pod.namespace) \(.process_kprobe.args[] | select(.sock_arg != null) | .sock_arg)"'
