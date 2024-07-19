@@ -16,7 +16,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: default
-  namespace: default
+  namespace: ssh
 roleRef:
   kind: ClusterRole
   name: pods-create
