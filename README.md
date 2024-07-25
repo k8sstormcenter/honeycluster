@@ -3,7 +3,7 @@ You start with your "normal" cluster, where you wish to
 
 (A) verify/quantify theoretical threat modelling assumptions
 
-or 
+or
 
 (B) to simply observe  how your cluster will be attacked by interpreting the anomalous signals
 
@@ -19,7 +19,7 @@ or
 
 ## (A) Reference Implementation plus example attack
 
-The idea is to take a cluster you have, copy/shrink it, replace sensitive data and the `honey-stack` on it 
+The idea is to take a cluster you have, copy/shrink it, replace sensitive data and the `honey-stack` on it
 <img width="1083" alt="Screenshot 2024-04-26 at 22 32 32" src="https://github.com/k8sstormcenter/honeycluster/assets/70207455/f574e663-fb7b-4c43-af6f-b3544b8b63a6">
 
 
@@ -33,7 +33,7 @@ flowchart TD
     B --> I[Pod writes symlink \nto 0.log file]
     B --> C[Container can \nrun as root]
     B --> D[Pod with \nwriteable hostPath \nto /var/log]
-    D --> E{Ability to create \nK8s resources} 
+    D --> E{Ability to create \nK8s resources}
     H --> E
     E --> F[Misconfigured RBAC]
     E --> G[Initial access \nto Pod]
@@ -41,25 +41,25 @@ flowchart TD
 
 
 
-### 2 Setup a Honeycluster 
+### 2 Setup a Honeycluster
 First, please note, that we are preparing some local explorative scenarios for which we use `kind` (see feature-branches for now). You will need to have certmanager installed and in case of `kind` you can achieve this by:
 
 ```bash
-make cluster-up 
+make cluster-up
 ```
 
 (if you have your own kuberentes, it should be in your KUBECONF context and have all your own application already running on it)
 
 
 
-The next step, once all applications incl cert-manager are running stable, is to verify that all `traces` are the ones you want (see Section Traces) and that they are added in the Makefile Section `traces` . You may also want to verify the log-forwarding exclusions of `vector` in values.yaml: `app_logs.type: kubernetes_logs.exclude_paths_glob_patterns:` and `tetragon` exclusions in values.yaml `  exportDenyList: |-` . 
+The next step, once all applications incl cert-manager are running stable, is to verify that all `traces` are the ones you want (see Section Traces) and that they are added in the Makefile Section `traces` . You may also want to verify the log-forwarding exclusions of `vector` in values.yaml: `app_logs.type: kubernetes_logs.exclude_paths_glob_patterns:` and `tetragon` exclusions in values.yaml `  exportDenyList: |-` .
 
 ```bash
 make  honey-up
 ```
 This will install redpanda, vector, tetragon and some auxiliaries, and from here on the hashlists are being populated.
 It is important the cluster is `not yet` exposed to an `active threat`.
-At this point, you might want to port-forward to Redpanda dashboard (service redpanda-src-console) and browse to the TOPIC = keygen. 
+At this point, you might want to port-forward to Redpanda dashboard (service redpanda-src-console) and browse to the TOPIC = keygen.
 ```bash
 kubectl port-forward service/redpanda-src-console -n redpanda 30000:8080
 ```
@@ -85,7 +85,7 @@ signal  OK
 transform "signal" deployed.
 ```
 
-Test your detection on topic = `signal` . 
+Test your detection on topic = `signal` .
 
 You can alternatively forward all logs and traces to mongodb (or central collection point of your choice -> modify `redpanda/connect/config-external`) and activate the forwarders like so:
 ```bash
@@ -122,7 +122,7 @@ You could decide that you dont want to see all of the bash environment related s
 ```bash
 kubectl exec -n redpanda svc/redis-headless -- redis-cli SADD baseline "<key>"
 ```
- 
+
 
 
 More self-attack-experimentation:
@@ -145,9 +145,9 @@ Note that we have a lot more messages in the `signal` topic following the attack
 [![K8sstormcenterSSH](https://img.youtube.com/vi/EcZcLz3kkUs/0.jpg)](https://www.youtube.com/watch?v=EcZcLz3kkUs)
 
 
-The above screen recording shows the newly established ssh connection being picked up by the eBPF traces and appearing as anomaly in the topic `signalminusbaseline` (since, renamed to `signal` )  in the RedPandaUI and 
+The above screen recording shows the newly established ssh connection being picked up by the eBPF traces and appearing as anomaly in the topic `signalminusbaseline` (since, renamed to `signal` )  in the RedPandaUI and
 filtered into the topic  `tracesssh`  on RedPanda (lower screen, shell `rpk topic consume tracesssh`).
-### Teardown 
+### Teardown
 
 Removing the bait and attack
 ```bash
@@ -159,11 +159,11 @@ make wipe
 ```
 
 # Tailoring the instrumentation to your needs
-This repo (together with the threatintel repo) aims at giving people/teams a framework to run experiments, simulations and make threat-modelling very concrete and actionable.
+This repo (together with the [threatintel repo](https://github.com/k8sstormcenter/threatintel) aims at giving people/teams a framework to run experiments, simulations and make threat-modelling very concrete and actionable.
 This is why we are working on providing some sample setups to understand what the various pieces do and how you can make them your own.
 
 ## Your Threat Model
-A relatively generic Threat Model could look like this 
+A relatively generic Threat Model could look like this
 e.g.
 ```mermaid
 flowchart TD
@@ -184,7 +184,7 @@ flowchart TD
 ## Your Attack Model (Calibration and Verification, Simulation)
 Based on the Threat Model, you now create a concrete AttackModel (or many).
 
-You can use this for multiple purposes: 
+You can use this for multiple purposes:
 
 to understand if a ThreatModel can be exploited IRL . You can attack yourself or hire an offensive expert, create a bug bounty program etc.
 
@@ -204,9 +204,10 @@ This paragraph is about application (incl audit) and networking logs. WIP
 
 Coming soon: examples and how to test it locally
 ## Mapping and Matching: Stix Observables and Stix Indicators
-INSERT LINK TO THREATINTEL REPO HERE
+TODO: insert video from KCD about matching
 
-Coming soon
+Using the [threatintel repo](https://github.com/k8sstormcenter/threatintel), the collected logs are transformed into [STIX observables](https://docs.oasis-open.org/cti/stix/v2.1/cs01/stix-v2.1-cs01.html#_mlbmudhl16lr), which are then matched against [STIX indicators](https://docs.oasis-open.org/cti/stix/v2.1/cs01/stix-v2.1-cs01.html#_muftrcpnf89v). Observables, which match the provided indicators represent potentially malicious behavior and are persisted into a document store. More detailed information on the setup of the indicators and how the matching works is provided in the [README](https://github.com/k8sstormcenter/threatintel/blob/main/README.md) of the threatintel repository.
+
 ## Explorative analysis
 INSERT Video-Clip from KCD Munich HERE
 
