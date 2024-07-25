@@ -196,17 +196,42 @@ to simulate a breach: once you have at least one attack model implemented (e.g. 
 
 
 ## Instrumenting Events I: Your TracingPolicies
-This paragraph is about choosing tetragon tracingpolicies that work for you. See subfolder `/traces`
+This paragraph is about choosing Tetragon tracing policies that work for you. Tetragon uses eBPF technology to trace kernel and system events, providing detailed insights into system behavior.
 
-Coming soon: examples and how to test it locally
+Here's an example tracing policy:
+
+```yaml
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy
+metadata:
+  name: "monitor-network-activity-outside-cluster-cidr-range"
+spec:
+  kprobes:
+  - call: "tcp_connect"
+    syscall: false
+    args:
+    - index: 0
+      type: "sock"
+    selectors:
+    - matchArgs:
+      - index: 0
+        operator: "NotDAddr"
+        values:
+        - 127.0.0.1
+        - 172.16.0.0/28
+        - 192.168.64.0/24
+```
+
+In this example, the policy monitors tcp_connect events, filtering out connections to specific IP ranges and capturing only those to other addresses. This helps ensure that only relevant and interesting tcp information is gathered. See subfolder `/traces` for more examples.
+
 ## Instrumenting Events II: Your Logs
 This paragraph is about application (incl audit) and networking logs. WIP
 
 Coming soon: examples and how to test it locally
 ## Mapping and Matching: Stix Observables and Stix Indicators
-TODO: insert video from KCD about matching
-
 Using the [threatintel repo](https://github.com/k8sstormcenter/threatintel), the collected logs are transformed into [STIX observables](https://docs.oasis-open.org/cti/stix/v2.1/cs01/stix-v2.1-cs01.html#_mlbmudhl16lr), which are then matched against [STIX indicators](https://docs.oasis-open.org/cti/stix/v2.1/cs01/stix-v2.1-cs01.html#_muftrcpnf89v). Observables, which match the provided indicators represent potentially malicious behavior and are persisted into a document store. More detailed information on the setup of the indicators and how the matching works is provided in the [README](https://github.com/k8sstormcenter/threatintel/blob/main/README.md) of the threatintel repository.
+
+[![Detection](./docs/log-detection.png)](https://drive.google.com/file/d/1RfPr_7RmXDlU22-l7ZFoMnWJKloP0VpG/view?usp=sharing)
 
 ## Explorative analysis
 INSERT Video-Clip from KCD Munich HERE
