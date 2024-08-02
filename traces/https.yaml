@@ -1,0 +1,22 @@
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-external-l7-traffic
+spec:
+  endpointSelector:
+    matchLabels:
+      # Match all pods
+      {}
+  ingress:
+  - fromEntities:
+    - world
+    toPorts:
+    - ports: []
+      rules:
+        http:
+        - {}
+    - ports: []
+      rules:
+        dns:
+        - matchPattern: "*"
+

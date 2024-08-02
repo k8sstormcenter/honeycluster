@@ -1,7 +1,12 @@
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
+networking:
+  disableDefaultCNI: true
 nodes:
 - role: control-plane
   extraPortMappings:
     - containerPort: 30000
       hostPort: 30000
+    - containerPort: 4245
+      hostPort: 4245
+      listenAddress: "127.0.0.1"

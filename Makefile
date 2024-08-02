@@ -19,14 +19,15 @@ TOPICS := signal cr1 keygen applogs traceapi traceenum tracek8sclient tracescp t
 ##@ Scenario
 
 .PHONY: honey-up
-honey-up: tetragon-install redpanda vector redpanda-wasm-hosted redis redpanda-connect-baseline redpanda-connect traces
+honey-up: tetragon-install redpanda vector redpanda-wasm-hosted redis redpanda-connect-baseline redpanda-connect traces threat-intel
 
 .PHONY: honey-signal
-honey-signal: baseline-signal redpanda-connect-mongo
+honey-signal: baseline-signal 
+# if you have an external mongo: redpanda-connect-mongo
 
 ##@ remove all honeycluster instrumentation from k8s
 .PHONY: honey-down
-honey-down: traces-off redpanda-topic-delete sc-delete stop-local-port-forwarding  wipe
+honey-down: traces-off redpanda-topic-delete threat-intel-wipe wipe
 
 .PHONY: wipe
 wipe: 
@@ -41,15 +42,28 @@ wipe:
 	- kubectl delete namespace redpanda
 	-$(HELM) uninstall tetragon -n kube-system
 
+.PHONY: threat-intel-wipe
+threat-intel-wipe: 
+	- cd ../threat && make destroy
+
+.PHONY: threat-intel
+threat-intel: 
+	- git clone https://github.com/k8sstormcenter/threatintel.git ../threat
+	- cd ../threat && make all
+	- sleep 300
+	- cd ../threat && make all
 
 ##@ Kind
 
 .PHONY: cluster-up
-cluster-up: kind ## Create the kind cluster
+cluster-up: kind ## Create the kind cluster ## assumes you have cilium cli and hubble installed, see bottom of file
 	$(KIND) create cluster --name $(CLUSTER_NAME) 
+	-$(HELM) upgrade --install cilium cilium/cilium --version 1.16.0  --namespace kube-system  --reuse-values  --set hubble.relay.enabled=true --set hubble.ui.enabled=true
 	-$(HELM) repo add jetstack https://charts.jetstack.io
 	-$(HELM) repo update
 	-$(HELM) upgrade --install cert-manager jetstack/cert-manager --set installCRDs=true --namespace cert-manager  --create-namespace
+	##export HUBBLE_RELAY_ADDRESS=host.docker.internal:4245
+	##hubble observe --server $$HUBBLE_RELAY_ADDRESS
 
 .PHONY: cluster-down
 cluster-down: kind  ## Delete the kind cluster
@@ -142,6 +156,8 @@ vector: helm
 
 .PHONY: traces
 traces: 
+	-kubectl apply -f traces/dns.yaml
+	-kubectl apply -f traces/https.yaml
 	-kubectl apply -f traces/1sshd-probe-success.yaml
 	-kubectl apply -f traces/1sshd-probe-spawnbash.yaml
 	-kubectl apply -f traces/2enumerate-serviceaccount.yaml
@@ -252,3 +268,15 @@ check-context:
         echo "Error: kubectl context is not set to kind-$${CLUSTER_NAME}"; \
         exit 1; \
     fi
+
+
+.PHONY: ciliumhubbleMac
+ciliumhubbleMac:
+	curl -L --remote-name https://github.com/cilium/hubble/releases/latest/download/hubble-darwin-amd64.tar.gz
+	tar xzvf hubble-darwin-amd64.tar.gz
+	rm hubble-darwin-amd64.tar.gz
+	sudo mv hubble /usr/local/bin
+	curl -L --remote-name https://github.com/cilium/cilium-cli/releases/latest/download/cilium-darwin-amd64.tar.gz
+	tar xzvf cilium-darwin-amd64.tar.gz
+	rm cilium-darwin-amd64.tar.gz 
+	sudo mv cilium /usr/local/bin/
