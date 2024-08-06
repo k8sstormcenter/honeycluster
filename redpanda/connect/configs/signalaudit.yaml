@@ -1,0 +1,26 @@
+input:
+  kafka:
+    addresses: [ "${REDPANDA_HOSTS}" ]
+    topics:
+      - keygenaudit
+    consumer_group: "redpanda-connect-keygenaudit"
+
+  
+pipeline:
+  processors:
+    - branch:
+        processors:
+          - redis:
+              url: "redis://${REDIS_HOST}"
+              command: SISMEMBER
+              args_mapping: 'root = [ "baselineaudit", @kafka_key ]'
+        result_map: meta baselineaudit = this == 1
+    - mapping: root = if @baselineaudit { deleted() }
+
+output:
+  kafka:
+    addresses: [ "${REDPANDA_HOSTS}" ]
+    key: '${! @kafka_key }'
+    topic: signal
+    custom_topic_creation:
+      enabled: true

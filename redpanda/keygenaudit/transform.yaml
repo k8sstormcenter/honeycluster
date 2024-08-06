@@ -1,0 +1,4 @@
+name: keygenaudit
+input-topic: "auditlogs"
+output-topic: "keygenaudit"
+language: tinygo-no-goroutines

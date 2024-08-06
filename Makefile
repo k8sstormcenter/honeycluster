@@ -7,7 +7,7 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 
 
 # keygen: generates hash for every message
-DIRS := keygen keygenapp
+DIRS := keygen keygenapp keygenaudit
 TOPICS := signal cr1 keygen applogs traceapi traceenum tracek8sclient tracescp tracessh tracesymlink 
 
 
