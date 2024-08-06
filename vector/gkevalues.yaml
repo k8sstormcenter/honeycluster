@@ -298,12 +298,22 @@ customConfig:
           - app_logs
        source: |
               . = parse_json!(.message)
+    auditlogs:
+       type: remap
+       inputs:
+          - audit_logs
+       source: |
+              . = parse_json!(.message)
   data_dir: /vector-data-dir
   api:
     enabled: true
     address: 127.0.0.1:8686
     playground: false
   sources:
+    audit_logs:
+      type: file
+      include:
+        - /var/log/kubernetes/kube-apiserver-audit.log
     kubernetes_logs:
       type: file
       include:
@@ -337,6 +347,14 @@ customConfig:
       encoding:
         codec: json
       topic: applogs
+    audit_rp:
+      type: kafka
+      inputs:
+        - auditlogs
+      bootstrap_servers: redpanda-src.redpanda.svc.cluster.local:9093
+      encoding:
+        codec: json
+      topic: auditlogs
     
 
         

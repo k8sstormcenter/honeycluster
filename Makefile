@@ -57,7 +57,7 @@ threat-intel:
 
 .PHONY: cluster-up
 cluster-up: kind ## Create the kind cluster ## assumes you have cilium cli and hubble installed, see bottom of file
-	$(KIND) create cluster --name $(CLUSTER_NAME) 
+	$(KIND) create cluster --name $(CLUSTER_NAME) --config config/kind-config.yaml
 	-$(HELM) upgrade --install cilium cilium/cilium --version 1.16.0  --namespace kube-system  --reuse-values  --set hubble.relay.enabled=true --set hubble.ui.enabled=true
 	-$(HELM) repo add jetstack https://charts.jetstack.io
 	-$(HELM) repo update
@@ -78,7 +78,8 @@ redpanda:
 	-$(HELM) repo update
 	-$(HELM) upgrade --install redpanda-src redpanda-data/redpanda --version 5.8.8 -n redpanda --create-namespace --values redpanda/diffvalues.yaml 
 	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create cr1" 
-	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create applogs" 
+	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create applogs"
+	-kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create auditlogs" 
 
 
 .PHONY: redpanda-wasm
@@ -167,6 +168,7 @@ traces:
 	-kubectl apply -f traces/6detect-symlinkat.yaml
 	-kubectl apply -f traces/7detect-sensitivefile-access.yaml
 	-kubectl apply -f traces/8detect-tcp.yaml
+	-kubectl apply -f traces/audit-logs-tampering.yaml
 
 .PHONY: traces-off
 traces-off: 
