@@ -51,9 +51,9 @@ func removeTimestamps(data map[string]interface{}) {
 
 func createKey(incomingMessage map[string]interface{}) string {
 	// Check if the "annotations" key exists
-	if _, ok := incomingMessage["annotations"]; !ok {
-		return ""
-	}
+	//if _, ok := incomingMessage["annotations"]; !ok {
+	//		return ""
+	//}
 
 	// Remove timestamps
 	removeTimestamps(incomingMessage)

@@ -168,6 +168,7 @@ traces:
 	-kubectl apply -f traces/6detect-symlinkat.yaml
 	-kubectl apply -f traces/7detect-sensitivefile-access.yaml
 	-kubectl apply -f traces/8detect-tcp.yaml
+	-kubectl apply -f traces/10secrets-dump.yaml
 	-kubectl apply -f traces/audit-logs-tampering.yaml
 
 .PHONY: traces-off

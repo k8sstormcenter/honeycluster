@@ -11,5 +11,11 @@ rules:
   resources:
   - group: ""
     resources: ["secrets"]
-  verbs: ["get", "list", "watch"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  stages: ["ResponseComplete"]
+- level: RequestResponse
+  resources:
+  - group: "rbac.authorization.k8s.io"
+    resources: ["roles", "rolebindings","clusterroles", "clusterrolebindings"]
+  verbs: ["create", "update", "patch", "delete"]
   stages: ["ResponseComplete"]
