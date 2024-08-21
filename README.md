@@ -114,6 +114,59 @@ And finally, you can wipe the HoneyCluster instrumentation from your Kubernetes 
 make wipe
 ```
 
+
+## Tailoring the instrumentation to your needs
+
+This repository (together with the [ThreatIntel repo](https://github.com/k8sstormcenter/threatintel)) aims at giving you a framework to run experiments, simulations and to make threat-modelling concrete and actionable.
+This is why we are working on providing some example setups to understand what the various pieces do and how you can make them your own.
+
+### Tracing Policies
+
+This paragraph is about choosing Tetragon tracing policies that work for you. Tetragon uses eBPF technology to trace kernel and system events, providing detailed insights into system behavior.
+
+Here's an example tracing policy:
+
+```yaml
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy
+metadata:
+  name: "monitor-network-activity-outside-cluster-cidr-range"
+spec:
+  kprobes:
+  - call: "tcp_connect"
+    syscall: false
+    args:
+    - index: 0
+      type: "sock"
+    selectors:
+    - matchArgs:
+      - index: 0
+        operator: "NotDAddr"
+        values:
+        - 127.0.0.1
+        - 172.16.0.0/28
+        - 192.168.64.0/24
+```
+
+In this example, the policy monitors tcp_connect events, filtering out connections to specific IP ranges and capturing only those to other addresses. This helps ensure that only relevant and interesting tcp information is gathered. See subfolder `/traces` for more examples.
+
+
+### Application & Audit Logs
+
+This paragraph is about application (incl audit) and networking logs. WIP
+
+Coming soon: examples and how to test it locally
+
+
+### Mapping and Matching: Stix Observables and Stix Indicators
+
+Using the [threatintel repo](https://github.com/k8sstormcenter/threatintel), the collected logs are transformed into [STIX observables](https://docs.oasis-open.org/cti/stix/v2.1/cs01/stix-v2.1-cs01.html#_mlbmudhl16lr), which are then matched against [STIX indicators](https://docs.oasis-open.org/cti/stix/v2.1/cs01/stix-v2.1-cs01.html#_muftrcpnf89v). Observables, which match the provided indicators represent potentially malicious behavior and are persisted into a document store. More detailed information on the setup of the indicators and how the matching works is provided in the [README](https://github.com/k8sstormcenter/threatintel/blob/main/README.md) of the threatintel repository.
+
+[![Detection](./docs/log-detection.png)](https://drive.google.com/file/d/1RfPr_7RmXDlU22-l7ZFoMnWJKloP0VpG/view?usp=sharing)
+
+
+
+
 ## Experiment to detect Leaky Vessel on live clusters
 
 We show a simple and unspecific detection of Leaky Vessel via Supply Chain (cf .KubeCon Europe 2024) and an elaborate breach using Leaky Vessel for `priviledge escalation` (cf. KCD Munich 2024).
@@ -178,10 +231,6 @@ The idea is to take a cluster you have, copy/shrink it, replace sensitive data a
 <img width="1083" alt="Screenshot 2024-04-26 at 22 32 32" src="https://github.com/k8sstormcenter/honeycluster/assets/70207455/f574e663-fb7b-4c43-af6f-b3544b8b63a6">
 
 
-# Tailoring the instrumentation to your needs
-This repo (together with the [threatintel repo](https://github.com/k8sstormcenter/threatintel)) aims at giving people/teams a framework to run experiments, simulations and make threat-modelling very concrete and actionable.
-This is why we are working on providing some sample setups to understand what the various pieces do and how you can make them your own.
-
 ## Your Threat Model
 A relatively generic Threat Model could look like this
 e.g.
@@ -214,46 +263,6 @@ to verify the pattern-matching between your events and your STIX observables: is
 
 to simulate a breach: once you have at least one attack model implemented (e.g. via bash-script), you can test diverse detective/responsive processes in your deployment, e.g. if your pager starts blinking.
 
-
-## Instrumenting Events I: Your TracingPolicies
-This paragraph is about choosing Tetragon tracing policies that work for you. Tetragon uses eBPF technology to trace kernel and system events, providing detailed insights into system behavior.
-
-Here's an example tracing policy:
-
-```yaml
-apiVersion: cilium.io/v1alpha1
-kind: TracingPolicy
-metadata:
-  name: "monitor-network-activity-outside-cluster-cidr-range"
-spec:
-  kprobes:
-  - call: "tcp_connect"
-    syscall: false
-    args:
-    - index: 0
-      type: "sock"
-    selectors:
-    - matchArgs:
-      - index: 0
-        operator: "NotDAddr"
-        values:
-        - 127.0.0.1
-        - 172.16.0.0/28
-        - 192.168.64.0/24
-```
-
-In this example, the policy monitors tcp_connect events, filtering out connections to specific IP ranges and capturing only those to other addresses. This helps ensure that only relevant and interesting tcp information is gathered. See subfolder `/traces` for more examples.
-
-## Instrumenting Events II: Your Logs
-
-This paragraph is about application (incl audit) and networking logs. WIP
-
-Coming soon: examples and how to test it locally
-
-## Mapping and Matching: Stix Observables and Stix Indicators
-Using the [threatintel repo](https://github.com/k8sstormcenter/threatintel), the collected logs are transformed into [STIX observables](https://docs.oasis-open.org/cti/stix/v2.1/cs01/stix-v2.1-cs01.html#_mlbmudhl16lr), which are then matched against [STIX indicators](https://docs.oasis-open.org/cti/stix/v2.1/cs01/stix-v2.1-cs01.html#_muftrcpnf89v). Observables, which match the provided indicators represent potentially malicious behavior and are persisted into a document store. More detailed information on the setup of the indicators and how the matching works is provided in the [README](https://github.com/k8sstormcenter/threatintel/blob/main/README.md) of the threatintel repository.
-
-[![Detection](./docs/log-detection.png)](https://drive.google.com/file/d/1RfPr_7RmXDlU22-l7ZFoMnWJKloP0VpG/view?usp=sharing)
 
 ## Explorative analysis
 INSERT Video-Clip from KCD Munich HERE
