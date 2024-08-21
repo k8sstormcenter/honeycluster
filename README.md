@@ -114,6 +114,42 @@ And finally, you can wipe the HoneyCluster instrumentation from your Kubernetes 
 make wipe
 ```
 
+## Experiment to detect Leaky Vessel on live clusters
+
+We show a simple and unspecific detection of Leaky Vessel via Supply Chain (cf .KubeCon Europe 2024) and an elaborate breach using Leaky Vessel for `priviledge escalation` (cf. KCD Munich 2024).
+
+No additional cluster instrumentation was needed, no specific assumptions were made, etc.
+
+
+The video below shows the poisoning of a registry with an image exploiting CVE-2024-21626 "Leaky-Vessel" by tagging and pushing the poisoned image with identical name/tag as the original image. (This is a type of Supply Chain Attack).
+
+Two different RKE2 clusters (intentionally running a vulnerable `runc`) are observed by streaming the `smb` topic in the Redpanda UI. When the poisoned image is pulled and started up, the traces appear on the topic. As well as we see the sensitive-file-access to the private key on the host-node, as well as the newly created file `LEAKYLEAKY` on the host node.
+
+
+[![K8sstormcenterLeakyVessel](https://img.youtube.com/vi/RNYz86uDXLc/0.jpg)](https://www.youtube.com/watch?v=RNYz86uDXLc)
+
+
+### Bait
+
+We don't share details about the bait used in our experiments here since we don't want potential attackers to know what to look for. However, if you are interested feel free to reach out to us on our [Slack channel](https://join.slack.com/t/k8sstorm/shared_invite/zt-2hulzsqh1-mnZL6fGFZiVLrOcqeTObIA)!
+
+
+### Security Considerations
+
+Given this is an insecure and experimental setup of a honeypot-infrastructure, there are several additional measures taken that are not covered in the talk or this repo.
+This repo is for demonstration purposes only.
+
+
+## Contributing
+
+Contributions are always welcome!
+
+(For example in the form of testing, feedback, code, PRs, eBPF tripwires, realistic threatmodels, mappings onto the critical attack path or anything you think could be useful for others)
+
+TODO: write contributor guidelines
+
+
+
 
 
 
