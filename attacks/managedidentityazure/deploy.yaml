@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pacman
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pacman-rancher
+  namespace: pacman
+  annotations:
+    azure.workload.identity/client-id: "$clientid"
+  labels:
+    azure.workload.identity/use: "true"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minimi
+  namespace: pacman
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minimi
+  template:
+    metadata:
+      labels:
+        app: minimi
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: pacman-rancher
+      containers:
+      - name: minimi
+        image: ghcr.io/austriandatalab/minimi-kv:0.0.1
+        command: ["sh", "-c"]
+        args: ["node src/server.js & sleep 100; cat /var/run/secrets/azure/tokens/azure-identity-token"]
+        imagePullPolicy: Always
+        env:
+        - name: KEYVAULT_URL
+          value: "https://kv-service-crcr.vault.azure.net/"
+        - name: SECRET_NAME
+          value: "minimi"
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minimi
+  namespace: pacman
+  annotations:
+    tailscale.com/expose: "true"
+spec:
+  selector:
+    app: minimi
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
