@@ -120,7 +120,7 @@ make honey-up
 
 The `honey-up` target installs all the necessary components to collect eBPF traces, application logs and soon audit logs. It is important that the cluster is not yet exposed to an active threat at this point because after the installation we collect the baseline behaviour of the cluster to filter out benign signals.
 
-While we provide you with a set of default traces and log forwarding configurations, you can tailor the instrumentation to your needs by adding or modifying the tracing policies and log forwarding configurations in the [traces](traces/) and [vector/values.yaml](vector/values.yaml) files respectively.
+While we provide you with a set of default traces and log forwarding configurations, you can adjust them to your needs in the [traces](traces/) and [vector/values.yaml](vector/values.yaml) files respectively. Find out more about it in the [Tailoring the instrumentation to your needs](#tailoring-the-instrumentation-to-your-needs) section.
 
 You can verify the data collection by taking a look at the Redpanda dashboard, which you can access by port-forwarding the Redpanda service:
 
