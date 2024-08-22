@@ -4,6 +4,31 @@ Welcome to the K8sStormCenter HoneyCluster repository. Here you will find everyt
 
 
 
+## Table of Contents
+
+- [How does it work?](#how-does-it-work)
+  - [Creating a HoneyCluster](#creating-a-honeycluster)
+  - [The four fold path to threat intelligence](#the-four-fold-path-to-threat-intelligence)
+  - [Threat Model](#threat-model)
+  - [Attack Model](#attack-model)
+- [Getting started](#getting-started)
+  - [1. Create a Kubernetes Cluster](#1-create-a-kubernetes-cluster)
+  - [2. Set up the HoneyCluster](#2-set-up-the-honeycluster)
+  - [3. Baseline Redaction](#3-baseline-redaction)
+  - [4. Attack and observe](#4-attack-and-observe)
+  - [5. Teardown](#5-teardown)
+- [Tailoring the instrumentation to your needs](#tailoring-the-instrumentation-to-your-needs)
+  - [Tracing Policies](#tracing-policies)
+  - [Application & Audit Logs](#application-audit-logs)
+  - [Mapping and Matching: Stix Observables and Stix Indicators](#mapping-and-matching-stix-observables-and-stix-indicators)
+- [Explorative analysis: From nothing to an attack path](#explorative-analysis-from-nothing-to-an-attack-path)
+- [Experiment: Detect Leaky Vessel on live clusters](#experiment-detect-leaky-vessel-on-live-clusters)
+  - [Bait](#bait)
+  - [Security Considerations](#security-considerations)
+- [Contributing](#contributing)
+
+
+
 ## How does it work?
 
 You start with your "normal" cluster, where you wish to
