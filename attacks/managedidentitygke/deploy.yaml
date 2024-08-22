@@ -10,8 +10,9 @@ metadata:
   namespace: pacman
   annotations:
     iam.gke.io/gcp-service-account: "pacman-rancher@adls-046l8ixrg6rj4xuwfh5klxzq1.iam.gserviceaccount.com" 
-spec:
-  automountServiceAccountToken: true
+
+
+
 
 ---
 apiVersion: apps/v1
@@ -28,8 +29,11 @@ spec:
     metadata:
       labels:
         app: minimi
+        iam.gke.io/sa: "pacman-rancher" 
+        iam.gke.io/tbsa: "pacman-rancher"
     spec:
       serviceAccountName: pacman-workload-identity
+      automountServiceAccountToken: true
       containers:
       - name: minimi
         image: ghcr.io/austriandatalab/minimi-kv:0.0.1 #@Tobias: we need to use the GKE SDK for node and rebuild a new image
