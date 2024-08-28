@@ -26,7 +26,7 @@ honey-signal: baseline-signal redpanda-connect-mongo
 
 ##@ remove all honeycluster instrumentation from k8s
 .PHONY: honey-down
-honey-down: traces-off redpanda-topic-delete sc-delete stop-local-port-forwarding  wipe
+honey-down: traces-off redpanda-topic-delete wipe
 
 .PHONY: wipe
 wipe: 
