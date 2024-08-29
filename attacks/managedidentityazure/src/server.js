@@ -1,10 +1,7 @@
 import * as msal from "@azure/msal-node";
 import fs from "fs";
 import { SecretClient } from "@azure/keyvault-secrets";
-//const msal = require("@azure/msal-node");
-//const fs = require("fs");
-//const { SecretClient } = require("@azure/keyvault-secrets");
-
+import express from 'express';
 class MyClientAssertionCredential {
     constructor() {
         let clientAssertion = ""
@@ -38,7 +35,56 @@ class MyClientAssertionCredential {
         })
     }
 }
+const app = express();
+const port = 8080;
 
+// Vulnerable Endpoint 1: SQL Injection (Simulation)
+app.get('/vulnerable/sql-injection', (req, res) => {
+    const simulatedUserInput = req.query.username; // Never directly use user input in queries!
+    const simulatedQuery = `SELECT * FROM users WHERE username = '${simulatedUserInput}'`; 
+  
+    console.log("Simulated Vulnerable Query:", simulatedQuery); // Log for demonstration
+    res.send("This endpoint simulates a SQL injection vulnerability. Check the logs!");
+  });
+  
+  // Vulnerable Endpoint 2: Cross-Site Scripting (XSS) (Simulation)
+  app.get('/vulnerable/xss', (req, res) => {
+    const simulatedUserInput = req.query.input; // Never directly reflect user input!
+    res.send(`<p>You entered: ${simulatedUserInput}</p>`); 
+  });
+  
+  // Vulnerable Endpoint 3: Accessing Environment Variables (Simulation)
+  app.get('/vulnerable/env', (req, res) => {
+    // In a real vulnerability, an attacker might manipulate this to access sensitive data
+    const envVar = req.query.varName;
+    const value = process.env[envVar]; 
+    res.send(`Value of ${envVar}: ${value}`);
+  });
+
+  // Simulated vulnerable logging library (insecurely logs object properties)
+function vulnerableLog(obj) {
+    // In a real vulnerability, this might iterate over object properties 
+    // without proper sanitization or access control.
+    console.log("Logging object:", obj); 
+  }
+  
+  // Vulnerable Endpoint: Exploiting the vulnerable logging function
+app.get('/vulnerable/log-injection', (req, res) => {
+    const userInput = req.query.data;
+  
+    // Construct an object where user input is used as a property name
+    const dataToLog = {
+      message: "Some information",
+      [userInput]: "User-controlled data" // Vulnerable: User input as property name
+    };
+  
+    vulnerableLog(dataToLog); 
+    res.send("Data logged. Check the server logs.");
+  });
+  
+  app.listen(port, () => {
+    console.log(`Server listening on port ${port}`);
+  });
 const main = async () => {
     // create a token credential object, which has a getToken method that returns a token
     const tokenCredential = new MyClientAssertionCredential()

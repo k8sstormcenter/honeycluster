@@ -12,7 +12,8 @@
   "dependencies": {
     "@azure/keyvault-secrets": "^4.8.0",
     "@azure/msal-node": "^2.0.2",
-    "@azure/identity": "latest"
+    "@azure/identity": "latest",
+    "express": "^4.18.2"
   }
 }
 
