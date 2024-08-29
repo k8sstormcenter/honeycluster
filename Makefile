@@ -22,7 +22,7 @@ TOPICS := signal cr1 keygen applogs traceapi traceenum tracek8sclient tracescp t
 honey-up: tetragon-install redpanda vector redpanda-wasm-hosted redis redpanda-connect-baseline redpanda-connect traces
 
 .PHONY: honey-signal
-honey-signal: baseline-signal redpanda-connect-mongo
+honey-signal: baseline-signal # redpanda-connect-mongo
 
 ##@ remove all honeycluster instrumentation from k8s
 .PHONY: honey-down
