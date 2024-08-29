@@ -271,27 +271,21 @@ Using the [threatintel repo](https://github.com/k8sstormcenter/threatintel), the
 
 
 
-## Explorative analysis: From nothing to an attack path
-
-TODO: Insert Video-Clip from KCD Munich HERE
-
-Coming soon
-
-
-
 ## Experiment: Detect Leaky Vessel on live clusters
 
-We show a simple and unspecific detection of Leaky Vessel via Supply Chain (cf .KubeCon Europe 2024) and an elaborate breach using Leaky Vessel for `priviledge escalation` (cf. KCD Munich 2024).
+We show a simple and unspecific detection of Leaky Vessel via Supply Chain (cf. KubeCon Europe 2024) and an elaborate breach using Leaky Vessel for `priviledge escalation` (cf. KCD Munich 2024). No additional cluster instrumentation was needed, no specific assumptions were made, etc.
 
-No additional cluster instrumentation was needed, no specific assumptions were made, etc.
+You can watch a recording of the KCD Munich 2024 talk here:
 
+[![K8sStormCenter @ KCD Munich 2024](https://img.youtube.com/vi/axh7SOufh8M/0.jpg)](https://www.youtube.com/watch?v=axh7SOufh8M)
 
-The video below shows the poisoning of a registry with an image exploiting CVE-2024-21626 "Leaky-Vessel" by tagging and pushing the poisoned image with identical name/tag as the original image. (This is a type of Supply Chain Attack).
+The KubeCon Europe 2024 talk can be viewed here:
+
+[![K8sStormCenter @ KubeCon Europe 2024](https://img.youtube.com/vi/RNYz86uDXLc/0.jpg)](https://www.youtube.com/watch?v=RNYz86uDXLc)
+
+The video above shows the poisoning of a registry with an image exploiting CVE-2024-21626 "Leaky-Vessel" by tagging and pushing the poisoned image with identical name/tag as the original image. (This is a type of Supply Chain Attack).
 
 Two different RKE2 clusters (intentionally running a vulnerable `runc`) are observed by streaming the `smb` topic in the Redpanda UI. When the poisoned image is pulled and started up, the traces appear on the topic. As well as we see the sensitive-file-access to the private key on the host-node, as well as the newly created file `LEAKYLEAKY` on the host node.
-
-
-[![K8sstormcenterLeakyVessel](https://img.youtube.com/vi/RNYz86uDXLc/0.jpg)](https://www.youtube.com/watch?v=RNYz86uDXLc)
 
 
 ### Bait
