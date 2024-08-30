@@ -1,68 +1,36 @@
-import * as msal from "@azure/msal-node";
-import fs from "fs";
-import { SecretClient } from "@azure/keyvault-secrets";
-//const msal = require("@azure/msal-node");
-//const fs = require("fs");
-//const { SecretClient } = require("@azure/keyvault-secrets");
+const { KeyManagementServiceClient } = require('@google-cloud/kms');
 
-class MyClientAssertionCredential {
-    constructor() {
-        let clientAssertion = ""
-        try {
-            clientAssertion = fs.readFileSync(process.env.AZURE_FEDERATED_TOKEN_FILE, "utf8")
-        } catch (err) {
-            console.log("Failed to read client assertion file: " + err)
-            process.exit(1)
-        }
+// Initialize the KMS client
+const client = new KeyManagementServiceClient();
 
-        this.app = new msal.ConfidentialClientApplication({
-            auth: {
-                clientId: process.env.AZURE_CLIENT_ID,
-                authority: `${process.env.AZURE_AUTHORITY_HOST}${process.env.AZURE_TENANT_ID}`,
-                clientAssertion: clientAssertion,
-            }
-        })
-    }
+// Load values from environment variables
+const projectId = process.env.KMS_PROJECT_ID;
+const locationId = process.env.KMS_LOCATION;
+const keyRingId = process.env.KMS_KEY_RING;
+const keyName = process.env.KMS_KEY_NAME;
 
-    async getToken(scopes) {
-        const token = await this.app.acquireTokenByClientCredential({ scopes: ['https://vault.azure.net/.default'] }).catch(error => console.log(error))
-        return new Promise((resolve, reject) => {
-            if (token) {
-                resolve({
-                    token: token.accessToken,
-                    expiresOnTimestamp: token.expiresOn.getTime(),
-                })
-            } else {
-                reject(new Error("Failed to get token silently"))
-            }
-        })
-    }
+if (!projectId || !locationId || !keyRingId || !keyName) {
+    throw new Error('Missing one or more required environment variables of: KMS_PROJECT_ID, KMS_LOCATION, KMS_KEY_RING, KMS_KEY_NAME');
 }
 
-const main = async () => {
-    // create a token credential object, which has a getToken method that returns a token
-    const tokenCredential = new MyClientAssertionCredential()
+async function main() {
+    // The plaintext to be encrypted
+    const plaintext = 'This is a secret message';
 
-    const keyvaultURL = process.env.KEYVAULT_URL
-    if (!keyvaultURL) {
-        throw new Error("KEYVAULT_URL environment variable not set")
-    }
-    const secretName = process.env.SECRET_NAME
-    if (!secretName) {
-        throw new Error("SECRET_NAME environment variable not set")
-    }
+    // Construct the key name
+    const name = client.cryptoKeyPath(projectId, locationId, keyRingId, keyName);
+    console.log(`Using crypto key: ${name}`);
 
-    // create a secret client with the token credential
-    const keyvault = new SecretClient(keyvaultURL, tokenCredential)
-    console.log(`successfully created secret client, keyvaultURL=${keyvaultURL}, secretName=${secretName}`)
-    console.log(`getting secret, Name=${tokenCredential}`)
-    const secret = await keyvault.getSecret(secretName).catch(error => console.log(error))
-    console.log(`Secret object: ${JSON.stringify(secret, null, 2)}`);
-    if (secret) {
-      console.log(`Successfully got secret, secret value=${secret.value}`);
-    } else {
-      console.log('Failed to get secret, secret object is null or undefined');
-    }
+    // Convert the plaintext into bytes
+    const plaintextBuffer = Buffer.from(plaintext);
+
+    // Encrypt the plaintext
+    const [result] = await client.encrypt({
+        name: name,
+        plaintext: plaintextBuffer,
+    });
+
+    console.log(`Ciphertext: ${result.ciphertext.toString('base64')}`);
 }
 
-main()
+main().catch(console.error);
