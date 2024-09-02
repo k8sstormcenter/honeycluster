@@ -1,0 +1,16 @@
+{
+  "name": "minime-vulnerable-app",
+  "version": "0.0.1",
+  "description": "Vulnerable Demo App",
+  "author": "Tobias Grantner",
+  "main": "src/server.js",
+  "license": "GPLv2",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
+
