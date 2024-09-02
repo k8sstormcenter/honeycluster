@@ -1,4 +1,4 @@
-const { KeyManagementServiceClient } = require('@google-cloud/kms');
+import { KeyManagementServiceClient } = require('@google-cloud/kms');
 
 // Initialize the KMS client
 const client = new KeyManagementServiceClient();
