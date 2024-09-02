@@ -1,5 +1,6 @@
 import { KeyManagementServiceClient } from '@google-cloud/kms';
 import { GoogleAuth } from 'google-auth-library';
+import jwt from 'jsonwebtoken';
 
 import express from 'express';
 import path from 'path';
@@ -60,7 +61,7 @@ app.listen(port, () => {
 
 async function getJwtToken() {
     const auth = new GoogleAuth({
-        scopes: 'https://www.googleapis.com/auth/cloud-platform'
+        scopes: 'https://www.googleapis.com/auth/cloudkms'
     });
 
     const client = await auth.getClient();
@@ -69,6 +70,9 @@ async function getJwtToken() {
 
     const token = await client.getAccessToken();
     console.log('JWT Token:', token.token);
+    const decodedToken = jwt.decode(token.token);
+    console.log('Decoded JWT Token:', decodedToken);
+
 }
 async function main() {
     // The plaintext to be encrypted
