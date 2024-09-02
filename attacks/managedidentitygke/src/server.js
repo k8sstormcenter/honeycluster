@@ -12,6 +12,17 @@ const keyName = process.env.KMS_KEY_NAME;
 if (!projectId || !locationId || !keyRingId || !keyName) {
     throw new Error('Missing one or more required environment variables of: KMS_PROJECT_ID, KMS_LOCATION, KMS_KEY_RING, KMS_KEY_NAME');
 }
+async function getKey() {
+    // Construct the key name
+    const name = client.cryptoKeyPath(projectId, locationId, keyRingId, keyName);
+    console.log(`Retrieving crypto key: ${name}`);
+
+    // Retrieve the key
+    const [key] = await client.getCryptoKey({ name });
+    console.log('Crypto Key:', key);
+}
+
+
 
 async function main() {
     // The plaintext to be encrypted
@@ -24,6 +35,7 @@ async function main() {
     // Convert the plaintext into bytes
     const plaintextBuffer = Buffer.from(plaintext);
 
+    getKey().catch(console.error);
     // Encrypt the plaintext
     const [result] = await client.encrypt({
         name: name,
