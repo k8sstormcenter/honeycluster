@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@google-cloud/kms": "^4.5.0",
-    "google-auth-library": "^9.14.0"
+    "google-auth-library": "^9.14.0",
+    "express": "^4.17.1"
   }
 }
