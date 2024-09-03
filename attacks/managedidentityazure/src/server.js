@@ -54,13 +54,6 @@ app.get('/file', (req, res) => {
   res.send(value);
 });
 
-// Vulnerable Endpoint 3: RCE (Simulation)
-app.get('/cat', (req, res) => {
-  const file = req.query.name;
-  const value = execSync(`cat ${file}`).toString();
-  res.send(value);
-});
-
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });
