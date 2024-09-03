@@ -42,7 +42,7 @@ const port = 8080;
 
 // Vulnerable Endpoint 1: Accessing Environment Variables (Simulation)
 app.get('/env', (req, res) => {
-  const envVar = req.params.name;
+  const envVar = req.query.name;
   const value = process.env[envVar]; 
   res.send(value);
 });
