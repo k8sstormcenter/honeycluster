@@ -6,7 +6,7 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
-const { execSync } = require('child_process');
+
 
 
 const __filename = fileURLToPath(import.meta.url);
