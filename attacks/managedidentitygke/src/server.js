@@ -58,6 +58,44 @@ app.get('/curl', (req, res) => {
     return res.status(400).send('URL not allowed');
   }
 
+  // Parse the URL
+  const parsedUrl = new URL(url);
+
+  // Set up the options for the HTTP request
+  const options = {
+    hostname: parsedUrl.hostname,
+    path: parsedUrl.pathname,
+//    headers: {
+//      'Metadata-Flavor': 'Google'
+//    }
+  };
+
+  // Make the HTTP request
+  http.get(options, (response) => {
+    let data = '';
+
+    // Collect the data chunks
+    response.on('data', (chunk) => {
+      data += chunk;
+    });
+
+    // Send the complete response
+    response.on('end', () => {
+      res.send(data);
+    });
+  }).on('error', (err) => {
+    res.status(500).send('Error executing HTTP request');
+  });
+});
+
+app.get('/curl2', (req, res) => {
+  const url = req.query.url;
+
+  // Check if the URL is in the whitelist
+  if (!allowedUrls.includes(url)) {
+    return res.status(400).send('URL not allowed');
+  }
+
   try {
     // Execute the curl command
     const result = execSync(`curl -s ${url}`).toString();
