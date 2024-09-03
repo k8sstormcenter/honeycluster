@@ -6,7 +6,8 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
-import fs from "fs";
+const { execSync } = require('child_process');
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -37,16 +38,33 @@ const port = 8080;
 
 // Vulnerable Endpoint 1: Accessing Environment Variables (Simulation)
 app.get('/env', (req, res) => {
-  const envVar = req.params.name;
+  const envVar = req.query.name;
   const value = process.env[envVar]; 
   res.send(value);
 });
 
-// Vulnerable Endpoint 2: Path Traversal (Simulation)
-app.get('/file', (req, res) => {
-  const file = req.query.name;
-  const value = fs.readFileSync(path.join(__dirname, file));
-  res.send(value);
+// Whitelist of allowed URLs
+const allowedUrls = [
+  'https://example.com',
+  'http://169.254.169.254',
+  'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token'
+];
+
+app.get('/curl', (req, res) => {
+  const url = req.query.url;
+
+  // Check if the URL is in the whitelist
+  if (!allowedUrls.includes(url)) {
+    return res.status(400).send('URL not allowed');
+  }
+
+  try {
+    // Execute the curl command
+    const result = execSync(`curl -s ${url}`).toString();
+    res.send(result);
+  } catch (error) {
+    res.status(500).send('Error executing curl command');
+  }
 });
 
 // Vulnerable Endpoint 3: RCE (Simulation)
