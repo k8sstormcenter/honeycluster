@@ -39,3 +39,39 @@ curl -X POST "$API_ENDPOINTD" \
     -H "Authorization: Bearer $TOKEN" \
     -H "Content-Type: application/json" \
     -d "$PAYLOAD"
+
+# # when your token is not expired you ll get
+# {
+#   "name": "projects/xxxx/locations/xxx/keyRings/xxxx/cryptoKeys/xxx/cryptoKeyVersions/10",
+#   "ciphertext": "CiUAcbrqDACmkEscnDN9iv9wL3vx2h1XO+cA712Jg4bSeB6Cn1S3EjgAwJ+FDWv1GaeLUDtpSf29AE6kMEeVfWzD5PxZcR7NWnIHzAL5KJW48g+g7MLagOj+cYHbGT4JXg==",
+#   "ciphertextCrc32c": "2172507472",
+#   "protectionLevel": "SOFTWARE"
+# }
+# {
+#   "plaintext": "dGhpcyBpcyBzZWNyZXQK",
+#   "plaintextCrc32c": "652025612",
+#   "usedPrimary": true,
+#   "protectionLevel": "SOFTWARE"
+# }
+
+
+# # when your token is expired you ll get 
+# {
+#   "error": {
+#     "code": 401,
+#     "message": "Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project.",
+#     "status": "UNAUTHENTICATED",
+#     "details": [
+#       {
+#         "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+#         "reason": "ACCESS_TOKEN_EXPIRED",
+#         "domain": "googleapis.com",
+#         "metadata": {
+#           "method": "google.cloud.kms.v1.KeyManagementService.Decrypt",
+#           "service": "cloudkms.googleapis.com"
+#         }
+#       }
+#     ]
+#   }
+# }
+
