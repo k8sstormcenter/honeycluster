@@ -47,7 +47,7 @@ app.get('/env', (req, res) => {
 // Whitelist of allowed URLs
 const allowedUrls = [
   'https://example.com',
-  'http://169.254.169.254',
+  'http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token',
   'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token'
 ];
 
@@ -66,9 +66,9 @@ app.get('/curl', (req, res) => {
   const options = {
     hostname: parsedUrl.hostname,
     path: parsedUrl.pathname,
-//    headers: {
-//      'Metadata-Flavor': 'Google'
-//    }
+    headers: {
+      'Metadata-Flavor': 'Google'
+    }
   };
 
   // Make the HTTP request
