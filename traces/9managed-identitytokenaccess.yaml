@@ -1,7 +1,7 @@
 apiVersion: cilium.io/v1alpha1
 kind: TracingPolicy
 metadata:
-  name: "enumerate-service-account"
+  name: "detect-sensitive-file-access"
 spec:
   kprobes:
   - call: "security_file_permission"
@@ -19,9 +19,9 @@ spec:
     selectors:
     - matchArgs:      
       - index: 0
-        operator: "Prefix"
+        operator: "Equal"
         values:
-         - "/run/secrets/kubernetes.io/serviceaccount"
+         - "/var/run/secrets/azure/tokens/azure-identity-token"
       - index: 1
         operator: "Equal"
         values:
@@ -30,7 +30,6 @@ spec:
       - operator: "NotIn"
         values:
         - "/usr/bin/rancher"
-        - "/nginx-ingress-controller"
         - "/usr/bin/dumb-init"
-        - "/main" #this excludes the hubble relay # dont use this in prod, its just for this demo
-
+        - "/nginx-ingress-controller"
+        - "/usr/bin/nginx"
