@@ -286,6 +286,16 @@ dataDir: ""
 # for all options.
 customConfig:
   transforms:
+    exclude_specific_error:
+      type: filter
+      inputs:
+        - app_logs
+      condition:
+        type: "not"
+        "check_fields":
+          "all_match":
+            - "field": "component"
+              "value": "gcm_exporter"
     modify:
       type: remap
       inputs:
@@ -295,7 +305,7 @@ customConfig:
     podlogs:
        type: remap
        inputs:
-          - app_logs
+          - exclude_specific_error
        source: |
               . = parse_json!(.message)
   data_dir: /vector-data-dir
@@ -317,9 +327,6 @@ customConfig:
         - "**/cert-manager_cert-manager*/**"
         - "**/vector*/**"
         - "**/*Error getting SSL certificate*"
-        - "*garbage collection completed*"
-        - "*file:*"
-        - "*series*cache*go*224"
   sinks:
     redpanda:
       type: kafka

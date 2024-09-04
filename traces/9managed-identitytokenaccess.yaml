@@ -22,6 +22,7 @@ spec:
         operator: "Equal"
         values:
          - "/var/run/secrets/azure/tokens/azure-identity-token"
+         - "/var/secrets/google/key.json"
       - index: 1
         operator: "Equal"
         values:

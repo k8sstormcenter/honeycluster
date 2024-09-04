@@ -4,7 +4,54 @@ metadata:
   name: metadata-api-tracing
 spec:
   kprobes:
-  - call: "tcp_connect"
+  # - call: "tcp_connect"
+  #   syscall: false
+  #   args:
+  #   - index: 0
+  #     type: "sock"
+  #   selectors:
+  #   - matchArgs:
+  #     - index: 0
+  #       operator: "DAddr" 
+  #       values:
+  #       - "169.254.169.254" # Metadata API IP address
+  #     matchBinaries:
+  #       - operator: "NotIn" # Exclude system/Cilium components
+  #         values:
+  #         - "/usr/bin/kubelet"
+  #         - "/usr/bin/dockerd"
+  #         - "/usr/bin/containerd"
+  #         - "/opt/cni/bin/cilium-cni" 
+  #         - "/usr/bin/dumb-init"
+  #         - "/nginx-ingress-controller"
+  #         - "/main"
+  #         # Add other known system binaries here if needed
+  #   returnArg:
+  #     index: 0
+  #     type: "int"
+  #   returnArgAction: "Post"
+  # - call: "tcp_recvmsg"
+  #   syscall: false
+  #   args:
+  #   - index: 0
+  #     type: "sock"
+  #   selectors:
+  #   - matchArgs:
+  #     - index: 0
+  #       operator: "SAddr" # Monitor packets received from the metadata API
+  #       values:
+  #       - "169.254.169.254" 
+  #     matchBinaries:
+  #       - operator: "NotIn" 
+  #         values:
+  #         - "/usr/bin/kubelet"
+  #         - "/usr/bin/dockerd"
+  #         - "/usr/bin/containerd"
+  #         - "/opt/cni/bin/cilium-cni" 
+  #         - "/usr/bin/dumb-init"
+  #         - "/nginx-ingress-controller"
+  #         - "/main" 
+  - call: "tcp_sendmsg"
     syscall: false
     args:
     - index: 0
@@ -12,11 +59,11 @@ spec:
     selectors:
     - matchArgs:
       - index: 0
-        operator: "DAddr" 
+        operator: "DAddr" # Monitor packets received from the metadata API
         values:
-        - "169.254.169.254" # Metadata API IP address
+        - "169.254.169.254" 
       matchBinaries:
-        - operator: "NotIn" # Exclude system/Cilium components
+        - operator: "NotIn" 
           values:
           - "/usr/bin/kubelet"
           - "/usr/bin/dockerd"
@@ -24,10 +71,5 @@ spec:
           - "/opt/cni/bin/cilium-cni" 
           - "/usr/bin/dumb-init"
           - "/nginx-ingress-controller"
-          - "/main"
-          # Add other known system binaries here if needed
-    returnArg:
-      index: 0
-      type: "int"
-    returnArgAction: "Post"
+          - "/main" 
 
