@@ -1,3 +1,5 @@
 clientid
 kube
 decode.sh
+spanner/*
+cloud-sql-proxy

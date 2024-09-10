@@ -1,0 +1,416 @@
+{
+    "partitionID": 0,
+    "offset": 1034722,
+    "timestamp": 1725555427878,
+    "compression": "uncompressed",
+    "isTransactional": false,
+    "headers": [],
+    "key": {
+        "payload": "",
+        "encoding": "null"
+    },
+    "value": {
+        "payload": {
+            "file": "/var/log/pods/kube-system_gke-metadata-server-frk4r_32b90713-8dd1-48bc-ad2a-d9558239b154/gke-metadata-server/0.log",
+            "kubernetes": {
+                "container_id": "containerd://95170dda2fbbcc71f895af766e9c6a3b09ad7db0ef30be211ee4881afbc2c0f0",
+                "container_image": "gke.gcr.io/gke-metadata-server:gke_metadata_server_20240702.00_p0@sha256:aea9cc887c91b9a05e5bb4bb604180772594a01f0828bbfacf30c77562ac7205",
+                "container_image_id": "gke.gcr.io/gke-metadata-server@sha256:aea9cc887c91b9a05e5bb4bb604180772594a01f0828bbfacf30c77562ac7205",
+                "container_name": "gke-metadata-server",
+                "namespace_labels": {
+                    "kubernetes.io/metadata.name": "kube-system"
+                },
+                "node_labels": {
+                    "beta.kubernetes.io/arch": "amd64",
+                    "beta.kubernetes.io/instance-type": "n1-standard-2",
+                    "beta.kubernetes.io/os": "linux",
+                    "cloud.google.com/gke-boot-disk": "pd-standard",
+                    "cloud.google.com/gke-container-runtime": "containerd",
+                    "cloud.google.com/gke-cpu-scaling-level": "2",
+                    "cloud.google.com/gke-logging-variant": "DEFAULT",
+                    "cloud.google.com/gke-max-pods-per-node": "110",
+                    "cloud.google.com/gke-memory-gb-scaling-level": "7",
+                    "cloud.google.com/gke-netd-ready": "true",
+                    "cloud.google.com/gke-nodepool": "user-pool",
+                    "cloud.google.com/gke-os-distribution": "cos",
+                    "cloud.google.com/gke-provisioning": "spot",
+                    "cloud.google.com/gke-spot": "true",
+                    "cloud.google.com/gke-stack-type": "IPV4",
+                    "cloud.google.com/machine-family": "n1",
+                    "cloud.google.com/private-node": "false",
+                    "cluster_name": "k8s-caas-0009-dev",
+                    "failure-domain.beta.kubernetes.io/region": "europe-west1",
+                    "failure-domain.beta.kubernetes.io/zone": "europe-west1-b",
+                    "iam.gke.io/gke-metadata-server-enabled": "true",
+                    "kubernetes.io/arch": "amd64",
+                    "kubernetes.io/hostname": "gke-k8s-caas-0009-dev-user-pool-0fc5bebd-x99w",
+                    "kubernetes.io/os": "linux",
+                    "node.kubernetes.io/instance-type": "n1-standard-2",
+                    "node_pool": "user-pool",
+                    "topology.gke.io/zone": "europe-west1-b",
+                    "topology.kubernetes.io/region": "europe-west1",
+                    "topology.kubernetes.io/zone": "europe-west1-b"
+                },
+                "pod_annotations": {
+                    "components.gke.io/component-name": "gke-metadata-server",
+                    "components.gke.io/component-version": "0.4.301",
+                    "monitoring.gke.io/path": "/metricz"
+                },
+                "pod_ip": "10.0.0.234",
+                "pod_ips": [
+                    "10.0.0.234"
+                ],
+                "pod_labels": {
+                    "addonmanager.kubernetes.io/mode": "Reconcile",
+                    "controller-revision-hash": "868b4759f5",
+                    "k8s-app": "gke-metadata-server",
+                    "pod-template-generation": "3"
+                },
+                "pod_name": "gke-metadata-server-frk4r",
+                "pod_namespace": "kube-system",
+                "pod_node_name": "gke-k8s-caas-0009-dev-user-pool-0fc5bebd-x99w",
+                "pod_owner": "DaemonSet/gke-metadata-server",
+                "pod_uid": "32b90713-8dd1-48bc-ad2a-d9558239b154"
+            },
+            "message": "I0905 16:57:07.878540   74418 access_token.go:112] [conn-id:28ee2e817c5077fa rpc-id:5a52d15ecef3465c background-id:733be5458248c392 remote-addr:10.1.2.8:51444 pod:pacman/minimi-5d4b98fbfd-pfkrj] Fetching access token for service account \"pacman-rancher@adls-046l8ixrg6rj4xuwfh5klxzq1.iam.gserviceaccount.com\" with delegates \"\" in pod pacman/minimi-5d4b98fbfd-pfkrj.",
+            "source_type": "kubernetes_logs",
+            "stream": "stderr",
+            "timestamp": "2024-09-05T16:57:07.878828081Z"
+        },
+        "rawPayload": "eyJmaWxlIjoiL3Zhci9sb2cvcG9kcy9rdWJlLXN5c3RlbV9na2UtbWV0YWRhdGEtc2VydmVyLWZyazRyXzMyYjkwNzEzLThkZDEtNDhiYy1hZDJhLWQ5NTU4MjM5YjE1NC9na2UtbWV0YWRhdGEtc2VydmVyLzAubG9nIiwia3ViZXJuZXRlcyI6eyJjb250YWluZXJfaWQiOiJjb250YWluZXJkOi8vOTUxNzBkZGEyZmJiY2M3MWY4OTVhZjc2NmU5YzZhM2IwOWFkN2RiMGVmMzBiZTIxMWVlNDg4MWFmYmMyYzBmMCIsImNvbnRhaW5lcl9pbWFnZSI6ImdrZS5nY3IuaW8vZ2tlLW1ldGFkYXRhLXNlcnZlcjpna2VfbWV0YWRhdGFfc2VydmVyXzIwMjQwNzAyLjAwX3AwQHNoYTI1NjphZWE5Y2M4ODdjOTFiOWEwNWU1YmI0YmI2MDQxODA3NzI1OTRhMDFmMDgyOGJiZmFjZjMwYzc3NTYyYWM3MjA1IiwiY29udGFpbmVyX2ltYWdlX2lkIjoiZ2tlLmdjci5pby9na2UtbWV0YWRhdGEtc2VydmVyQHNoYTI1NjphZWE5Y2M4ODdjOTFiOWEwNWU1YmI0YmI2MDQxODA3NzI1OTRhMDFmMDgyOGJiZmFjZjMwYzc3NTYyYWM3MjA1IiwiY29udGFpbmVyX25hbWUiOiJna2UtbWV0YWRhdGEtc2VydmVyIiwibmFtZXNwYWNlX2xhYmVscyI6eyJrdWJlcm5ldGVzLmlvL21ldGFkYXRhLm5hbWUiOiJrdWJlLXN5c3RlbSJ9LCJub2RlX2xhYmVscyI6eyJiZXRhLmt1YmVybmV0ZXMuaW8vYXJjaCI6ImFtZDY0IiwiYmV0YS5rdWJlcm5ldGVzLmlvL2luc3RhbmNlLXR5cGUiOiJuMS1zdGFuZGFyZC0yIiwiYmV0YS5rdWJlcm5ldGVzLmlvL29zIjoibGludXgiLCJjbG91ZC5nb29nbGUuY29tL2drZS1ib290LWRpc2siOiJwZC1zdGFuZGFyZCIsImNsb3VkLmdvb2dsZS5jb20vZ2tlLWNvbnRhaW5lci1ydW50aW1lIjoiY29udGFpbmVyZCIsImNsb3VkLmdvb2dsZS5jb20vZ2tlLWNwdS1zY2FsaW5nLWxldmVsIjoiMiIsImNsb3VkLmdvb2dsZS5jb20vZ2tlLWxvZ2dpbmctdmFyaWFudCI6IkRFRkFVTFQiLCJjbG91ZC5nb29nbGUuY29tL2drZS1tYXgtcG9kcy1wZXItbm9kZSI6IjExMCIsImNsb3VkLmdvb2dsZS5jb20vZ2tlLW1lbW9yeS1nYi1zY2FsaW5nLWxldmVsIjoiNyIsImNsb3VkLmdvb2dsZS5jb20vZ2tlLW5ldGQtcmVhZHkiOiJ0cnVlIiwiY2xvdWQuZ29vZ2xlLmNvbS9na2Utbm9kZXBvb2wiOiJ1c2VyLXBvb2wiLCJjbG91ZC5nb29nbGUuY29tL2drZS1vcy1kaXN0cmlidXRpb24iOiJjb3MiLCJjbG91ZC5nb29nbGUuY29tL2drZS1wcm92aXNpb25pbmciOiJzcG90IiwiY2xvdWQuZ29vZ2xlLmNvbS9na2Utc3BvdCI6InRydWUiLCJjbG91ZC5nb29nbGUuY29tL2drZS1zdGFjay10eXBlIjoiSVBWNCIsImNsb3VkLmdvb2dsZS5jb20vbWFjaGluZS1mYW1pbHkiOiJuMSIsImNsb3VkLmdvb2dsZS5jb20vcHJpdmF0ZS1ub2RlIjoiZmFsc2UiLCJjbHVzdGVyX25hbWUiOiJrOHMtY2Fhcy0wMDA5LWRldiIsImZhaWx1cmUtZG9tYWluLmJldGEua3ViZXJuZXRlcy5pby9yZWdpb24iOiJldXJvcGUtd2VzdDEiLCJmYWlsdXJlLWRvbWFpbi5iZXRhLmt1YmVybmV0ZXMuaW8vem9uZSI6ImV1cm9wZS13ZXN0MS1iIiwiaWFtLmdrZS5pby9na2UtbWV0YWRhdGEtc2VydmVyLWVuYWJsZWQiOiJ0cnVlIiwia3ViZXJuZXRlcy5pby9hcmNoIjoiYW1kNjQiLCJrdWJlcm5ldGVzLmlvL2hvc3RuYW1lIjoiZ2tlLWs4cy1jYWFzLTAwMDktZGV2LXVzZXItcG9vbC0wZmM1YmViZC14OTl3Iiwia3ViZXJuZXRlcy5pby9vcyI6ImxpbnV4Iiwibm9kZS5rdWJlcm5ldGVzLmlvL2luc3RhbmNlLXR5cGUiOiJuMS1zdGFuZGFyZC0yIiwibm9kZV9wb29sIjoidXNlci1wb29sIiwidG9wb2xvZ3kuZ2tlLmlvL3pvbmUiOiJldXJvcGUtd2VzdDEtYiIsInRvcG9sb2d5Lmt1YmVybmV0ZXMuaW8vcmVnaW9uIjoiZXVyb3BlLXdlc3QxIiwidG9wb2xvZ3kua3ViZXJuZXRlcy5pby96b25lIjoiZXVyb3BlLXdlc3QxLWIifSwicG9kX2Fubm90YXRpb25zIjp7ImNvbXBvbmVudHMuZ2tlLmlvL2NvbXBvbmVudC1uYW1lIjoiZ2tlLW1ldGFkYXRhLXNlcnZlciIsImNvbXBvbmVudHMuZ2tlLmlvL2NvbXBvbmVudC12ZXJzaW9uIjoiMC40LjMwMSIsIm1vbml0b3JpbmcuZ2tlLmlvL3BhdGgiOiIvbWV0cmljeiJ9LCJwb2RfaXAiOiIxMC4wLjAuMjM0IiwicG9kX2lwcyI6WyIxMC4wLjAuMjM0Il0sInBvZF9sYWJlbHMiOnsiYWRkb25tYW5hZ2VyLmt1YmVybmV0ZXMuaW8vbW9kZSI6IlJlY29uY2lsZSIsImNvbnRyb2xsZXItcmV2aXNpb24taGFzaCI6Ijg2OGI0NzU5ZjUiLCJrOHMtYXBwIjoiZ2tlLW1ldGFkYXRhLXNlcnZlciIsInBvZC10ZW1wbGF0ZS1nZW5lcmF0aW9uIjoiMyJ9LCJwb2RfbmFtZSI6ImdrZS1tZXRhZGF0YS1zZXJ2ZXItZnJrNHIiLCJwb2RfbmFtZXNwYWNlIjoia3ViZS1zeXN0ZW0iLCJwb2Rfbm9kZV9uYW1lIjoiZ2tlLWs4cy1jYWFzLTAwMDktZGV2LXVzZXItcG9vbC0wZmM1YmViZC14OTl3IiwicG9kX293bmVyIjoiRGFlbW9uU2V0L2drZS1tZXRhZGF0YS1zZXJ2ZXIiLCJwb2RfdWlkIjoiMzJiOTA3MTMtOGRkMS00OGJjLWFkMmEtZDk1NTgyMzliMTU0In0sIm1lc3NhZ2UiOiJJMDkwNSAxNjo1NzowNy44Nzg1NDAgICA3NDQxOCBhY2Nlc3NfdG9rZW4uZ286MTEyXSBbY29ubi1pZDoyOGVlMmU4MTdjNTA3N2ZhIHJwYy1pZDo1YTUyZDE1ZWNlZjM0NjVjIGJhY2tncm91bmQtaWQ6NzMzYmU1NDU4MjQ4YzM5MiByZW1vdGUtYWRkcjoxMC4xLjIuODo1MTQ0NCBwb2Q6cGFjbWFuL21pbmltaS01ZDRiOThmYmZkLXBma3JqXSBGZXRjaGluZyBhY2Nlc3MgdG9rZW4gZm9yIHNlcnZpY2UgYWNjb3VudCBcInBhY21hbi1yYW5jaGVyQGFkbHMtMDQ2bDhpeHJnNnJqNHh1d2ZoNWtseHpxMS5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbVwiIHdpdGggZGVsZWdhdGVzIFwiXCIgaW4gcG9kIHBhY21hbi9taW5pbWktNWQ0Yjk4ZmJmZC1wZmtyai4iLCJzb3VyY2VfdHlwZSI6Imt1YmVybmV0ZXNfbG9ncyIsInN0cmVhbSI6InN0ZGVyciIsInRpbWVzdGFtcCI6IjIwMjQtMDktMDVUMTY6NTc6MDcuODc4ODI4MDgxWiJ9",
+        "encoding": "json"
+    }
+},
+{
+    "partitionID": 0,
+    "offset": 1034723,
+    "timestamp": 1725555427923,
+    "compression": "uncompressed",
+    "isTransactional": false,
+    "headers": [],
+    "key": {
+        "payload": "",
+        "encoding": "null"
+    },
+    "value": {
+        "payload": {
+            "file": "/var/log/pods/kube-system_gke-metadata-server-frk4r_32b90713-8dd1-48bc-ad2a-d9558239b154/gke-metadata-server/0.log",
+            "kubernetes": {
+                "container_id": "containerd://95170dda2fbbcc71f895af766e9c6a3b09ad7db0ef30be211ee4881afbc2c0f0",
+                "container_image": "gke.gcr.io/gke-metadata-server:gke_metadata_server_20240702.00_p0@sha256:aea9cc887c91b9a05e5bb4bb604180772594a01f0828bbfacf30c77562ac7205",
+                "container_image_id": "gke.gcr.io/gke-metadata-server@sha256:aea9cc887c91b9a05e5bb4bb604180772594a01f0828bbfacf30c77562ac7205",
+                "container_name": "gke-metadata-server",
+                "namespace_labels": {
+                    "kubernetes.io/metadata.name": "kube-system"
+                },
+                "node_labels": {
+                    "beta.kubernetes.io/arch": "amd64",
+                    "beta.kubernetes.io/instance-type": "n1-standard-2",
+                    "beta.kubernetes.io/os": "linux",
+                    "cloud.google.com/gke-boot-disk": "pd-standard",
+                    "cloud.google.com/gke-container-runtime": "containerd",
+                    "cloud.google.com/gke-cpu-scaling-level": "2",
+                    "cloud.google.com/gke-logging-variant": "DEFAULT",
+                    "cloud.google.com/gke-max-pods-per-node": "110",
+                    "cloud.google.com/gke-memory-gb-scaling-level": "7",
+                    "cloud.google.com/gke-netd-ready": "true",
+                    "cloud.google.com/gke-nodepool": "user-pool",
+                    "cloud.google.com/gke-os-distribution": "cos",
+                    "cloud.google.com/gke-provisioning": "spot",
+                    "cloud.google.com/gke-spot": "true",
+                    "cloud.google.com/gke-stack-type": "IPV4",
+                    "cloud.google.com/machine-family": "n1",
+                    "cloud.google.com/private-node": "false",
+                    "cluster_name": "k8s-caas-0009-dev",
+                    "failure-domain.beta.kubernetes.io/region": "europe-west1",
+                    "failure-domain.beta.kubernetes.io/zone": "europe-west1-b",
+                    "iam.gke.io/gke-metadata-server-enabled": "true",
+                    "kubernetes.io/arch": "amd64",
+                    "kubernetes.io/hostname": "gke-k8s-caas-0009-dev-user-pool-0fc5bebd-x99w",
+                    "kubernetes.io/os": "linux",
+                    "node.kubernetes.io/instance-type": "n1-standard-2",
+                    "node_pool": "user-pool",
+                    "topology.gke.io/zone": "europe-west1-b",
+                    "topology.kubernetes.io/region": "europe-west1",
+                    "topology.kubernetes.io/zone": "europe-west1-b"
+                },
+                "pod_annotations": {
+                    "components.gke.io/component-name": "gke-metadata-server",
+                    "components.gke.io/component-version": "0.4.301",
+                    "monitoring.gke.io/path": "/metricz"
+                },
+                "pod_ip": "10.0.0.234",
+                "pod_ips": [
+                    "10.0.0.234"
+                ],
+                "pod_labels": {
+                    "addonmanager.kubernetes.io/mode": "Reconcile",
+                    "controller-revision-hash": "868b4759f5",
+                    "k8s-app": "gke-metadata-server",
+                    "pod-template-generation": "3"
+                },
+                "pod_name": "gke-metadata-server-frk4r",
+                "pod_namespace": "kube-system",
+                "pod_node_name": "gke-k8s-caas-0009-dev-user-pool-0fc5bebd-x99w",
+                "pod_owner": "DaemonSet/gke-metadata-server",
+                "pod_uid": "32b90713-8dd1-48bc-ad2a-d9558239b154"
+            },
+            "message": "I0905 16:57:07.923548   74418 loading_cache.go:230] [conn-id:28ee2e817c5077fa rpc-id:5a52d15ecef3465c remote-addr:10.1.2.8:51444 pod:pacman/minimi-5d4b98fbfd-pfkrj] Loading new entry succeeded",
+            "source_type": "kubernetes_logs",
+            "stream": "stderr",
+            "timestamp": "2024-09-05T16:57:07.923896481Z"
+        },
+        "rawPayload": "eyJmaWxlIjoiL3Zhci9sb2cvcG9kcy9rdWJlLXN5c3RlbV9na2UtbWV0YWRhdGEtc2VydmVyLWZyazRyXzMyYjkwNzEzLThkZDEtNDhiYy1hZDJhLWQ5NTU4MjM5YjE1NC9na2UtbWV0YWRhdGEtc2VydmVyLzAubG9nIiwia3ViZXJuZXRlcyI6eyJjb250YWluZXJfaWQiOiJjb250YWluZXJkOi8vOTUxNzBkZGEyZmJiY2M3MWY4OTVhZjc2NmU5YzZhM2IwOWFkN2RiMGVmMzBiZTIxMWVlNDg4MWFmYmMyYzBmMCIsImNvbnRhaW5lcl9pbWFnZSI6ImdrZS5nY3IuaW8vZ2tlLW1ldGFkYXRhLXNlcnZlcjpna2VfbWV0YWRhdGFfc2VydmVyXzIwMjQwNzAyLjAwX3AwQHNoYTI1NjphZWE5Y2M4ODdjOTFiOWEwNWU1YmI0YmI2MDQxODA3NzI1OTRhMDFmMDgyOGJiZmFjZjMwYzc3NTYyYWM3MjA1IiwiY29udGFpbmVyX2ltYWdlX2lkIjoiZ2tlLmdjci5pby9na2UtbWV0YWRhdGEtc2VydmVyQHNoYTI1NjphZWE5Y2M4ODdjOTFiOWEwNWU1YmI0YmI2MDQxODA3NzI1OTRhMDFmMDgyOGJiZmFjZjMwYzc3NTYyYWM3MjA1IiwiY29udGFpbmVyX25hbWUiOiJna2UtbWV0YWRhdGEtc2VydmVyIiwibmFtZXNwYWNlX2xhYmVscyI6eyJrdWJlcm5ldGVzLmlvL21ldGFkYXRhLm5hbWUiOiJrdWJlLXN5c3RlbSJ9LCJub2RlX2xhYmVscyI6eyJiZXRhLmt1YmVybmV0ZXMuaW8vYXJjaCI6ImFtZDY0IiwiYmV0YS5rdWJlcm5ldGVzLmlvL2luc3RhbmNlLXR5cGUiOiJuMS1zdGFuZGFyZC0yIiwiYmV0YS5rdWJlcm5ldGVzLmlvL29zIjoibGludXgiLCJjbG91ZC5nb29nbGUuY29tL2drZS1ib290LWRpc2siOiJwZC1zdGFuZGFyZCIsImNsb3VkLmdvb2dsZS5jb20vZ2tlLWNvbnRhaW5lci1ydW50aW1lIjoiY29udGFpbmVyZCIsImNsb3VkLmdvb2dsZS5jb20vZ2tlLWNwdS1zY2FsaW5nLWxldmVsIjoiMiIsImNsb3VkLmdvb2dsZS5jb20vZ2tlLWxvZ2dpbmctdmFyaWFudCI6IkRFRkFVTFQiLCJjbG91ZC5nb29nbGUuY29tL2drZS1tYXgtcG9kcy1wZXItbm9kZSI6IjExMCIsImNsb3VkLmdvb2dsZS5jb20vZ2tlLW1lbW9yeS1nYi1zY2FsaW5nLWxldmVsIjoiNyIsImNsb3VkLmdvb2dsZS5jb20vZ2tlLW5ldGQtcmVhZHkiOiJ0cnVlIiwiY2xvdWQuZ29vZ2xlLmNvbS9na2Utbm9kZXBvb2wiOiJ1c2VyLXBvb2wiLCJjbG91ZC5nb29nbGUuY29tL2drZS1vcy1kaXN0cmlidXRpb24iOiJjb3MiLCJjbG91ZC5nb29nbGUuY29tL2drZS1wcm92aXNpb25pbmciOiJzcG90IiwiY2xvdWQuZ29vZ2xlLmNvbS9na2Utc3BvdCI6InRydWUiLCJjbG91ZC5nb29nbGUuY29tL2drZS1zdGFjay10eXBlIjoiSVBWNCIsImNsb3VkLmdvb2dsZS5jb20vbWFjaGluZS1mYW1pbHkiOiJuMSIsImNsb3VkLmdvb2dsZS5jb20vcHJpdmF0ZS1ub2RlIjoiZmFsc2UiLCJjbHVzdGVyX25hbWUiOiJrOHMtY2Fhcy0wMDA5LWRldiIsImZhaWx1cmUtZG9tYWluLmJldGEua3ViZXJuZXRlcy5pby9yZWdpb24iOiJldXJvcGUtd2VzdDEiLCJmYWlsdXJlLWRvbWFpbi5iZXRhLmt1YmVybmV0ZXMuaW8vem9uZSI6ImV1cm9wZS13ZXN0MS1iIiwiaWFtLmdrZS5pby9na2UtbWV0YWRhdGEtc2VydmVyLWVuYWJsZWQiOiJ0cnVlIiwia3ViZXJuZXRlcy5pby9hcmNoIjoiYW1kNjQiLCJrdWJlcm5ldGVzLmlvL2hvc3RuYW1lIjoiZ2tlLWs4cy1jYWFzLTAwMDktZGV2LXVzZXItcG9vbC0wZmM1YmViZC14OTl3Iiwia3ViZXJuZXRlcy5pby9vcyI6ImxpbnV4Iiwibm9kZS5rdWJlcm5ldGVzLmlvL2luc3RhbmNlLXR5cGUiOiJuMS1zdGFuZGFyZC0yIiwibm9kZV9wb29sIjoidXNlci1wb29sIiwidG9wb2xvZ3kuZ2tlLmlvL3pvbmUiOiJldXJvcGUtd2VzdDEtYiIsInRvcG9sb2d5Lmt1YmVybmV0ZXMuaW8vcmVnaW9uIjoiZXVyb3BlLXdlc3QxIiwidG9wb2xvZ3kua3ViZXJuZXRlcy5pby96b25lIjoiZXVyb3BlLXdlc3QxLWIifSwicG9kX2Fubm90YXRpb25zIjp7ImNvbXBvbmVudHMuZ2tlLmlvL2NvbXBvbmVudC1uYW1lIjoiZ2tlLW1ldGFkYXRhLXNlcnZlciIsImNvbXBvbmVudHMuZ2tlLmlvL2NvbXBvbmVudC12ZXJzaW9uIjoiMC40LjMwMSIsIm1vbml0b3JpbmcuZ2tlLmlvL3BhdGgiOiIvbWV0cmljeiJ9LCJwb2RfaXAiOiIxMC4wLjAuMjM0IiwicG9kX2lwcyI6WyIxMC4wLjAuMjM0Il0sInBvZF9sYWJlbHMiOnsiYWRkb25tYW5hZ2VyLmt1YmVybmV0ZXMuaW8vbW9kZSI6IlJlY29uY2lsZSIsImNvbnRyb2xsZXItcmV2aXNpb24taGFzaCI6Ijg2OGI0NzU5ZjUiLCJrOHMtYXBwIjoiZ2tlLW1ldGFkYXRhLXNlcnZlciIsInBvZC10ZW1wbGF0ZS1nZW5lcmF0aW9uIjoiMyJ9LCJwb2RfbmFtZSI6ImdrZS1tZXRhZGF0YS1zZXJ2ZXItZnJrNHIiLCJwb2RfbmFtZXNwYWNlIjoia3ViZS1zeXN0ZW0iLCJwb2Rfbm9kZV9uYW1lIjoiZ2tlLWs4cy1jYWFzLTAwMDktZGV2LXVzZXItcG9vbC0wZmM1YmViZC14OTl3IiwicG9kX293bmVyIjoiRGFlbW9uU2V0L2drZS1tZXRhZGF0YS1zZXJ2ZXIiLCJwb2RfdWlkIjoiMzJiOTA3MTMtOGRkMS00OGJjLWFkMmEtZDk1NTgyMzliMTU0In0sIm1lc3NhZ2UiOiJJMDkwNSAxNjo1NzowNy45MjM1NDggICA3NDQxOCBsb2FkaW5nX2NhY2hlLmdvOjIzMF0gW2Nvbm4taWQ6MjhlZTJlODE3YzUwNzdmYSBycGMtaWQ6NWE1MmQxNWVjZWYzNDY1YyByZW1vdGUtYWRkcjoxMC4xLjIuODo1MTQ0NCBwb2Q6cGFjbWFuL21pbmltaS01ZDRiOThmYmZkLXBma3JqXSBMb2FkaW5nIG5ldyBlbnRyeSBzdWNjZWVkZWQiLCJzb3VyY2VfdHlwZSI6Imt1YmVybmV0ZXNfbG9ncyIsInN0cmVhbSI6InN0ZGVyciIsInRpbWVzdGFtcCI6IjIwMjQtMDktMDVUMTY6NTc6MDcuOTIzODk2NDgxWiJ9",
+        "encoding": "json"
+    }
+},
+{
+    "partitionID": 0,
+    "offset": 1034724,
+    "timestamp": 1725555427923,
+    "compression": "uncompressed",
+    "isTransactional": false,
+    "headers": [],
+    "key": {
+        "payload": "",
+        "encoding": "null"
+    },
+    "value": {
+        "payload": {
+            "file": "/var/log/pods/kube-system_gke-metadata-server-frk4r_32b90713-8dd1-48bc-ad2a-d9558239b154/gke-metadata-server/0.log",
+            "kubernetes": {
+                "container_id": "containerd://95170dda2fbbcc71f895af766e9c6a3b09ad7db0ef30be211ee4881afbc2c0f0",
+                "container_image": "gke.gcr.io/gke-metadata-server:gke_metadata_server_20240702.00_p0@sha256:aea9cc887c91b9a05e5bb4bb604180772594a01f0828bbfacf30c77562ac7205",
+                "container_image_id": "gke.gcr.io/gke-metadata-server@sha256:aea9cc887c91b9a05e5bb4bb604180772594a01f0828bbfacf30c77562ac7205",
+                "container_name": "gke-metadata-server",
+                "namespace_labels": {
+                    "kubernetes.io/metadata.name": "kube-system"
+                },
+                "node_labels": {
+                    "beta.kubernetes.io/arch": "amd64",
+                    "beta.kubernetes.io/instance-type": "n1-standard-2",
+                    "beta.kubernetes.io/os": "linux",
+                    "cloud.google.com/gke-boot-disk": "pd-standard",
+                    "cloud.google.com/gke-container-runtime": "containerd",
+                    "cloud.google.com/gke-cpu-scaling-level": "2",
+                    "cloud.google.com/gke-logging-variant": "DEFAULT",
+                    "cloud.google.com/gke-max-pods-per-node": "110",
+                    "cloud.google.com/gke-memory-gb-scaling-level": "7",
+                    "cloud.google.com/gke-netd-ready": "true",
+                    "cloud.google.com/gke-nodepool": "user-pool",
+                    "cloud.google.com/gke-os-distribution": "cos",
+                    "cloud.google.com/gke-provisioning": "spot",
+                    "cloud.google.com/gke-spot": "true",
+                    "cloud.google.com/gke-stack-type": "IPV4",
+                    "cloud.google.com/machine-family": "n1",
+                    "cloud.google.com/private-node": "false",
+                    "cluster_name": "k8s-caas-0009-dev",
+                    "failure-domain.beta.kubernetes.io/region": "europe-west1",
+                    "failure-domain.beta.kubernetes.io/zone": "europe-west1-b",
+                    "iam.gke.io/gke-metadata-server-enabled": "true",
+                    "kubernetes.io/arch": "amd64",
+                    "kubernetes.io/hostname": "gke-k8s-caas-0009-dev-user-pool-0fc5bebd-x99w",
+                    "kubernetes.io/os": "linux",
+                    "node.kubernetes.io/instance-type": "n1-standard-2",
+                    "node_pool": "user-pool",
+                    "topology.gke.io/zone": "europe-west1-b",
+                    "topology.kubernetes.io/region": "europe-west1",
+                    "topology.kubernetes.io/zone": "europe-west1-b"
+                },
+                "pod_annotations": {
+                    "components.gke.io/component-name": "gke-metadata-server",
+                    "components.gke.io/component-version": "0.4.301",
+                    "monitoring.gke.io/path": "/metricz"
+                },
+                "pod_ip": "10.0.0.234",
+                "pod_ips": [
+                    "10.0.0.234"
+                ],
+                "pod_labels": {
+                    "addonmanager.kubernetes.io/mode": "Reconcile",
+                    "controller-revision-hash": "868b4759f5",
+                    "k8s-app": "gke-metadata-server",
+                    "pod-template-generation": "3"
+                },
+                "pod_name": "gke-metadata-server-frk4r",
+                "pod_namespace": "kube-system",
+                "pod_node_name": "gke-k8s-caas-0009-dev-user-pool-0fc5bebd-x99w",
+                "pod_owner": "DaemonSet/gke-metadata-server",
+                "pod_uid": "32b90713-8dd1-48bc-ad2a-d9558239b154"
+            },
+            "message": "I0905 16:57:07.923670   74385 serviceaccounts.go:168] [conn-id:28ee2e817c5077fa rpc-id:5a52d15ecef3465c remote-addr:10.1.2.8:51444 pod:pacman/minimi-5d4b98fbfd-pfkrj] Fetched token for pod pacman/minimi-5d4b98fbfd-pfkrj",
+            "source_type": "kubernetes_logs",
+            "stream": "stderr",
+            "timestamp": "2024-09-05T16:57:07.923943879Z"
+        },
+        "rawPayload": "eyJmaWxlIjoiL3Zhci9sb2cvcG9kcy9rdWJlLXN5c3RlbV9na2UtbWV0YWRhdGEtc2VydmVyLWZyazRyXzMyYjkwNzEzLThkZDEtNDhiYy1hZDJhLWQ5NTU4MjM5YjE1NC9na2UtbWV0YWRhdGEtc2VydmVyLzAubG9nIiwia3ViZXJuZXRlcyI6eyJjb250YWluZXJfaWQiOiJjb250YWluZXJkOi8vOTUxNzBkZGEyZmJiY2M3MWY4OTVhZjc2NmU5YzZhM2IwOWFkN2RiMGVmMzBiZTIxMWVlNDg4MWFmYmMyYzBmMCIsImNvbnRhaW5lcl9pbWFnZSI6ImdrZS5nY3IuaW8vZ2tlLW1ldGFkYXRhLXNlcnZlcjpna2VfbWV0YWRhdGFfc2VydmVyXzIwMjQwNzAyLjAwX3AwQHNoYTI1NjphZWE5Y2M4ODdjOTFiOWEwNWU1YmI0YmI2MDQxODA3NzI1OTRhMDFmMDgyOGJiZmFjZjMwYzc3NTYyYWM3MjA1IiwiY29udGFpbmVyX2ltYWdlX2lkIjoiZ2tlLmdjci5pby9na2UtbWV0YWRhdGEtc2VydmVyQHNoYTI1NjphZWE5Y2M4ODdjOTFiOWEwNWU1YmI0YmI2MDQxODA3NzI1OTRhMDFmMDgyOGJiZmFjZjMwYzc3NTYyYWM3MjA1IiwiY29udGFpbmVyX25hbWUiOiJna2UtbWV0YWRhdGEtc2VydmVyIiwibmFtZXNwYWNlX2xhYmVscyI6eyJrdWJlcm5ldGVzLmlvL21ldGFkYXRhLm5hbWUiOiJrdWJlLXN5c3RlbSJ9LCJub2RlX2xhYmVscyI6eyJiZXRhLmt1YmVybmV0ZXMuaW8vYXJjaCI6ImFtZDY0IiwiYmV0YS5rdWJlcm5ldGVzLmlvL2luc3RhbmNlLXR5cGUiOiJuMS1zdGFuZGFyZC0yIiwiYmV0YS5rdWJlcm5ldGVzLmlvL29zIjoibGludXgiLCJjbG91ZC5nb29nbGUuY29tL2drZS1ib290LWRpc2siOiJwZC1zdGFuZGFyZCIsImNsb3VkLmdvb2dsZS5jb20vZ2tlLWNvbnRhaW5lci1ydW50aW1lIjoiY29udGFpbmVyZCIsImNsb3VkLmdvb2dsZS5jb20vZ2tlLWNwdS1zY2FsaW5nLWxldmVsIjoiMiIsImNsb3VkLmdvb2dsZS5jb20vZ2tlLWxvZ2dpbmctdmFyaWFudCI6IkRFRkFVTFQiLCJjbG91ZC5nb29nbGUuY29tL2drZS1tYXgtcG9kcy1wZXItbm9kZSI6IjExMCIsImNsb3VkLmdvb2dsZS5jb20vZ2tlLW1lbW9yeS1nYi1zY2FsaW5nLWxldmVsIjoiNyIsImNsb3VkLmdvb2dsZS5jb20vZ2tlLW5ldGQtcmVhZHkiOiJ0cnVlIiwiY2xvdWQuZ29vZ2xlLmNvbS9na2Utbm9kZXBvb2wiOiJ1c2VyLXBvb2wiLCJjbG91ZC5nb29nbGUuY29tL2drZS1vcy1kaXN0cmlidXRpb24iOiJjb3MiLCJjbG91ZC5nb29nbGUuY29tL2drZS1wcm92aXNpb25pbmciOiJzcG90IiwiY2xvdWQuZ29vZ2xlLmNvbS9na2Utc3BvdCI6InRydWUiLCJjbG91ZC5nb29nbGUuY29tL2drZS1zdGFjay10eXBlIjoiSVBWNCIsImNsb3VkLmdvb2dsZS5jb20vbWFjaGluZS1mYW1pbHkiOiJuMSIsImNsb3VkLmdvb2dsZS5jb20vcHJpdmF0ZS1ub2RlIjoiZmFsc2UiLCJjbHVzdGVyX25hbWUiOiJrOHMtY2Fhcy0wMDA5LWRldiIsImZhaWx1cmUtZG9tYWluLmJldGEua3ViZXJuZXRlcy5pby9yZWdpb24iOiJldXJvcGUtd2VzdDEiLCJmYWlsdXJlLWRvbWFpbi5iZXRhLmt1YmVybmV0ZXMuaW8vem9uZSI6ImV1cm9wZS13ZXN0MS1iIiwiaWFtLmdrZS5pby9na2UtbWV0YWRhdGEtc2VydmVyLWVuYWJsZWQiOiJ0cnVlIiwia3ViZXJuZXRlcy5pby9hcmNoIjoiYW1kNjQiLCJrdWJlcm5ldGVzLmlvL2hvc3RuYW1lIjoiZ2tlLWs4cy1jYWFzLTAwMDktZGV2LXVzZXItcG9vbC0wZmM1YmViZC14OTl3Iiwia3ViZXJuZXRlcy5pby9vcyI6ImxpbnV4Iiwibm9kZS5rdWJlcm5ldGVzLmlvL2luc3RhbmNlLXR5cGUiOiJuMS1zdGFuZGFyZC0yIiwibm9kZV9wb29sIjoidXNlci1wb29sIiwidG9wb2xvZ3kuZ2tlLmlvL3pvbmUiOiJldXJvcGUtd2VzdDEtYiIsInRvcG9sb2d5Lmt1YmVybmV0ZXMuaW8vcmVnaW9uIjoiZXVyb3BlLXdlc3QxIiwidG9wb2xvZ3kua3ViZXJuZXRlcy5pby96b25lIjoiZXVyb3BlLXdlc3QxLWIifSwicG9kX2Fubm90YXRpb25zIjp7ImNvbXBvbmVudHMuZ2tlLmlvL2NvbXBvbmVudC1uYW1lIjoiZ2tlLW1ldGFkYXRhLXNlcnZlciIsImNvbXBvbmVudHMuZ2tlLmlvL2NvbXBvbmVudC12ZXJzaW9uIjoiMC40LjMwMSIsIm1vbml0b3JpbmcuZ2tlLmlvL3BhdGgiOiIvbWV0cmljeiJ9LCJwb2RfaXAiOiIxMC4wLjAuMjM0IiwicG9kX2lwcyI6WyIxMC4wLjAuMjM0Il0sInBvZF9sYWJlbHMiOnsiYWRkb25tYW5hZ2VyLmt1YmVybmV0ZXMuaW8vbW9kZSI6IlJlY29uY2lsZSIsImNvbnRyb2xsZXItcmV2aXNpb24taGFzaCI6Ijg2OGI0NzU5ZjUiLCJrOHMtYXBwIjoiZ2tlLW1ldGFkYXRhLXNlcnZlciIsInBvZC10ZW1wbGF0ZS1nZW5lcmF0aW9uIjoiMyJ9LCJwb2RfbmFtZSI6ImdrZS1tZXRhZGF0YS1zZXJ2ZXItZnJrNHIiLCJwb2RfbmFtZXNwYWNlIjoia3ViZS1zeXN0ZW0iLCJwb2Rfbm9kZV9uYW1lIjoiZ2tlLWs4cy1jYWFzLTAwMDktZGV2LXVzZXItcG9vbC0wZmM1YmViZC14OTl3IiwicG9kX293bmVyIjoiRGFlbW9uU2V0L2drZS1tZXRhZGF0YS1zZXJ2ZXIiLCJwb2RfdWlkIjoiMzJiOTA3MTMtOGRkMS00OGJjLWFkMmEtZDk1NTgyMzliMTU0In0sIm1lc3NhZ2UiOiJJMDkwNSAxNjo1NzowNy45MjM2NzAgICA3NDM4NSBzZXJ2aWNlYWNjb3VudHMuZ286MTY4XSBbY29ubi1pZDoyOGVlMmU4MTdjNTA3N2ZhIHJwYy1pZDo1YTUyZDE1ZWNlZjM0NjVjIHJlbW90ZS1hZGRyOjEwLjEuMi44OjUxNDQ0IHBvZDpwYWNtYW4vbWluaW1pLTVkNGI5OGZiZmQtcGZrcmpdIEZldGNoZWQgdG9rZW4gZm9yIHBvZCBwYWNtYW4vbWluaW1pLTVkNGI5OGZiZmQtcGZrcmoiLCJzb3VyY2VfdHlwZSI6Imt1YmVybmV0ZXNfbG9ncyIsInN0cmVhbSI6InN0ZGVyciIsInRpbWVzdGFtcCI6IjIwMjQtMDktMDVUMTY6NTc6MDcuOTIzOTQzODc5WiJ9",
+        "encoding": "json"
+    }
+},
+{
+    "partitionID": 0,
+    "offset": 1034725,
+    "timestamp": 1725555427924,
+    "compression": "uncompressed",
+    "isTransactional": false,
+    "headers": [],
+    "key": {
+        "payload": "",
+        "encoding": "null"
+    },
+    "value": {
+        "payload": {
+            "file": "/var/log/pods/kube-system_gke-metadata-server-frk4r_32b90713-8dd1-48bc-ad2a-d9558239b154/gke-metadata-server/0.log",
+            "kubernetes": {
+                "container_id": "containerd://95170dda2fbbcc71f895af766e9c6a3b09ad7db0ef30be211ee4881afbc2c0f0",
+                "container_image": "gke.gcr.io/gke-metadata-server:gke_metadata_server_20240702.00_p0@sha256:aea9cc887c91b9a05e5bb4bb604180772594a01f0828bbfacf30c77562ac7205",
+                "container_image_id": "gke.gcr.io/gke-metadata-server@sha256:aea9cc887c91b9a05e5bb4bb604180772594a01f0828bbfacf30c77562ac7205",
+                "container_name": "gke-metadata-server",
+                "namespace_labels": {
+                    "kubernetes.io/metadata.name": "kube-system"
+                },
+                "node_labels": {
+                    "beta.kubernetes.io/arch": "amd64",
+                    "beta.kubernetes.io/instance-type": "n1-standard-2",
+                    "beta.kubernetes.io/os": "linux",
+                    "cloud.google.com/gke-boot-disk": "pd-standard",
+                    "cloud.google.com/gke-container-runtime": "containerd",
+                    "cloud.google.com/gke-cpu-scaling-level": "2",
+                    "cloud.google.com/gke-logging-variant": "DEFAULT",
+                    "cloud.google.com/gke-max-pods-per-node": "110",
+                    "cloud.google.com/gke-memory-gb-scaling-level": "7",
+                    "cloud.google.com/gke-netd-ready": "true",
+                    "cloud.google.com/gke-nodepool": "user-pool",
+                    "cloud.google.com/gke-os-distribution": "cos",
+                    "cloud.google.com/gke-provisioning": "spot",
+                    "cloud.google.com/gke-spot": "true",
+                    "cloud.google.com/gke-stack-type": "IPV4",
+                    "cloud.google.com/machine-family": "n1",
+                    "cloud.google.com/private-node": "false",
+                    "cluster_name": "k8s-caas-0009-dev",
+                    "failure-domain.beta.kubernetes.io/region": "europe-west1",
+                    "failure-domain.beta.kubernetes.io/zone": "europe-west1-b",
+                    "iam.gke.io/gke-metadata-server-enabled": "true",
+                    "kubernetes.io/arch": "amd64",
+                    "kubernetes.io/hostname": "gke-k8s-caas-0009-dev-user-pool-0fc5bebd-x99w",
+                    "kubernetes.io/os": "linux",
+                    "node.kubernetes.io/instance-type": "n1-standard-2",
+                    "node_pool": "user-pool",
+                    "topology.gke.io/zone": "europe-west1-b",
+                    "topology.kubernetes.io/region": "europe-west1",
+                    "topology.kubernetes.io/zone": "europe-west1-b"
+                },
+                "pod_annotations": {
+                    "components.gke.io/component-name": "gke-metadata-server",
+                    "components.gke.io/component-version": "0.4.301",
+                    "monitoring.gke.io/path": "/metricz"
+                },
+                "pod_ip": "10.0.0.234",
+                "pod_ips": [
+                    "10.0.0.234"
+                ],
+                "pod_labels": {
+                    "addonmanager.kubernetes.io/mode": "Reconcile",
+                    "controller-revision-hash": "868b4759f5",
+                    "k8s-app": "gke-metadata-server",
+                    "pod-template-generation": "3"
+                },
+                "pod_name": "gke-metadata-server-frk4r",
+                "pod_namespace": "kube-system",
+                "pod_node_name": "gke-k8s-caas-0009-dev-user-pool-0fc5bebd-x99w",
+                "pod_owner": "DaemonSet/gke-metadata-server",
+                "pod_uid": "32b90713-8dd1-48bc-ad2a-d9558239b154"
+            },
+            "message": "I0905 16:57:07.923775   74385 metadata.go:216] [conn-id:28ee2e817c5077fa rpc-id:5a52d15ecef3465c remote-addr:10.1.2.8:51444 pod:pacman/minimi-5d4b98fbfd-pfkrj] \"/computeMetadata/v1/instance/service-accounts/default/token\" HTTP/200, started at 2024-09-05 16:57:07.877386649 +0000 UTC m=+128164.085248183",
+            "source_type": "kubernetes_logs",
+            "stream": "stderr",
+            "timestamp": "2024-09-05T16:57:07.924210030Z"
+        },
+        "rawPayload": "eyJmaWxlIjoiL3Zhci9sb2cvcG9kcy9rdWJlLXN5c3RlbV9na2UtbWV0YWRhdGEtc2VydmVyLWZyazRyXzMyYjkwNzEzLThkZDEtNDhiYy1hZDJhLWQ5NTU4MjM5YjE1NC9na2UtbWV0YWRhdGEtc2VydmVyLzAubG9nIiwia3ViZXJuZXRlcyI6eyJjb250YWluZXJfaWQiOiJjb250YWluZXJkOi8vOTUxNzBkZGEyZmJiY2M3MWY4OTVhZjc2NmU5YzZhM2IwOWFkN2RiMGVmMzBiZTIxMWVlNDg4MWFmYmMyYzBmMCIsImNvbnRhaW5lcl9pbWFnZSI6ImdrZS5nY3IuaW8vZ2tlLW1ldGFkYXRhLXNlcnZlcjpna2VfbWV0YWRhdGFfc2VydmVyXzIwMjQwNzAyLjAwX3AwQHNoYTI1NjphZWE5Y2M4ODdjOTFiOWEwNWU1YmI0YmI2MDQxODA3NzI1OTRhMDFmMDgyOGJiZmFjZjMwYzc3NTYyYWM3MjA1IiwiY29udGFpbmVyX2ltYWdlX2lkIjoiZ2tlLmdjci5pby9na2UtbWV0YWRhdGEtc2VydmVyQHNoYTI1NjphZWE5Y2M4ODdjOTFiOWEwNWU1YmI0YmI2MDQxODA3NzI1OTRhMDFmMDgyOGJiZmFjZjMwYzc3NTYyYWM3MjA1IiwiY29udGFpbmVyX25hbWUiOiJna2UtbWV0YWRhdGEtc2VydmVyIiwibmFtZXNwYWNlX2xhYmVscyI6eyJrdWJlcm5ldGVzLmlvL21ldGFkYXRhLm5hbWUiOiJrdWJlLXN5c3RlbSJ9LCJub2RlX2xhYmVscyI6eyJiZXRhLmt1YmVybmV0ZXMuaW8vYXJjaCI6ImFtZDY0IiwiYmV0YS5rdWJlcm5ldGVzLmlvL2luc3RhbmNlLXR5cGUiOiJuMS1zdGFuZGFyZC0yIiwiYmV0YS5rdWJlcm5ldGVzLmlvL29zIjoibGludXgiLCJjbG91ZC5nb29nbGUuY29tL2drZS1ib290LWRpc2siOiJwZC1zdGFuZGFyZCIsImNsb3VkLmdvb2dsZS5jb20vZ2tlLWNvbnRhaW5lci1ydW50aW1lIjoiY29udGFpbmVyZCIsImNsb3VkLmdvb2dsZS5jb20vZ2tlLWNwdS1zY2FsaW5nLWxldmVsIjoiMiIsImNsb3VkLmdvb2dsZS5jb20vZ2tlLWxvZ2dpbmctdmFyaWFudCI6IkRFRkFVTFQiLCJjbG91ZC5nb29nbGUuY29tL2drZS1tYXgtcG9kcy1wZXItbm9kZSI6IjExMCIsImNsb3VkLmdvb2dsZS5jb20vZ2tlLW1lbW9yeS1nYi1zY2FsaW5nLWxldmVsIjoiNyIsImNsb3VkLmdvb2dsZS5jb20vZ2tlLW5ldGQtcmVhZHkiOiJ0cnVlIiwiY2xvdWQuZ29vZ2xlLmNvbS9na2Utbm9kZXBvb2wiOiJ1c2VyLXBvb2wiLCJjbG91ZC5nb29nbGUuY29tL2drZS1vcy1kaXN0cmlidXRpb24iOiJjb3MiLCJjbG91ZC5nb29nbGUuY29tL2drZS1wcm92aXNpb25pbmciOiJzcG90IiwiY2xvdWQuZ29vZ2xlLmNvbS9na2Utc3BvdCI6InRydWUiLCJjbG91ZC5nb29nbGUuY29tL2drZS1zdGFjay10eXBlIjoiSVBWNCIsImNsb3VkLmdvb2dsZS5jb20vbWFjaGluZS1mYW1pbHkiOiJuMSIsImNsb3VkLmdvb2dsZS5jb20vcHJpdmF0ZS1ub2RlIjoiZmFsc2UiLCJjbHVzdGVyX25hbWUiOiJrOHMtY2Fhcy0wMDA5LWRldiIsImZhaWx1cmUtZG9tYWluLmJldGEua3ViZXJuZXRlcy5pby9yZWdpb24iOiJldXJvcGUtd2VzdDEiLCJmYWlsdXJlLWRvbWFpbi5iZXRhLmt1YmVybmV0ZXMuaW8vem9uZSI6ImV1cm9wZS13ZXN0MS1iIiwiaWFtLmdrZS5pby9na2UtbWV0YWRhdGEtc2VydmVyLWVuYWJsZWQiOiJ0cnVlIiwia3ViZXJuZXRlcy5pby9hcmNoIjoiYW1kNjQiLCJrdWJlcm5ldGVzLmlvL2hvc3RuYW1lIjoiZ2tlLWs4cy1jYWFzLTAwMDktZGV2LXVzZXItcG9vbC0wZmM1YmViZC14OTl3Iiwia3ViZXJuZXRlcy5pby9vcyI6ImxpbnV4Iiwibm9kZS5rdWJlcm5ldGVzLmlvL2luc3RhbmNlLXR5cGUiOiJuMS1zdGFuZGFyZC0yIiwibm9kZV9wb29sIjoidXNlci1wb29sIiwidG9wb2xvZ3kuZ2tlLmlvL3pvbmUiOiJldXJvcGUtd2VzdDEtYiIsInRvcG9sb2d5Lmt1YmVybmV0ZXMuaW8vcmVnaW9uIjoiZXVyb3BlLXdlc3QxIiwidG9wb2xvZ3kua3ViZXJuZXRlcy5pby96b25lIjoiZXVyb3BlLXdlc3QxLWIifSwicG9kX2Fubm90YXRpb25zIjp7ImNvbXBvbmVudHMuZ2tlLmlvL2NvbXBvbmVudC1uYW1lIjoiZ2tlLW1ldGFkYXRhLXNlcnZlciIsImNvbXBvbmVudHMuZ2tlLmlvL2NvbXBvbmVudC12ZXJzaW9uIjoiMC40LjMwMSIsIm1vbml0b3JpbmcuZ2tlLmlvL3BhdGgiOiIvbWV0cmljeiJ9LCJwb2RfaXAiOiIxMC4wLjAuMjM0IiwicG9kX2lwcyI6WyIxMC4wLjAuMjM0Il0sInBvZF9sYWJlbHMiOnsiYWRkb25tYW5hZ2VyLmt1YmVybmV0ZXMuaW8vbW9kZSI6IlJlY29uY2lsZSIsImNvbnRyb2xsZXItcmV2aXNpb24taGFzaCI6Ijg2OGI0NzU5ZjUiLCJrOHMtYXBwIjoiZ2tlLW1ldGFkYXRhLXNlcnZlciIsInBvZC10ZW1wbGF0ZS1nZW5lcmF0aW9uIjoiMyJ9LCJwb2RfbmFtZSI6ImdrZS1tZXRhZGF0YS1zZXJ2ZXItZnJrNHIiLCJwb2RfbmFtZXNwYWNlIjoia3ViZS1zeXN0ZW0iLCJwb2Rfbm9kZV9uYW1lIjoiZ2tlLWs4cy1jYWFzLTAwMDktZGV2LXVzZXItcG9vbC0wZmM1YmViZC14OTl3IiwicG9kX293bmVyIjoiRGFlbW9uU2V0L2drZS1tZXRhZGF0YS1zZXJ2ZXIiLCJwb2RfdWlkIjoiMzJiOTA3MTMtOGRkMS00OGJjLWFkMmEtZDk1NTgyMzliMTU0In0sIm1lc3NhZ2UiOiJJMDkwNSAxNjo1NzowNy45MjM3NzUgICA3NDM4NSBtZXRhZGF0YS5nbzoyMTZdIFtjb25uLWlkOjI4ZWUyZTgxN2M1MDc3ZmEgcnBjLWlkOjVhNTJkMTVlY2VmMzQ2NWMgcmVtb3RlLWFkZHI6MTAuMS4yLjg6NTE0NDQgcG9kOnBhY21hbi9taW5pbWktNWQ0Yjk4ZmJmZC1wZmtyal0gXCIvY29tcHV0ZU1ldGFkYXRhL3YxL2luc3RhbmNlL3NlcnZpY2UtYWNjb3VudHMvZGVmYXVsdC90b2tlblwiIEhUVFAvMjAwLCBzdGFydGVkIGF0IDIwMjQtMDktMDUgMTY6NTc6MDcuODc3Mzg2NjQ5ICswMDAwIFVUQyBtPSsxMjgxNjQuMDg1MjQ4MTgzIiwic291cmNlX3R5cGUiOiJrdWJlcm5ldGVzX2xvZ3MiLCJzdHJlYW0iOiJzdGRlcnIiLCJ0aW1lc3RhbXAiOiIyMDI0LTA5LTA1VDE2OjU3OjA3LjkyNDIxMDAzMFoifQ==",
+        "encoding": "json"
+    }
+},
+{
+    "partitionID": 0,
+    "offset": 1034726,
+    "timestamp": 1725555427932,
+    "compression": "uncompressed",
+    "isTransactional": false,
+    "headers": [],
+    "key": {
+        "payload": "",
+        "encoding": "null"
+    },
+    "value": {
+        "payload": {
+            "file": "/var/log/pods/ingress-nginx_ingress-nginx-controller-cf668668c-zjq26_7d2b6ad9-7098-42a0-9231-bfeb2811f1c1/controller/0.log",
+            "kubernetes": {
+                "container_id": "containerd://7627d9dc3f4db8275bf5b06480ef128caacaefb3a2d7d38ec0df04ac8b292c59",
+                "container_image": "registry.k8s.io/ingress-nginx/controller:v1.10.1@sha256:e24f39d3eed6bcc239a56f20098878845f62baa34b9f2be2fd2c38ce9fb0f29e",
+                "container_image_id": "registry.k8s.io/ingress-nginx/controller@sha256:e24f39d3eed6bcc239a56f20098878845f62baa34b9f2be2fd2c38ce9fb0f29e",
+                "container_name": "controller",
+                "namespace_labels": {
+                    "kubernetes.io/metadata.name": "ingress-nginx",
+                    "name": "ingress-nginx"
+                },
+                "node_labels": {
+                    "beta.kubernetes.io/arch": "amd64",
+                    "beta.kubernetes.io/instance-type": "n1-standard-2",
+                    "beta.kubernetes.io/os": "linux",
+                    "cloud.google.com/gke-boot-disk": "pd-standard",
+                    "cloud.google.com/gke-container-runtime": "containerd",
+                    "cloud.google.com/gke-cpu-scaling-level": "2",
+                    "cloud.google.com/gke-logging-variant": "DEFAULT",
+                    "cloud.google.com/gke-max-pods-per-node": "110",
+                    "cloud.google.com/gke-memory-gb-scaling-level": "7",
+                    "cloud.google.com/gke-netd-ready": "true",
+                    "cloud.google.com/gke-nodepool": "user-pool",
+                    "cloud.google.com/gke-os-distribution": "cos",
+                    "cloud.google.com/gke-provisioning": "spot",
+                    "cloud.google.com/gke-spot": "true",
+                    "cloud.google.com/gke-stack-type": "IPV4",
+                    "cloud.google.com/machine-family": "n1",
+                    "cloud.google.com/private-node": "false",
+                    "cluster_name": "k8s-caas-0009-dev",
+                    "failure-domain.beta.kubernetes.io/region": "europe-west1",
+                    "failure-domain.beta.kubernetes.io/zone": "europe-west1-b",
+                    "iam.gke.io/gke-metadata-server-enabled": "true",
+                    "kubernetes.io/arch": "amd64",
+                    "kubernetes.io/hostname": "gke-k8s-caas-0009-dev-user-pool-0fc5bebd-x99w",
+                    "kubernetes.io/os": "linux",
+                    "node.kubernetes.io/instance-type": "n1-standard-2",
+                    "node_pool": "user-pool",
+                    "topology.gke.io/zone": "europe-west1-b",
+                    "topology.kubernetes.io/region": "europe-west1",
+                    "topology.kubernetes.io/zone": "europe-west1-b"
+                },
+                "pod_ip": "10.1.2.7",
+                "pod_ips": [
+                    "10.1.2.7"
+                ],
+                "pod_labels": {
+                    "app.kubernetes.io/component": "controller",
+                    "app.kubernetes.io/instance": "ingress-nginx",
+                    "app.kubernetes.io/managed-by": "Helm",
+                    "app.kubernetes.io/name": "ingress-nginx",
+                    "app.kubernetes.io/part-of": "ingress-nginx",
+                    "app.kubernetes.io/version": "1.10.1",
+                    "helm.sh/chart": "ingress-nginx-4.10.1",
+                    "pod-template-hash": "cf668668c"
+                },
+                "pod_name": "ingress-nginx-controller-cf668668c-zjq26",
+                "pod_namespace": "ingress-nginx",
+                "pod_node_name": "gke-k8s-caas-0009-dev-user-pool-0fc5bebd-x99w",
+                "pod_owner": "ReplicaSet/ingress-nginx-controller-cf668668c",
+                "pod_uid": "7d2b6ad9-7098-42a0-9231-bfeb2811f1c1"
+            },
+            "message": "213.225.5.111 - - [05/Sep/2024:16:57:07 +0000] \"GET /curl?url=http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token HTTP/2.0\" 200 1083 \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36\" 594 0.085 [pacman-minimi-80] [] 10.1.2.8:8080 1083 0.085 200 92ac5d91aaa6a3625044b661fce963ea",
+            "source_type": "kubernetes_logs",
+            "stream": "stdout",
+            "timestamp": "2024-09-05T16:57:07.932937874Z"
+        },
+        "rawPayload": "eyJmaWxlIjoiL3Zhci9sb2cvcG9kcy9pbmdyZXNzLW5naW54X2luZ3Jlc3MtbmdpbngtY29udHJvbGxlci1jZjY2ODY2OGMtempxMjZfN2QyYjZhZDktNzA5OC00MmEwLTkyMzEtYmZlYjI4MTFmMWMxL2NvbnRyb2xsZXIvMC5sb2ciLCJrdWJlcm5ldGVzIjp7ImNvbnRhaW5lcl9pZCI6ImNvbnRhaW5lcmQ6Ly83NjI3ZDlkYzNmNGRiODI3NWJmNWIwNjQ4MGVmMTI4Y2FhY2FlZmIzYTJkN2QzOGVjMGRmMDRhYzhiMjkyYzU5IiwiY29udGFpbmVyX2ltYWdlIjoicmVnaXN0cnkuazhzLmlvL2luZ3Jlc3MtbmdpbngvY29udHJvbGxlcjp2MS4xMC4xQHNoYTI1NjplMjRmMzlkM2VlZDZiY2MyMzlhNTZmMjAwOTg4Nzg4NDVmNjJiYWEzNGI5ZjJiZTJmZDJjMzhjZTlmYjBmMjllIiwiY29udGFpbmVyX2ltYWdlX2lkIjoicmVnaXN0cnkuazhzLmlvL2luZ3Jlc3MtbmdpbngvY29udHJvbGxlckBzaGEyNTY6ZTI0ZjM5ZDNlZWQ2YmNjMjM5YTU2ZjIwMDk4ODc4ODQ1ZjYyYmFhMzRiOWYyYmUyZmQyYzM4Y2U5ZmIwZjI5ZSIsImNvbnRhaW5lcl9uYW1lIjoiY29udHJvbGxlciIsIm5hbWVzcGFjZV9sYWJlbHMiOnsia3ViZXJuZXRlcy5pby9tZXRhZGF0YS5uYW1lIjoiaW5ncmVzcy1uZ2lueCIsIm5hbWUiOiJpbmdyZXNzLW5naW54In0sIm5vZGVfbGFiZWxzIjp7ImJldGEua3ViZXJuZXRlcy5pby9hcmNoIjoiYW1kNjQiLCJiZXRhLmt1YmVybmV0ZXMuaW8vaW5zdGFuY2UtdHlwZSI6Im4xLXN0YW5kYXJkLTIiLCJiZXRhLmt1YmVybmV0ZXMuaW8vb3MiOiJsaW51eCIsImNsb3VkLmdvb2dsZS5jb20vZ2tlLWJvb3QtZGlzayI6InBkLXN0YW5kYXJkIiwiY2xvdWQuZ29vZ2xlLmNvbS9na2UtY29udGFpbmVyLXJ1bnRpbWUiOiJjb250YWluZXJkIiwiY2xvdWQuZ29vZ2xlLmNvbS9na2UtY3B1LXNjYWxpbmctbGV2ZWwiOiIyIiwiY2xvdWQuZ29vZ2xlLmNvbS9na2UtbG9nZ2luZy12YXJpYW50IjoiREVGQVVMVCIsImNsb3VkLmdvb2dsZS5jb20vZ2tlLW1heC1wb2RzLXBlci1ub2RlIjoiMTEwIiwiY2xvdWQuZ29vZ2xlLmNvbS9na2UtbWVtb3J5LWdiLXNjYWxpbmctbGV2ZWwiOiI3IiwiY2xvdWQuZ29vZ2xlLmNvbS9na2UtbmV0ZC1yZWFkeSI6InRydWUiLCJjbG91ZC5nb29nbGUuY29tL2drZS1ub2RlcG9vbCI6InVzZXItcG9vbCIsImNsb3VkLmdvb2dsZS5jb20vZ2tlLW9zLWRpc3RyaWJ1dGlvbiI6ImNvcyIsImNsb3VkLmdvb2dsZS5jb20vZ2tlLXByb3Zpc2lvbmluZyI6InNwb3QiLCJjbG91ZC5nb29nbGUuY29tL2drZS1zcG90IjoidHJ1ZSIsImNsb3VkLmdvb2dsZS5jb20vZ2tlLXN0YWNrLXR5cGUiOiJJUFY0IiwiY2xvdWQuZ29vZ2xlLmNvbS9tYWNoaW5lLWZhbWlseSI6Im4xIiwiY2xvdWQuZ29vZ2xlLmNvbS9wcml2YXRlLW5vZGUiOiJmYWxzZSIsImNsdXN0ZXJfbmFtZSI6Ims4cy1jYWFzLTAwMDktZGV2IiwiZmFpbHVyZS1kb21haW4uYmV0YS5rdWJlcm5ldGVzLmlvL3JlZ2lvbiI6ImV1cm9wZS13ZXN0MSIsImZhaWx1cmUtZG9tYWluLmJldGEua3ViZXJuZXRlcy5pby96b25lIjoiZXVyb3BlLXdlc3QxLWIiLCJpYW0uZ2tlLmlvL2drZS1tZXRhZGF0YS1zZXJ2ZXItZW5hYmxlZCI6InRydWUiLCJrdWJlcm5ldGVzLmlvL2FyY2giOiJhbWQ2NCIsImt1YmVybmV0ZXMuaW8vaG9zdG5hbWUiOiJna2UtazhzLWNhYXMtMDAwOS1kZXYtdXNlci1wb29sLTBmYzViZWJkLXg5OXciLCJrdWJlcm5ldGVzLmlvL29zIjoibGludXgiLCJub2RlLmt1YmVybmV0ZXMuaW8vaW5zdGFuY2UtdHlwZSI6Im4xLXN0YW5kYXJkLTIiLCJub2RlX3Bvb2wiOiJ1c2VyLXBvb2wiLCJ0b3BvbG9neS5na2UuaW8vem9uZSI6ImV1cm9wZS13ZXN0MS1iIiwidG9wb2xvZ3kua3ViZXJuZXRlcy5pby9yZWdpb24iOiJldXJvcGUtd2VzdDEiLCJ0b3BvbG9neS5rdWJlcm5ldGVzLmlvL3pvbmUiOiJldXJvcGUtd2VzdDEtYiJ9LCJwb2RfaXAiOiIxMC4xLjIuNyIsInBvZF9pcHMiOlsiMTAuMS4yLjciXSwicG9kX2xhYmVscyI6eyJhcHAua3ViZXJuZXRlcy5pby9jb21wb25lbnQiOiJjb250cm9sbGVyIiwiYXBwLmt1YmVybmV0ZXMuaW8vaW5zdGFuY2UiOiJpbmdyZXNzLW5naW54IiwiYXBwLmt1YmVybmV0ZXMuaW8vbWFuYWdlZC1ieSI6IkhlbG0iLCJhcHAua3ViZXJuZXRlcy5pby9uYW1lIjoiaW5ncmVzcy1uZ2lueCIsImFwcC5rdWJlcm5ldGVzLmlvL3BhcnQtb2YiOiJpbmdyZXNzLW5naW54IiwiYXBwLmt1YmVybmV0ZXMuaW8vdmVyc2lvbiI6IjEuMTAuMSIsImhlbG0uc2gvY2hhcnQiOiJpbmdyZXNzLW5naW54LTQuMTAuMSIsInBvZC10ZW1wbGF0ZS1oYXNoIjoiY2Y2Njg2NjhjIn0sInBvZF9uYW1lIjoiaW5ncmVzcy1uZ2lueC1jb250cm9sbGVyLWNmNjY4NjY4Yy16anEyNiIsInBvZF9uYW1lc3BhY2UiOiJpbmdyZXNzLW5naW54IiwicG9kX25vZGVfbmFtZSI6ImdrZS1rOHMtY2Fhcy0wMDA5LWRldi11c2VyLXBvb2wtMGZjNWJlYmQteDk5dyIsInBvZF9vd25lciI6IlJlcGxpY2FTZXQvaW5ncmVzcy1uZ2lueC1jb250cm9sbGVyLWNmNjY4NjY4YyIsInBvZF91aWQiOiI3ZDJiNmFkOS03MDk4LTQyYTAtOTIzMS1iZmViMjgxMWYxYzEifSwibWVzc2FnZSI6IjIxMy4yMjUuNS4xMTEgLSAtIFswNS9TZXAvMjAyNDoxNjo1NzowNyArMDAwMF0gXCJHRVQgL2N1cmw/dXJsPWh0dHA6Ly9tZXRhZGF0YS5nb29nbGUuaW50ZXJuYWwvY29tcHV0ZU1ldGFkYXRhL3YxL2luc3RhbmNlL3NlcnZpY2UtYWNjb3VudHMvZGVmYXVsdC90b2tlbiBIVFRQLzIuMFwiIDIwMCAxMDgzIFwiLVwiIFwiTW96aWxsYS81LjAgKE1hY2ludG9zaDsgSW50ZWwgTWFjIE9TIFggMTBfMTVfNykgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzEyOC4wLjAuMCBTYWZhcmkvNTM3LjM2XCIgNTk0IDAuMDg1IFtwYWNtYW4tbWluaW1pLTgwXSBbXSAxMC4xLjIuODo4MDgwIDEwODMgMC4wODUgMjAwIDkyYWM1ZDkxYWFhNmEzNjI1MDQ0YjY2MWZjZTk2M2VhIiwic291cmNlX3R5cGUiOiJrdWJlcm5ldGVzX2xvZ3MiLCJzdHJlYW0iOiJzdGRvdXQiLCJ0aW1lc3RhbXAiOiIyMDI0LTA5LTA1VDE2OjU3OjA3LjkzMjkzNzg3NFoifQ==",
+        "encoding": "json"
+    }
+}
+]

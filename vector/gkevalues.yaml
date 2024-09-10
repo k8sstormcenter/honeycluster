@@ -290,12 +290,7 @@ customConfig:
       type: filter
       inputs:
         - app_logs
-      condition:
-        type: "not"
-        "check_fields":
-          "all_match":
-            - "field": "component"
-              "value": "gcm_exporter"
+      condition: .component != "gcm_exporter"
     modify:
       type: remap
       inputs:
@@ -322,7 +317,12 @@ customConfig:
       type: kubernetes_logs
       exclude_paths_glob_patterns:
         - "**/redpanda_*/**"
-        - "**/kube-system_*/**"
+        - "**/kube-system_event-exporter-*/**"
+        - "**/kube-system_fluentbit-*/**"
+        - "**/kube-system_pdcsi-*/**"
+        - "**/kube-system_konnectivity-*/**"
+        - "**/kube-system_netd-*/**"
+        - "**/kube-system_anetd-*/**"
         - "**/gke-managed*/**"
         - "**/cert-manager_cert-manager*/**"
         - "**/vector*/**"

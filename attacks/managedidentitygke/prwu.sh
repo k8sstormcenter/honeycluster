@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 NODE=gke-k8s-caas-0009-dev-user-pool-0fc5bebd-kq52
-MINIME_POD_IP=$(kubectl get pod  -n pacman -o jsonpath='{.items[0].status.podIP}')
-PWRU_ARGS="--output-tuple 'host ${MINIME_POD_IP}'"
+MINIME_POD_IP=10.1.2.8 #$(kubectl get pod  -n pacman -o jsonpath='{.items[0].status.podIP}')
+#PWRU_ARGS="--output-tuple 'host ${MINIME_POD_IP}'"
+PWRU_ARGS="dst host 169.254.169.254 and tcp"
 
 trap " kubectl delete --wait=false pod pwru " EXIT
 

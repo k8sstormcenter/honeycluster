@@ -34,3 +34,4 @@ spec:
         - "/usr/bin/dumb-init"
         - "/nginx-ingress-controller"
         - "/usr/bin/nginx"
+        - "/main"
