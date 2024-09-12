@@ -10,6 +10,9 @@ COPY package*.json ./
 # Install the application dependencies
 RUN npm install
 
+# Copy the source code to the working directory
+COPY ./src/ ./src/
+
 # Expose port 8080 for the application
 EXPOSE 8080
 
