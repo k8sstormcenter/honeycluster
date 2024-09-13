@@ -1,6 +1,6 @@
 'use strict';
 
-import fetch from 'node-fetch';
+import axios from 'axios';
 import path from 'path';
 import express from 'express';
 import session from 'express-session';
@@ -8,6 +8,17 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+axios.defaults.headers.common = {
+    'Accept': 'text/plain,application/json,*/*',
+    'Accept-Language': 'en-US,en',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Connection': 'keep-alive',
+    'Upgrade-Insecure-Requests': '1',
+    'Metadata-Flavor': 'Google',
+    'Pragma': 'no-cache',
+    'Cache-Control': 'no-cache'
+};
 
 const app = express();
 const port = 8080;
@@ -98,19 +109,18 @@ api.post('/profile/picture-upload', async (req, res) => {
     if (req.body.file) {
         image = req.body.file;
     } else {
-        // Parse the URL
-        const url = new URL(req.body.url);
-
-        // download image from url using fetch
-        const response = await fetch(url);
-
-        if (!response.ok) {
+        try {
+            const url = new URL(req.body.url);
+            const response = await axios.get(url, {
+                responseType: 'arraybuffer'
+            });
+            const contentType = response.headers['content-type'];
+            const imageBuffer = response.data;
+            image = `data:${contentType};base64,${imageBuffer.toString('base64')}`;
+        }
+        catch (error) {
             return res.status(400).send('Failed to download image');
         }
-
-        const contentType = response.headers.get('content-type');
-        const imageBuffer = await response.buffer();
-        image = `data:${contentType};base64,${imageBuffer.toString('base64')}`;
     }
 
     // const user = users[req.session.user.username];

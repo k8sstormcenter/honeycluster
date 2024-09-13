@@ -10,8 +10,8 @@
     "start": "node src/server.js"
   },
   "dependencies": {
+    "axios": "^1.7.7",
     "express": "^4.17.1",
-    "express-session": "^1.18.0",
-    "node-fetch": "^3.3.2"
+    "express-session": "^1.18.0"
   }
 }
