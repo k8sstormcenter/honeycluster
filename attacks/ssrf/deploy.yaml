@@ -6,10 +6,10 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: pacman-workload-identity
+  name: pacman-rancher
   namespace: pacman
   annotations:
-    iam.gke.io/gcp-service-account: "pacman-rancher@adls-046l8ixrg6rj4xuwfh5klxzq1.iam.gserviceaccount.com" 
+    iam.gke.io/gcp-service-account: "<service-account-name>" 
 
 
 
@@ -18,50 +18,37 @@ metadata:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: minimi
+  name: ssrf-example
   namespace: pacman
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: minimi
+      app: ssrf-example
   template:
     metadata:
       labels:
-        app: minimi
-        iam.gke.io/sa: "pacman-rancher" 
-        iam.gke.io/tbsa: "pacman-rancher"
+        app: ssrf-example
     spec:
-      serviceAccountName: pacman-workload-identity
+      serviceAccountName: pacman-rancher
       automountServiceAccountToken: true
       containers:
-      - name: minimi
-        image: ghcr.io/austriandatalab/minimi-kv:0.0.1 #@Tobias: we need to use the GKE SDK for node and rebuild a new image
-        command: ["sh", "-c"]
-        args: ["node src/server.js & sleep 100"]
+      - name: ssrf-example
+        image: ghcr.io/k8sstormcenter/ssrf-example:0.0.1
         imagePullPolicy: Always
-        env:
-        - name: KMS_PROJECT_ID
-          value: "your-gcp-project-id" # Replace with your actual GCP project ID
-        - name: KMS_LOCATION
-          value: "us-central1" # Replace with your KMS location
-        - name: KMS_KEY_RING
-          value: "key-ring" # Replace with your KMS key ring name
-        - name: KMS_KEY_NAME
-          value: "crypto-key"
         ports:
         - containerPort: 8080
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: minimi
+  name: ssrf-example
   namespace: pacman
   annotations:
     tailscale.com/expose: "true"
 spec:
   selector:
-    app: minimi
+    app: ssrf-example
   ports:
   - protocol: TCP
     port: 80
