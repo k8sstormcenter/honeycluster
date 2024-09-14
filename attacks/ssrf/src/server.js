@@ -26,8 +26,8 @@ const port = 8080;
 app.use(express.urlencoded({ extended: false }))
 app.use(session({
     resave: false,
-    saveUninitialized: false,
-    secret: 'very secret secret'
+    saveUninitialized: true,
+    secret: 'very secret secret',
 }));
 
 const users = {
@@ -48,7 +48,7 @@ function authenticate(username, password, fn) {
 }
 
 function restrict(req, res, next) {
-    if (req.session.user) {
+    if (req.session.username) {
         next();
     } else {
         res.redirect('/login');
@@ -56,7 +56,7 @@ function restrict(req, res, next) {
 }
 
 function apiRestrict(req, res, next) {
-    if (req.session.user) {
+    if (req.session.username) {
         next();
     } else {
         res.status(403).send('Access denied');
@@ -71,7 +71,7 @@ app.get('/login', function(req, res){
     res.sendFile(path.join(__dirname, 'views', 'login.html'));
 });
 
-app.get('/profile', function(req, res) {
+app.get('/profile', restrict, function(req, res) {
     res.sendFile(path.join(__dirname, 'views', 'profile.html'));
 });
 
@@ -82,9 +82,7 @@ api.post('/login', function (req, res, next) {
     authenticate(req.body.username, req.body.password, function(err, user) {
         if (err) return next(err)
         if (user) {
-            req.session.regenerate(function(){
-                req.session.user = user;
-            });
+            req.session.username = user.username;
             res.redirect('/profile');
         } else {
             res.redirect('/login');
@@ -92,14 +90,13 @@ api.post('/login', function (req, res, next) {
     });
 });
 
-api.get('/profile', (req, res) => {
-    // const user = req.session.user;
-    const user = users["foo"];
+api.get('/profile', apiRestrict, (req, res) => {
+    const user = users[req.session.username];
     const { password, ...userWithoutPassword } = user;
     res.json(userWithoutPassword);
 });
 
-api.post('/profile/picture-upload', async (req, res) => {
+api.post('/profile/picture-upload', apiRestrict, async (req, res) => {
     if (!req.body.file && !req.body.url) {
         return res.status(400).send('Missing file/URL parameter');
     }
@@ -123,8 +120,7 @@ api.post('/profile/picture-upload', async (req, res) => {
         }
     }
 
-    // const user = users[req.session.user.username];
-    const user = users["foo"];
+    const user = users[req.session.username];
     user.picture = image;
 
     res.send(image);
