@@ -2,8 +2,7 @@ name: Build and push vulnerable application image
 on:
   push:
     branches:
-      - main 
-      - feature/ssrf-app
+      - main
   pull_request:
 
 env:
