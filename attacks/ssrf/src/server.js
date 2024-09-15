@@ -9,6 +9,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Define default headers for all requests
 axios.defaults.headers.common = {
   Accept: "text/plain,application/json,*/*",
   "Accept-Language": "en-US,en",
@@ -23,7 +24,10 @@ axios.defaults.headers.common = {
 const app = express();
 const port = 8080;
 
+// Initialize URL encoded request body parser.
 app.use(express.urlencoded({ extended: false }));
+
+// Initialize session middleware.
 app.use(
   session({
     resave: false,
@@ -32,6 +36,7 @@ app.use(
   })
 );
 
+// Local in-memory user database
 const users = {
   foo: {
     password: "bar",
@@ -45,12 +50,23 @@ const users = {
   },
 };
 
-function authenticate(username, password, fn) {
+/**
+ * Returns the authenticated user if the provided credentials are valid, otherwise returns null.
+ */
+function authenticate(username, password) {
   var user = users[username];
-  if (!user) return fn(null, null);
-  if (password === user.password) return fn(null, user);
+  
+  if (user && user.password === password) {
+    return user;
+  }
+  
+  return null;
 }
 
+/**
+ * Middleware that restricts access to authenticated users only.
+ * Redirects to /login if the user is not authenticated. Intended for web page paths.
+ */
 function restrict(req, res, next) {
   if (req.session.username) {
     next();
@@ -59,6 +75,10 @@ function restrict(req, res, next) {
   }
 }
 
+/**
+ * Middleware that restricts access to authenticated users only.
+ * Sends a 403 status code if the user is not authenticated. Intended for API paths.
+ */
 function apiRestrict(req, res, next) {
   if (req.session.username) {
     next();
@@ -67,39 +87,45 @@ function apiRestrict(req, res, next) {
   }
 }
 
+// Root path redirects to /login.
 app.get("/", function (req, res) {
   res.redirect("/login");
 });
 
+// Serves the login page.
 app.get("/login", function (req, res) {
   res.sendFile(path.join(__dirname, "views", "login.html"));
 });
 
+// Serves the profile page of the authenticated user.
 app.get("/profile", restrict, function (req, res) {
   res.sendFile(path.join(__dirname, "views", "profile.html"));
 });
 
+// Defines router for the API endpoints.
 const api = express.Router();
 app.use("/api", api);
 
-api.post("/login", function (req, res, next) {
-  authenticate(req.body.username, req.body.password, function (err, user) {
-    if (err) return next(err);
-    if (user) {
-      req.session.username = user.username;
-      res.redirect("/profile");
-    } else {
-      res.redirect("/login");
-    }
-  });
+// Authenticates the user and redirects to the profile page if successful.
+api.post("/login", (req, res) => {
+  const user = authenticate(req.body.username, req.body.password);
+
+  if (user) {
+    req.session.username = user.username;
+    res.redirect("/profile");
+  } else {
+    res.redirect("/login");
+  }
 });
 
+// Returns the profile of the authenticated user.
 api.get("/profile", apiRestrict, (req, res) => {
   const user = users[req.session.username];
   const { password, ...userWithoutPassword } = user;
   res.json(userWithoutPassword);
 });
 
+// Updates the profile of the authenticated user
 api.post("/profile/picture-upload", apiRestrict, async (req, res) => {
   if (!req.body.file && !req.body.url) {
     return res.status(400).send("Missing file/URL parameter");
@@ -108,13 +134,17 @@ api.post("/profile/picture-upload", apiRestrict, async (req, res) => {
   let image;
 
   if (req.body.file) {
+    // If image is provided as uploaded file, use it directly
     image = req.body.file;
   } else {
     try {
+      // If image is provided as URL, request it
       const url = new URL(req.body.url);
       const response = await axios.get(url, {
         responseType: "arraybuffer",
       });
+
+      // Use the content type to infer the image type and generate a data URL containing the base64-encoded image
       const contentType = response.headers["content-type"];
       const imageBuffer = response.data;
       image = `data:${contentType};base64,${imageBuffer.toString("base64")}`;
@@ -123,9 +153,11 @@ api.post("/profile/picture-upload", apiRestrict, async (req, res) => {
     }
   }
 
+  // Update the profile picture of the authenticated user
   const user = users[req.session.username];
   user.picture = image;
 
+  // Respond with the updated profile picture
   res.send(image);
 });
 
