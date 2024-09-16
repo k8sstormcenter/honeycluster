@@ -1,0 +1,53 @@
+name: Build and push sample GKE-identityattack image
+on:
+  push:
+    branches:
+      - main 
+      - feature/managedidentitygke
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: k8sstormcenter/managedidentitygke
+
+
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Login to the Container registry
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=ref,event=pr
+            type=match,pattern=\d.\d.\d.*
+            type=sha
+
+      - name: Build an image from Dockerfile
+        run: |
+          cd attacks/managedidentitygke
+          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:0.0.1  .
+
+          
+      - name: Push the image if scan passes
+        run: |
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:0.0.1 
+
+
