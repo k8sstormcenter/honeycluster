@@ -7,12 +7,11 @@
   "license": "GPLv2",
   "type": "module",
   "scripts": {
-    "start": "node index.js"
+    "start": "node src/server.js"
   },
   "dependencies": {
-    "@google-cloud/kms": "^4.5.0",
-    "google-auth-library": "^9.14.0",
+    "axios": "^1.7.7",
     "express": "^4.17.1",
-    "jsonwebtoken": "^9.0.2"
+    "express-session": "^1.18.0"
   }
 }

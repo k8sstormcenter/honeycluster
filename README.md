@@ -1,170 +1,65 @@
-# HoneyCluster to verify and quantify attack paths
+# K8sStormCenter HoneyCluster
+
+Welcome to the K8sStormCenter HoneyCluster repository. Here you will find everything you need to set up your own HoneyCluster, a Kubernetes cluster that is instrumented with bait and tripwires to collect data on the attacks carried out against it and the ways in which it is targeted. With our complimentary [ThreatIntel](https://github.com/k8sstormcenter/threatintel) repository, you can then use this data to visualize, understand and detect these attacks.
+
+
+
+## Table of Contents
+
+- [How does it work?](#how-does-it-work)
+  - [Creating a HoneyCluster](#creating-a-honeycluster)
+  - [The four fold path to threat intelligence](#the-four-fold-path-to-threat-intelligence)
+  - [Threat Model](#threat-model)
+  - [Attack Model](#attack-model)
+- [Getting started](#getting-started)
+  - [1. Create a Kubernetes Cluster](#1-create-a-kubernetes-cluster)
+  - [2. Set up the HoneyCluster](#2-set-up-the-honeycluster)
+  - [3. Baseline Redaction](#3-baseline-redaction)
+  - [4. Attack and observe](#4-attack-and-observe)
+  - [5. Teardown](#5-teardown)
+- [Tailoring the instrumentation to your needs](#tailoring-the-instrumentation-to-your-needs)
+  - [Tracing Policies](#tracing-policies)
+  - [Application & Audit Logs](#application-audit-logs)
+  - [Mapping and Matching: Stix Observables and Stix Indicators](#mapping-and-matching-stix-observables-and-stix-indicators)
+- [Explorative analysis: From nothing to an attack path](#explorative-analysis-from-nothing-to-an-attack-path)
+- [Experiment: Detect Leaky Vessel on live clusters](#experiment-detect-leaky-vessel-on-live-clusters)
+  - [Bait](#bait)
+  - [Security Considerations](#security-considerations)
+- [Contributing](#contributing)
+
+
+
+## How does it work?
+
 You start with your "normal" cluster, where you wish to
 
-(A) verify/quantify theoretical threat modelling assumptions
+- verify/quantify theoretical threat modelling assumptions, or to
+- simply observe how your cluster will be attacked by interpreting the anomalous signals
 
-or
-
-(B) to simply observe  how your cluster will be attacked by interpreting the anomalous signals
+However, you don't want to expose your cluster to real threats. That's where the HoneyCluster comes in. A HoneyCluster is a cluster that looks like a normal cluster, but is instrumented with tripwires and bait to collect data on the attacks carried out against it. Because the HoneyCluster looks like a real cluster, the collected data is representative of the attacks that would be carried out against a real cluster and therefore can give us insights into the behaviour of attackers and the ways in which they target our clusters.
 
 
-## The four fold path to threat intelligence
-1 Threat Model -> Attack Model -> Critical Attack Path
+### Creating a HoneyCluster
 
-2 Instrument a honeycluster with eBPF tripwires and some bait
-
-3 Trace and stream events, remove baseline
-
-4 Disseminate the Threat Intelligence
-
-## (A) Reference Implementation plus example attack
-
-The idea is to take a cluster you have, copy/shrink it, replace sensitive data and the `honey-stack` on it
 <img width="1083" alt="Screenshot 2024-04-26 at 22 32 32" src="https://github.com/k8sstormcenter/honeycluster/assets/70207455/f574e663-fb7b-4c43-af6f-b3544b8b63a6">
 
-
-### 1 Example Attack Tree
-As a simple example attack tree, we will look at the attack path made possible if an attacker can create `/var/log` hostPath Persistent Volumes on a cluster, inspired by [this blog post](https://jackleadford.github.io/containers/2020/03/06/pvpost.html).
-
-```mermaid
-flowchart TD
-    A[Access sensitive \ninfo on node] --> B{kubectl logs BAD_POD}
-    A --> H[Pod uses PVC \nwhich references a \nhostPath PV]
-    B --> I[Pod writes symlink \nto 0.log file]
-    B --> C[Container can \nrun as root]
-    B --> D[Pod with \nwriteable hostPath \nto /var/log]
-    D --> E{Ability to create \nK8s resources}
-    H --> E
-    E --> F[Misconfigured RBAC]
-    E --> G[Initial access \nto Pod]
-```
+To set up a HoneyCluster, you start by creating a copy of your "normal" cluster. This copy has the same services as the real cluster, but without its data and with some additional instrumentation to collect data on the attacks carried out against it. This data is then used to create a baseline of normal behaviour, which is used to filter out benign signals. The remaining signals are then used to detect and understand the attacks carried out against the cluster.
 
 
+### The four fold path to threat intelligence
 
-### 2 Setup a Honeycluster
-First, please note, that we are preparing some local explorative scenarios for which we use `kind` (see feature-branches for now). You will need to have certmanager installed and in case of `kind` you can achieve this by:
+The HoneyCluster is a tool to gather data about attack patterns, but on its own, it does not provide us with any actionable insights. To attain knowledge and insights about attacks, the following steps are necessary:
 
-```bash
-make cluster-up
-```
-
-(if you have your own kuberentes, it should be in your KUBECONF context and have all your own application already running on it)
-
+1. Threat Model -> Attack Model -> Critical Attack Path
+2. Instrument a honeycluster with eBPF tripwires and some bait
+3. Trace and stream events, remove baseline
+4. Disseminate the Threat Intelligence
 
 
-The next step, once all applications incl cert-manager are running stable, is to verify that all `traces` are the ones you want (see Section Traces) and that they are added in the Makefile Section `traces` . You may also want to verify the log-forwarding exclusions of `vector` in values.yaml: `app_logs.type: kubernetes_logs.exclude_paths_glob_patterns:` and `tetragon` exclusions in values.yaml `  exportDenyList: |-` .
+### Threat Model
 
-```bash
-make  honey-up
-```
-This will install redpanda, vector, tetragon and some auxiliaries, and from here on the hashlists are being populated.
-It is important the cluster is `not yet` exposed to an `active threat`.
-At this point, you might want to port-forward to Redpanda dashboard (service redpanda-src-console) and browse to the TOPIC = keygen.
-```bash
-kubectl port-forward service/redpanda-src-console -n redpanda 30000:8080
-```
-http://localhost:30000/topics/keygen?p=-1&s=500&o=-2#messages
+A relatively generic Threat Model could for example look like this:
 
-The messages on this topic, should be "BENIGN" as they stem from your apps, `kube-system` and the `honey-stack`. It is recommended to wait a while until all applications have gone through their typical behaviour.
-
-### 3 Setup Baseline redaction
-
-<img width="1119" alt="Screenshot 2024-04-26 at 22 35 28" src="https://github.com/k8sstormcenter/honeycluster/assets/70207455/3931d5b2-9f07-4ebb-8bd6-82675f0c6313">
-
-Once, you believe that all baseline behaviour has been captured, cut-off the hash-collection via `honey-signal` . This will insert the known benign hashes into `redis` and henceforth filter them out of the signal.
-
-```bash
-make honey-signal
-...
-stuff....
-build successful
-deploy your transform to a topic:
-        rpk transform deploy
-TOPIC   STATUS
-signal  OK
-transform "signal" deployed.
-```
-
-Test your detection on topic = `signal` .
-
-You can alternatively forward all logs and traces to mongodb (or central collection point of your choice -> modify `redpanda/connect/config-external`) and activate the forwarders like so:
-```bash
-make redpanda-connect-mongo
-```
-
-### 4 Execute the sample attack
-Depending on which eBPF traces you have deployed under traces/*.yaml , you can now deploy custom JQueries via WASM to stream/transform your data.
-
-We prebuild in the example 6 Indicators of Compromise, using 10 tracingpolicies, and we deploy 6 wasm transform to seperate them into topics.
-A deployment is currently manual (see Makefile_kind and find the jq-binary under prebuilt/jq.wasm )
-![Custom JQ with precompiled jq.wasm](/docs/customJQ.png)
-
-Make an SSH connection to the server, and note the corresponding message in the `signal` , `tracessh` and `traceenum` topic:
-
-```bash
-make --makefile=Makefile_*** ssh-connect
-ssh -p 5555 root@127.0.0.1
-Handling connection for 5555
-root@127.0.0.1's password: root
-...
-stuff
-...
-Ubuntu comes with ABSOLUTELY NO WARRANTY, to the extent permitted by
-applicable law.
-
-root@ssh-proxy:~# ls
-```
-At this point, you should see some `signal` in RedPanda. Approx 40-50 signals. Look out for a key starting with `kpro` and
-it might contain the `ssh-spawn-bash` detection.
-
-
-You could decide that you dont want to see all of the bash environment related signals, and copy paste the key e.g. exec69ef01cde4ec877c63652bf9d84e9210 and put it into `redis`
-```bash
-kubectl exec -n redpanda svc/redis-headless -- redis-cli SADD baseline "<key>"
-```
-
-
-
-More self-attack-experimentation:
-
-
-
-Close the SSH connection, and run the full attack which will again make an SSH connection to our vulnerable server, run a malicious script which will create a HostPath type PersistentVolume, allowing a pod to access `/var/log` on the host (inspired by [this blog post](https://jackleadford.github.io/containers/2020/03/06/pvpost.html)), using the [Python Kubernetes client library](https://github.com/kubernetes-client/python). Note that you could modify the hostPath in the Python script to go directly for the data on the host that you want to compromise, however, in order to increase the number of attack steps in our scenario (and hence the number of indicators that we can look for), let's imagine that we are not able to create arbitrary hostPaths. In this scenario, perhaps a `hostPath` type `PersistentVolume` is allowed for `/var/log` so that a Pod can monitor other Pod's logs.
-
-```bash
-make --makefile=Makefile_attack bait
-make --makefile=Makefile_attack attack
-```
-
-When prompted, the password is `root`.
-
-If the service account compromised by our attacker could inspect the logs of the containers it can create, running `kubectl logs bad-pv-pod --tail=-1` (or making an API call from within the bad pod) will enable an attacker to view arbitrary files (line by line) on the host. In this example, we have a single node cluster, so we can access control plane data.
-
-Note that we have a lot more messages in the `signal` topic following the attack. Additional topics can be configured to filter for the other attack steps by configuring `DIRS` in the Makefile.
-
-[![K8sstormcenterSSH](https://img.youtube.com/vi/EcZcLz3kkUs/0.jpg)](https://www.youtube.com/watch?v=EcZcLz3kkUs)
-
-
-The above screen recording shows the newly established ssh connection being picked up by the eBPF traces and appearing as anomaly in the topic `signalminusbaseline` (since, renamed to `signal` )  in the RedPandaUI and
-filtered into the topic  `tracesssh`  on RedPanda (lower screen, shell `rpk topic consume tracesssh`).
-### Teardown
-
-Removing the bait and attack
-```bash
-make --makefile=Makefile_attack bait-delete
-```
-
-```bash
-make wipe
-```
-
-# Tailoring the instrumentation to your needs
-This repo (together with the [threatintel repo](https://github.com/k8sstormcenter/threatintel) aims at giving people/teams a framework to run experiments, simulations and make threat-modelling very concrete and actionable.
-This is why we are working on providing some sample setups to understand what the various pieces do and how you can make them your own.
-
-## Your Threat Model
-A relatively generic Threat Model could look like this
-e.g.
 ```mermaid
 flowchart TD
     A[Access sensitive data] --> B{Establish \npersistence}
@@ -181,21 +76,157 @@ flowchart TD
     D --> E[App Vulnerability\nallows RCE]
     D --> EE[ServiceAccount \n creates Pod]
 ```
-## Your Attack Model (Calibration and Verification, Simulation)
+
+
+### Attack Model
+
 Based on the Threat Model, you now create a concrete AttackModel (or many).
 
 You can use this for multiple purposes:
-
-to understand if a ThreatModel can be exploited IRL . You can attack yourself or hire an offensive expert, create a bug bounty program etc.
-
-to  calibrate all event-producing instrumentation in your deployment: can you see events from executing your attack-model, if not, you might need to add more TracingPolicies or change some filters.
-
-to verify the pattern-matching between your events and your STIX observables: is the attack correctly picked up in your Neo4J/Stix database.
-
-to simulate a breach: once you have at least one attack model implemented (e.g. via bash-script), you can test diverse detective/responsive processes in your deployment, e.g. if your pager starts blinking.
+- to understand if a ThreatModel can be exploited IRL . You can attack yourself or hire an offensive expert, create a bug bounty program etc.
+- to  calibrate all event-producing instrumentation in your deployment: can you see events from executing your attack-model, if not, you might need to add more TracingPolicies or change some filters.
+- to verify the pattern-matching between your events and your STIX observables: is the attack correctly picked up in your Neo4J/Stix database.
+- to simulate a breach: once you have at least one attack model implemented (e.g. via bash-script), you can test diverse detective/responsive processes in your deployment, e.g. if your pager starts blinking.
 
 
-## Instrumenting Events I: Your TracingPolicies
+
+## Getting started
+
+You want to deploy your own HoneyCluster? Then you have come to the right place! In a few simple steps, we'll show you everything you need to get started with setting up your own HoneyCluster. We'll guide you through the setup of a local Kubernetes cluster, the installation of the necessary instrumentation and the collection of the baseline behaviour. Once you have set up your HoneyCluster, you can start experimenting with different attacks and observe the signals generated by them.
+
+
+### 1. Create a Kubernetes Cluster
+
+> [!NOTE]
+> If you have already set up a Kubernetes cluster you want to utilize as a HoneyCluster, you can skip this part and head to [step 2](#2-set-up-the-honeycluster). Make sure to have [cert-manager](https://cert-manager.io/docs/) installed on it.
+
+In order to set up your own HoneyCluster, you first need a Kubernetes cluster on which you can install the necessary instrumentation. For local explorative scenarios we provide a Kubernetes setup based on Kind, which you can create using the following command:
+
+```bash
+make cluster-up
+```
+
+
+### 2. Set up the HoneyCluster
+
+> [!IMPORTANT]  
+> Make sure to have the correct Kubernetes config context set. From this point on we will make changes to the cluster specified as the current context, and we wouldn't want them to end up on the wrong cluster.
+
+Once you have a running Kubernetes cluster, you can go ahead and install the instrumentation to put the honey in your cluster with the following command:
+  
+```bash
+make honey-up
+```
+
+The `honey-up` target installs all the necessary components to collect eBPF traces, application logs and soon audit logs. It is important that the cluster is not yet exposed to an active threat at this point because after the installation we collect the baseline behaviour of the cluster to filter out benign signals.
+
+While we provide you with a set of default traces and log forwarding configurations, you can adjust them to your needs in the [traces](traces/) and [vector/values.yaml](vector/values.yaml) files respectively. Find out more about it in the [Tailoring the instrumentation to your needs](#tailoring-the-instrumentation-to-your-needs) section.
+
+You can verify the data collection by taking a look at the Redpanda dashboard, which you can access by port-forwarding the Redpanda service:
+
+```bash
+kubectl port-forward service/redpanda-src-console -n redpanda 30000:8080
+```
+
+After port-forwarding, you can access the Redpanda dashboard at [http://localhost:30000](http://localhost:30000). Here you can see the messages being collected by the in Redpanda under the `keygen*` topics.
+
+
+### 3. Baseline Redaction
+
+After the successful HoneyCluster setup, it starts collecting all data on the cluster. The idea is that at this point, all traffic is benign and therefore we can use this data to create a baseline of what non-malicous behaviour looks like. We can then use this baseline to filter out what we are not interested in, leaving us with the good stuff - the signal.
+
+<img width="1119" alt="Signal" src="https://github.com/k8sstormcenter/honeycluster/assets/70207455/3931d5b2-9f07-4ebb-8bd6-82675f0c6313">
+
+Once you believe that all baseline behaviour has been captured, you can cut off the baseline collection and start the signal generation using the following make target:
+
+```bash
+make honey-signal
+```
+
+Check out the [signal](http://localhost:30000/topics/signal) topic in the Redpanda dashboard to see the generated signal. This topic should now only contain activity that is not part of the baseline behaviour.
+
+If you still find some reoccuring benign traffic in the signal, you can add the corresponding keys to the `baseline` set in Redis to exclude them from the signal:
+
+```bash
+kubectl exec -n redpanda svc/redis-headless -- redis-cli SADD baseline "<key>"
+```
+
+
+### 4. Attack and observe
+
+With the HoneyCluster set up and the baseline behaviour filtered out, you can now perform some previously unseen actions on the cluster and observe the signals generated by them.
+
+In the attack makefile, we provide you with a simple simple bait to deploy and attack execute on the cluster. The bait consists of an ssh server with weak credentials, giving an attacker root access on the pod from which more damage can be done because of misconfigured RBAC. To deploy the bait: 
+
+```bash
+make --makefile=Makefile_attack bait
+```
+
+Afterwards, you can simply try connecting to the ssh server first:
+
+```bash
+make --makefile=Makefile_attack ssh-connect
+```
+
+When prompted, the password is `root`. You should see the newly established ssh connection being picked up by the eBPF traces and appearing as an anomaly in the `signal` topic in the Redpanda console.
+
+Now that you have gotten a feel of how unusual traffic is picked up by the HoneyCluster, you can try executing an actual attack. For that, we prepared an attack path made possible if an attacker can create `/var/log` hostPath Persistent Volumes on a cluster, inspired by [this blog post](https://jackleadford.github.io/containers/2020/03/06/pvpost.html), depicted in the following attack tree.
+
+```mermaid
+flowchart TD
+    A[Access sensitive \ninfo on node] --> B{kubectl logs BAD_POD}
+    A --> H[Pod uses PVC \nwhich references a \nhostPath PV]
+    B --> I[Pod writes symlink \nto 0.log file]
+    B --> C[Container can \nrun as root]
+    B --> D[Pod with \nwriteable hostPath \nto /var/log]
+    D --> E{Ability to create \nK8s resources}
+    H --> E
+    E --> F[Misconfigured RBAC]
+    E --> G[Initial access \nto Pod]
+```
+
+Close the SSH connection, and run the full attack which will again make an SSH connection to our vulnerable server, run a malicious script which will create a HostPath type PersistentVolume, allowing a pod to access `/var/log` on the host (inspired by [this blog post](https://jackleadford.github.io/containers/2020/03/06/pvpost.html)), using the [Python Kubernetes client library](https://github.com/kubernetes-client/python). Note that you could modify the hostPath in the Python script to go directly for the data on the host that you want to compromise, however, in order to increase the number of attack steps in our scenario (and hence the number of indicators that we can look for), let's imagine that we are not able to create arbitrary hostPaths. In this scenario, perhaps a `hostPath` type `PersistentVolume` is allowed for `/var/log` so that a Pod can monitor other Pod's logs.
+
+```bash
+make --makefile=Makefile_attack attack
+```
+
+When prompted, the password is again `root`.
+
+If the service account compromised by our attacker could inspect the logs of the containers it can create, running `kubectl logs bad-pv-pod --tail=-1` (or making an API call from within the bad pod) will enable an attacker to view arbitrary files (line by line) on the host. In this example, we have a single node cluster, so we can access control plane data.
+
+Note that we have a lot more messages in the `signal` topic following the attack.
+
+[![K8sstormcenterSSH](https://img.youtube.com/vi/EcZcLz3kkUs/0.jpg)](https://www.youtube.com/watch?v=EcZcLz3kkUs)
+
+
+The above screen recording shows the newly established ssh connection being picked up by the eBPF traces and appearing as anomaly in the topic `signal` (previously named `signalminusbaseline` )  in the Redpanda console.
+
+
+### 5. Teardown
+
+After you have finished experimenting with your HoneyCluster, you can remove the bait:
+
+```bash
+make --makefile=Makefile_attack bait-delete
+```
+
+And finally, you can wipe the HoneyCluster instrumentation from your Kubernetes cluster:
+
+```bash
+make wipe
+```
+
+
+
+## Tailoring the instrumentation to your needs
+
+This repository (together with the [ThreatIntel repo](https://github.com/k8sstormcenter/threatintel)) aims at giving you a framework to run experiments, simulations and to make threat-modelling concrete and actionable.
+This is why we are working on providing some example setups to understand what the various pieces do and how you can make them your own.
+
+
+### Tracing Policies
+
 This paragraph is about choosing Tetragon tracing policies that work for you. Tetragon uses eBPF technology to trace kernel and system events, providing detailed insights into system behavior.
 
 Here's an example tracing policy:
@@ -224,53 +255,55 @@ spec:
 
 In this example, the policy monitors tcp_connect events, filtering out connections to specific IP ranges and capturing only those to other addresses. This helps ensure that only relevant and interesting tcp information is gathered. See subfolder `/traces` for more examples.
 
-## Instrumenting Events II: Your Logs
+
+### Application & Audit Logs
+
 This paragraph is about application (incl audit) and networking logs. WIP
 
 Coming soon: examples and how to test it locally
-## Mapping and Matching: Stix Observables and Stix Indicators
+
+
+### Mapping and Matching: Stix Observables and Stix Indicators
+
 Using the [threatintel repo](https://github.com/k8sstormcenter/threatintel), the collected logs are transformed into [STIX observables](https://docs.oasis-open.org/cti/stix/v2.1/cs01/stix-v2.1-cs01.html#_mlbmudhl16lr), which are then matched against [STIX indicators](https://docs.oasis-open.org/cti/stix/v2.1/cs01/stix-v2.1-cs01.html#_muftrcpnf89v). Observables, which match the provided indicators represent potentially malicious behavior and are persisted into a document store. More detailed information on the setup of the indicators and how the matching works is provided in the [README](https://github.com/k8sstormcenter/threatintel/blob/main/README.md) of the threatintel repository.
 
 [![Detection](./docs/log-detection.png)](https://drive.google.com/file/d/1RfPr_7RmXDlU22-l7ZFoMnWJKloP0VpG/view?usp=sharing)
 
-## Explorative analysis
-INSERT Video-Clip from KCD Munich HERE
-
-Coming soon
-
-## (B) Experiment to detect Leaky Vessel on live clusters
-We show a simple and unspecific detection of Leaky Vessel via Supply Chain (cf .KubeCon Europe 2024) and an elaborate breach using Leaky Vessel for `priviledge escalation` (cf. KCD Munich 2024).
-
-No additional cluster instrumentation was needed, no specific assumptions etc were made.
 
 
-The video below shows the poisoning of a registry with an image exploiting CVE-2024-21626 "Leaky-Vessel" by tagging and pushing the poisoned image with identical name/tag as the original image. (This is a type of Supply Chain Attack).
+## Experiment: Detect Leaky Vessel on live clusters
 
-Two different RKE2 clusters (intentionally running a vulnerable `runc`) are observed by streaming the `smb` topic in the RedPandaUI. When the poisoned image is pulled and started up, the traces appear on the topic. As well as we see the sensitive-file-access to the private key on the host-node, as well as the newly created file `LEAKYLEAKY` on the host node.
+We show a simple and unspecific detection of Leaky Vessel via Supply Chain (cf. KubeCon Europe 2024) and an elaborate breach using Leaky Vessel for `priviledge escalation` (cf. KCD Munich 2024). No additional cluster instrumentation was needed, no specific assumptions were made, etc.
+
+You can watch a recording of the KCD Munich 2024 talk here:
+
+[![K8sStormCenter @ KCD Munich 2024](https://img.youtube.com/vi/axh7SOufh8M/0.jpg)](https://www.youtube.com/watch?v=axh7SOufh8M)
+
+The KubeCon Europe 2024 talk can be viewed here:
+
+[![K8sStormCenter @ KubeCon Europe 2024](https://img.youtube.com/vi/RNYz86uDXLc/0.jpg)](https://www.youtube.com/watch?v=RNYz86uDXLc)
+
+The video above shows the poisoning of a registry with an image exploiting CVE-2024-21626 "Leaky-Vessel" by tagging and pushing the poisoned image with identical name/tag as the original image. (This is a type of Supply Chain Attack).
+
+Two different RKE2 clusters (intentionally running a vulnerable `runc`) are observed by streaming the `smb` topic in the Redpanda UI. When the poisoned image is pulled and started up, the traces appear on the topic. As well as we see the sensitive-file-access to the private key on the host-node, as well as the newly created file `LEAKYLEAKY` on the host node.
 
 
-[![K8sstormcenterLeakyVessel](https://img.youtube.com/vi/RNYz86uDXLc/0.jpg)](https://www.youtube.com/watch?v=RNYz86uDXLc)
+### Bait
+
+We don't share details about the bait used in our experiments here since we don't want potential attackers to know what to look for. However, if you are interested feel free to reach out to us on our [Slack channel](https://join.slack.com/t/k8sstorm/shared_invite/zt-2hulzsqh1-mnZL6fGFZiVLrOcqeTObIA)!
 
 
-
-# Bait
-Please join us on Slack to talk about that
-
-
-## Security Considerations
+### Security Considerations
 
 Given this is an insecure and experimental setup of a honeypot-infrastructure, there are several additional measures taken that are not covered in the talk or this repo.
 This repo is for demonstration purposes only.
 
 
-# Contributing
-Contributions are welcome
 
-In the form of testing, feedback, code, PRs, eBPF tripwires, realistic threatmodels, mappings onto the critical attack path...
+## Contributing
+
+Contributions are always welcome!
+
+(For example in the form of testing, feedback, code, PRs, eBPF tripwires, realistic threatmodels, mappings onto the critical attack path or anything you think could be useful for others)
 
 TODO: write contributor guidelines
-
-
-
-
-

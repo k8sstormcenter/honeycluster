@@ -2,6 +2,9 @@
 bin/
 venv/
 one_line_list.txt
+kube
+logonscript.sh
+gke_gcloud_auth_plugin_cache
 
 # Byte-compiled / optimized / DLL files
 redpanda/**/*.wasm

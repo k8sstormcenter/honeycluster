@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html class="h-full bg-gray-200">
+  <head>
+    <title>Profile</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="h-full flex">
+    <div class="w-full lg:h-full lg:py-8">
+      <div
+        class="lg:max-w-5xl lg:w-full lg:mx-auto bg-white rounded-lg overflow-hidden shadow-lg"
+      >
+        <div
+          class="flex min-h-full flex-col justify-center border-b px-6 py-12 lg:px-8"
+        >
+          <div class="px-4 lg:px-0 flex items-center gap-8">
+            <div class="relative h-32 w-32 relative">
+              <img
+                id="profile-picture"
+                class="h-full w-full rounded-full border-4 border-gray-600"
+                alt="Profile picture"
+              />
+              <div
+                id="change-picture-button"
+                class="absolute inset-0 flex justify-center items-center text-center z-1 h-full w-full rounded-full bg-gray-600 bg-opacity-70 text-white opacity-0 hover:opacity-100 cursor-pointer select-none"
+              >
+                Change profile picture
+              </div>
+            </div>
+            <div>
+              <h3
+                id="title"
+                class="text-lg font-semibold leading-7 text-gray-900"
+              ></h3>
+              <p class="mt-1 max-w-2lg text-sm leading-6 text-gray-500">
+                Personal details and profile picture.
+              </p>
+            </div>
+          </div>
+          <div class="mt-6 border-t border-gray-100">
+            <dl class="divide-y divide-gray-100">
+              <div class="px-4 py-6 lg:grid lg:grid-cols-3 lg:gap-4 lg:px-0">
+                <dt class="text-sm font-medium leading-6 text-gray-900">
+                  Full name
+                </dt>
+                <dd
+                  id="fullname"
+                  class="mt-1 text-sm leading-6 text-gray-700 lg:col-span-2 lg:mt-0"
+                ></dd>
+              </div>
+              <div class="px-4 py-6 lg:grid lg:grid-cols-3 lg:gap-4 lg:px-0">
+                <dt class="text-sm font-medium leading-6 text-gray-900">
+                  Username
+                </dt>
+                <dd
+                  id="username"
+                  class="mt-1 text-sm leading-6 text-gray-700 lg:col-span-2 lg:mt-0"
+                ></dd>
+              </div>
+              <div class="px-4 py-6 lg:grid lg:grid-cols-3 lg:gap-4 lg:px-0">
+                <dt class="text-sm font-medium leading-6 text-gray-900">
+                  Email address
+                </dt>
+                <dd
+                  id="email"
+                  class="mt-1 text-sm leading-6 text-gray-700 lg:col-span-2 lg:mt-0"
+                ></dd>
+              </div>
+              <div class="px-4 py-6 lg:grid lg:grid-cols-3 lg:gap-4 lg:px-0">
+                <dt class="text-sm font-medium leading-6 text-gray-900">
+                  About
+                </dt>
+                <dd
+                  id="about"
+                  class="mt-1 text-sm leading-6 text-gray-700 lg:col-span-2 lg:mt-0"
+                ></dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="relative z-10"
+      aria-labelledby="modal-title"
+      role="dialog"
+      aria-modal="true"
+    ></div>
+    <div
+      id="upload-modal-background"
+      class="hidden fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+      aria-hidden="true"
+    ></div>
+    <div
+      id="upload-modal"
+      class="hidden fixed inset-0 z-10 w-screen overflow-y-auto"
+    >
+      <div
+        class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0"
+      >
+        <div
+          class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg"
+        >
+          <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+            <div class="mt-3 text-center sm:mx-1 sm:mt-0 sm:text-left">
+              <h3
+                class="text-lg font-semibold leading-6 text-gray-900 pb-3 border-b"
+                id="modal-title"
+              >
+                Upload a new profile picture
+              </h3>
+              <div class="mt-2 pb-3 border-b">
+                <label
+                  for="file"
+                  class="block text-sm font-medium leading-6 text-gray-900"
+                  >Choose an image locally</label
+                >
+                <input
+                  id="file-input"
+                  name="file"
+                  type="file"
+                  class="mt-1 block w-full rounded-md border-0 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 sm:text-sm sm:leading-6 file:cursor-pointer cursor-pointer file:border-0 file:py-1.5 file:px-2 file:bg-gray-100 file:hover:bg-gray-200 rounded"
+                />
+                <p class="text-xs text-gray-400 mt-2">
+                  PNG, JPG SVG, WEBP, and GIF are Allowed.
+                </p>
+              </div>
+              <div class="mt-2">
+                <label
+                  for="file"
+                  class="block text-sm font-medium leading-6 text-gray-900"
+                  >Or provide a URL to an image</label
+                >
+                <input
+                  id="url-input"
+                  name="url"
+                  autocomplete="url"
+                  type="url"
+                  class="mt-1 block w-full rounded-md border-0 px-2 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+            <button
+              id="upload-button"
+              type="button"
+              class="inline-flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 sm:ml-3 sm:w-auto"
+            >
+              Upload
+            </button>
+            <button
+              id="cancel-button"
+              type="button"
+              class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      const title = document.getElementById("title");
+      const fullname = document.getElementById("fullname");
+      const username = document.getElementById("username");
+      const email = document.getElementById("email");
+      const about = document.getElementById("about");
+      const profilePicture = document.getElementById("profile-picture");
+
+      /**
+       * Fetches the profile data and populates the page.
+       */
+      async function fetchProfileData() {
+        const response = await fetch("/api/profile");
+        const data = await response.json();
+
+        title.textContent = `${data.fullname}'s Profile`;
+        fullname.textContent = data.fullname;
+        username.textContent = data.username;
+        email.textContent = data.email;
+        about.textContent = data.about;
+        profilePicture.src = data.picture;
+      }
+      fetchProfileData();
+
+      const modal = document.getElementById("upload-modal");
+      const modalBackground = document.getElementById(
+        "upload-modal-background"
+      );
+      const changePictureButton = document.getElementById(
+        "change-picture-button"
+      );
+      const cancelButton = document.getElementById("cancel-button");
+      const uploadButton = document.getElementById("upload-button");
+      const fileInput = document.getElementById("file-input");
+      const urlInput = document.getElementById("url-input");
+
+      /**
+       * Opens the modal.
+       */
+      function openModal() {
+        modal.classList.remove("hidden");
+        modalBackground.classList.remove("hidden");
+      }
+
+      /**
+       * Closes the modal.
+       */
+      function closeModal() {
+        modal.classList.add("hidden");
+        modalBackground.classList.add("hidden");
+        fileInput.value = "";
+        urlInput.value = "";
+      }
+
+      /**
+       * Reads a file as a data URL containing its base64-encoded contents.
+       */
+      function readFile(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+
+      /**
+       * Uploads the profile picture based on the data provided in the modal.
+       */
+      async function uploadProfilePicture() {
+        const formData = new URLSearchParams();
+        if (fileInput.files[0]) {
+          // Read the file as a base64-encoded data URL and append it to the form data.
+          const file = fileInput.files[0];
+          const base64 = await readFile(file);
+          formData.append("file", base64);
+        }
+        if (urlInput.value) {
+          // Append the URL pointing to the image to the form data.
+          formData.append("url", urlInput.value);
+        }
+
+        // Initiate the picture upload request.
+        const response = await fetch("/api/profile/picture-upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        // If an error occured, alert the user.
+        if (!response.ok) {
+          alert("Failed to upload profile picture");
+          return;
+        }
+
+        // Update the profile picture on the page and close the modal.
+        text = await response.text();
+        profilePicture.src = text;
+
+        closeModal();
+      }
+
+      modalBackground.addEventListener("click", closeModal);
+      changePictureButton.addEventListener("click", openModal);
+      cancelButton.addEventListener("click", closeModal);
+      uploadButton.addEventListener("click", uploadProfilePicture);
+    </script>
+  </body>
+</html>
