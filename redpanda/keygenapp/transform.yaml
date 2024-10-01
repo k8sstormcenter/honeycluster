@@ -1,0 +1,4 @@
+name: keygen
+input-topic: "applogs"
+output-topic: "keygen"
+language: tinygo-no-goroutines
