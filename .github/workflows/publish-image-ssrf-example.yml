@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - feature/ssrf-example-improvements
   pull_request:
 
 env:
