@@ -26,6 +26,7 @@ const port = 8080;
 
 // Initialize URL encoded request body parser.
 app.use(express.urlencoded({ extended: false }));
+app.use(express.text());
 
 // Initialize session middleware.
 app.use(
@@ -125,32 +126,44 @@ api.get("/profile", apiRestrict, (req, res) => {
   res.json(userWithoutPassword);
 });
 
-// Updates the profile of the authenticated user
-api.post("/profile/picture-upload", apiRestrict, async (req, res) => {
-  if (!req.body.file && !req.body.url) {
-    return res.status(400).send("Missing file/URL parameter");
+// Updates the profile of the authenticated user by uploading an image.
+api.post("/profile/upload-picture", apiRestrict, async (req, res) => {
+  const image = req.body;
+
+  if (!image) {
+    return res.status(400).send("Missing image data");
+  }
+
+  // Update the profile picture of the authenticated user
+  const user = users[req.session.username];
+  user.picture = image;
+
+  // Respond with the updated profile picture
+  res.send(image);
+});
+
+// Updates the profile of the authenticated user by providing a URL pointing to an image.
+api.patch("/profile/change-picture", apiRestrict, async (req, res) => {
+  if (!req.query.url) {
+    return res.status(400).send("Missing URL parameter");
   }
 
   let image;
 
-  if (req.body.file) {
-    // If image is provided as uploaded file, use it directly
-    image = req.body.file;
-  } else {
-    try {
-      // If image is provided as URL, request it
-      const url = new URL(req.body.url);
-      const response = await axios.get(url, {
-        responseType: "arraybuffer",
-      });
+  try {
+    // If image is provided as URL, request it
+    const url = new URL(req.query.url);
+    const response = await axios.get(url, {
+      responseType: "arraybuffer",
+    });
 
-      // Use the content type to infer the image type and generate a data URL containing the base64-encoded image
-      const contentType = response.headers["content-type"];
-      const imageBuffer = response.data;
-      image = `data:${contentType};base64,${imageBuffer.toString("base64")}`;
-    } catch (error) {
-      return res.status(400).send("Failed to download image");
-    }
+    // Use the content type to infer the image type and generate a data URL containing the base64-encoded image
+    const contentType = response.headers["content-type"];
+    const imageBuffer = response.data;
+    image = `data:${contentType};base64,${imageBuffer.toString("base64")}`;
+  } catch (error) {
+    console.error(error);
+    return res.status(400).send("Failed to download image");
   }
 
   // Update the profile picture of the authenticated user
