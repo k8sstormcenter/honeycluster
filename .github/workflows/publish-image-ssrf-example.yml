@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: k8sstormcenter/ssrf-example
+  IMAGE_NAME: k8sstormcenter/user-service
 
 
 jobs:
