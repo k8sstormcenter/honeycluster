@@ -18,23 +18,23 @@ metadata:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ssrf-example
+  name: user-service
   namespace: pacman
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: ssrf-example
+      app: user-service
   template:
     metadata:
       labels:
-        app: ssrf-example
+        app: user-service
     spec:
       serviceAccountName: pacman-rancher
       automountServiceAccountToken: true
       containers:
-      - name: ssrf-example
-        image: ghcr.io/k8sstormcenter/ssrf-example:0.0.1
+      - name: user-service
+        image: ghcr.io/k8sstormcenter/user-service:0.0.1
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
@@ -42,14 +42,43 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: ssrf-example
+  name: user-service
   namespace: pacman
   annotations:
     tailscale.com/expose: "true"
 spec:
   selector:
-    app: ssrf-example
+    app: user-service
   ports:
   - protocol: TCP
     port: 80
     targetPort: 8080
+--- 
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    cert-manager.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    nginx.ingress.kubernetes.io/whitelist-source-range: "<your-ip>/32"
+    nginx.ingress.kubernetes.io/use-proxy-protocol: "true"
+  name: user-service-ingress
+  namespace: pacman
+spec:
+  ingressClassName: "nginx"
+  tls:
+  - secretName: www-secret-gcp
+    hosts:
+      - "<service-url>"
+  rules:
+  - host: "<service-url>"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: user-service
+            port:
+              number: 80
