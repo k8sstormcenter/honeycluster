@@ -1,25 +1,21 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: pacman
+  name: users
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: pacman-rancher
-  namespace: pacman
+  name: user-service
+  namespace: users
   annotations:
-    iam.gke.io/gcp-service-account: "<service-account-name>" 
-
-
-
-
+    iam.gke.io/gcp-service-account: "user-service@${PROJECT_ID}.iam.gserviceaccount.com"
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: user-service
-  namespace: pacman
+  namespace: users
 spec:
   replicas: 1
   selector:
@@ -30,7 +26,7 @@ spec:
       labels:
         app: user-service
     spec:
-      serviceAccountName: pacman-rancher
+      serviceAccountName: user-service
       automountServiceAccountToken: true
       containers:
       - name: user-service
@@ -43,7 +39,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: user-service
-  namespace: pacman
+  namespace: users
   annotations:
     tailscale.com/expose: "true"
 spec:
@@ -61,18 +57,18 @@ metadata:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
     cert-manager.io/cluster-issuer: letsencrypt
     nginx.ingress.kubernetes.io/ssl-passthrough: "true"
-    nginx.ingress.kubernetes.io/whitelist-source-range: "<your-ip>/32"
+    nginx.ingress.kubernetes.io/whitelist-source-range: "${WHILTELIST_SOURCE_RANGE}"
     nginx.ingress.kubernetes.io/use-proxy-protocol: "true"
   name: user-service-ingress
-  namespace: pacman
+  namespace: users
 spec:
   ingressClassName: "nginx"
   tls:
   - secretName: www-secret-gcp
     hosts:
-      - "<service-url>"
+      - "${USER_SERVICE_DOMAIN}"
   rules:
-  - host: "<service-url>"
+  - host: "${USER_SERVICE_DOMAIN}"
     http:
       paths:
       - path: /
