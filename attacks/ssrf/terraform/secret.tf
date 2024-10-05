@@ -1,6 +1,6 @@
 # Create new secret manager secret
 resource "google_secret_manager_secret" "secret-basic" {
-  project   = var.gcp_project_id
+  project   = var.project_id
   secret_id = "secret"
 
   replication {
@@ -17,7 +17,7 @@ resource "google_secret_manager_secret_version" "secret-basic-version" {
 
 # Create a Role Binding for the Google Service Account to access the Secret Manager
 resource "google_secret_manager_secret_iam_binding" "binding" {
-  project   = var.gcp_project_id
+  project   = var.project_id
   secret_id = google_secret_manager_secret.secret-basic.name
   role      = "roles/secretmanager.secretAccessor"
   members = [
