@@ -11,7 +11,11 @@ First, we have to create a `.env` file based on the provided `.env.example` file
 cp .env.example .env
 ```
 
-Next, replace the placeholder values in the `.env` file with your own values.
+Next, replace the placeholder values in the `.env` file with your own values and source the file to set the environment variables:
+
+```bash
+source .env
+```
 
 After that, we can create the Kubernetes service account and deploy the vulnerable application:
 
