@@ -34,6 +34,11 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
+        env:
+        - name: PROJECT_ID
+          value: "${PROJECT_ID}"
+        - name: SESSION_SECRET_NAME
+          value: "session-secret"
 ---
 apiVersion: v1
 kind: Service
