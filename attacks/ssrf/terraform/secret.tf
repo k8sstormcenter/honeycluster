@@ -1,7 +1,7 @@
 # Create new secret manager secret
 resource "google_secret_manager_secret" "secret-basic" {
   project   = var.project_id
-  secret_id = "secret"
+  secret_id = "session-secret"
 
   replication {
     auto {}
