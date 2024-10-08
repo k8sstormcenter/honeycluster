@@ -20,7 +20,7 @@ export $(cat .env | xargs)
 After that, we can create the Kubernetes service account and deploy the vulnerable application:
 
 ```bash
-kubectl apply -f deploy.yaml
+envsubst < deploy.yaml | kubectl apply -f -
 ```
 
 Once the application is deployed, we can create the Google Cloud Secret Manager secret and the IAM service account with the necessary permissions to access the secret using terraform:
