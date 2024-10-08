@@ -35,9 +35,9 @@ if (process.env.NODE_ENV === "development") {
   // Use a hardcoded session secret in development
   sessionSecret = "secret";
 } else {
-  if (!process.env.PROJECT_ID || !process.env.SESSION_SECRET) {
+  if (!process.env.PROJECT_ID || !process.env.SESSION_SECRET_NAME) {
     throw new Error(
-      "PROJECT_ID and SESSION_SECRET environment variables are required when running in production."
+      "PROJECT_ID and SESSION_SECRET_NAME environment variables are required when running in production."
     );
   }
 
@@ -49,7 +49,7 @@ if (process.env.NODE_ENV === "development") {
   const token = token_response.data.access_token;
 
   const secret_response = await axios.get(
-    `https://secretmanager.googleapis.com/v1/projects/${process.env.PROJECT_ID}/secrets/${process.env.SESSION_SECRET}/versions/latest:access`,
+    `https://secretmanager.googleapis.com/v1/projects/${process.env.PROJECT_ID}/secrets/${process.env.SESSION_SECRET_NAME}/versions/latest:access`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
