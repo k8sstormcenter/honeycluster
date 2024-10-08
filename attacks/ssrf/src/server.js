@@ -42,7 +42,6 @@ if (process.env.NODE_ENV === "development") {
   }
 
   // Fetch session secret from Secret Manager in production
-  sessionSecret = await fetchSessionSecret(process.env.PROJECT_ID);
   const token_response = await axios.get(
     "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token"
   );
