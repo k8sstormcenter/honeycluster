@@ -62,7 +62,7 @@ metadata:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
     cert-manager.io/cluster-issuer: letsencrypt
     nginx.ingress.kubernetes.io/ssl-passthrough: "true"
-    nginx.ingress.kubernetes.io/whitelist-source-range: "${WHILTELIST_SOURCE_RANGE}"
+    nginx.ingress.kubernetes.io/whitelist-source-range: "${WHITELIST_SOURCE_RANGE}"
     nginx.ingress.kubernetes.io/use-proxy-protocol: "true"
   name: user-service-ingress
   namespace: users
