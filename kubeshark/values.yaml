@@ -1,0 +1,5 @@
+tap:
+  regex: .*
+  namespaces: ["default"]
+  excludedNamespaces: ["redpanda", "vector"] 
+
