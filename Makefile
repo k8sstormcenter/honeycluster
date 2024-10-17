@@ -7,7 +7,7 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 
 
 # keygen: generates hash for every message
-DIRS := keygen keygenapp
+DIRS := keygen
 TOPICS := signal cr1 keygen applogs traceapi traceenum tracek8sclient tracescp tracessh tracesymlink 
 
 
@@ -83,10 +83,8 @@ redpanda-wasm:
 .PHONY: redpanda-wasm-hosted
 redpanda-wasm-hosted:	
 	@for dir in $(DIRS); do \
-		INPUT_TOPIC=$$(sed -n -e 's/^input-topic: *//p' redpanda/$$dir/transform.yaml) ;\
-		OUTPUT_TOPIC=$$(sed -n -e 's/^output-topic: *//p' redpanda/$$dir/transform.yaml) ;\
-		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$OUTPUT_TOPIC" ;\
-		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/$$dir.wasm --name $$dir --input-topic=$$INPUT_TOPIC --output-topic=$$OUTPUT_TOPIC --var language=tinygo-no-goroutines " ;\
+		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk topic create $$dir" ;\
+		kubectl exec -it -n redpanda redpanda-src-0 -c redpanda -- /bin/bash -c "rpk transform deploy --file https://raw.githubusercontent.com/k8sstormcenter/honeycluster/main/prebuilt/$$dir.wasm --name $$dir --input-topic=$$(sed -n -e 's/^input-topic: *//p' redpanda/$$dir/transform.yaml) --output-topic=$$dir --var language=tinygo-no-goroutines " ;\
 	done
 
 
