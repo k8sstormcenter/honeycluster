@@ -19,7 +19,7 @@ TOPICS := signal cr1 keygen applogs traceapi traceenum tracek8sclient tracescp t
 ##@ Scenario
 
 .PHONY: honey-up
-honey-up: tetragon-install redpanda vector redpanda-wasm-hosted redis redpanda-connect-baseline redpanda-connect traces
+honey-up: tetragon-install redpanda vector redpanda-wasm-hosted kshark redis redpanda-connect-baseline redpanda-connect traces
 
 .PHONY: honey-signal
 honey-signal: baseline-signal # redpanda-connect-mongo
@@ -78,7 +78,11 @@ redpanda-wasm:
 		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/$$dir/ && rpk transform deploy" ;\
 	done
 
-
+.PHONY: kshark
+kshark:
+	-$(HELM) repo add kubeshark https://helm.kubeshark.co
+	-$(HELM) repo update
+	-$(HELM) upgrade --install kubeshark kubeshark/kubeshark --create-namespace --namespace kubeshark --values kubeshark/values.yaml
 
 .PHONY: redpanda-wasm-hosted
 redpanda-wasm-hosted:	

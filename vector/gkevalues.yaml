@@ -289,8 +289,18 @@ customConfig:
     exclude_specific_error:
       type: filter
       inputs:
+        - exclude_specific_error2
+      condition:  .msg != "Failed to export metrics to Cloud Monitoring"
+    exclude_specific_error1:
+      type: filter
+      inputs:
         - app_logs
       condition: .component != "gcm_exporter"
+    exclude_specific_error2:
+      type: filter
+      inputs:
+        - exclude_specific_error1
+      condition: 'contains!(.message, "Failed to flush GCM exporter") == false'
     modify:
       type: remap
       inputs:
@@ -323,10 +333,13 @@ customConfig:
         - "**/kube-system_konnectivity-*/**"
         - "**/kube-system_netd-*/**"
         - "**/kube-system_anetd-*/**"
+        - "**/kubeshark_kubeshark-worker*/**"
+        - "**/kubeshark_kubeshark-hub-*/**"
         - "**/gke-managed*/**"
         - "**/cert-manager_cert-manager*/**"
         - "**/vector*/**"
         - "**/*Error getting SSL certificate*"
+        - "**/kube-system_image-package-extractor*/**"
   sinks:
     redpanda:
       type: kafka
