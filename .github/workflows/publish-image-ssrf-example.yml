@@ -3,11 +3,12 @@ on:
   push:
     branches:
       - main
+      - feature/ssrf-example-improvements
   pull_request:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: k8sstormcenter/ssrf-example
+  IMAGE_NAME: k8sstormcenter/user-service
 
 
 jobs:
