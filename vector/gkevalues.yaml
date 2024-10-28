@@ -286,21 +286,25 @@ dataDir: ""
 # for all options.
 customConfig:
   transforms:
-    exclude_specific_error:
-      type: filter
+    create_key:
+      type: remap
       inputs:
-        - exclude_specific_error2
-      condition:  .msg != "Failed to export metrics to Cloud Monitoring"
-    exclude_specific_error1:
-      type: filter
+        - modify # Add hash to rest of message
+      source: | 
+        .field1 = if exists(.process_exec.process.pod.container.id) { .process_exec.process.pod.container.id } else { if exists(.process_exit.process.pod.container.id) { .process_exit.process.pod.container.id } else { .process_kprobe.process.pod.container.id } }
+        .field2 = if exists(.process_exec.process.binary) { .process_exec.process.binary } else { if exists(.process_exit.process.binary) { .process_exit.process.binary } else { .process_kprobe.process.binary } }
+        .field3 = if exists(.process_exec.process.arguments) { .process_exec.process.arguments } else { if exists(.process_exit.process.arguments) { .process_exit.process.arguments } else { .process_kprobe.process.arguments } }
+        .field11 = if exists(.process_exec.parent.pod.container.id) { .process_exec.parent.pod.container.id } else { if exists(.process_exit.parent.pod.container.id) { .process_exit.parent.pod.container.id } else { if exists(.process_kprobe.parent.pod.container.id) { .process_kprobe.parent.pod.container.id } else { "1" } } }
+        .field22 = if exists(.process_exec.parent.binary) { .process_exec.parent.binary } else { if exists(.process_exit.parent.binary) { .process_exit.parent.binary } else { if exists(.process_kprobe.parent.binary) { .process_kprobe.parent.binary } else { "1" } } }
+        .field33 = if exists(.process_exec.parent.arguments) { .process_exec.parent.arguments } else { if exists(.process_exit.parent.arguments) { .process_exit.parent.arguments } else { if exists(.process_kprobe.parent.arguments) { .process_kprobe.parent.arguments } else { "1" } } }
+        .key, err = to_string(.field1) + to_string(.field2) + to_string(.field3) + to_string(.field11) + to_string(.field22) + to_string(.field33)
+        .md5_hash = md5(.key)
+    dedupe:
+      type: dedupe
       inputs:
-        - app_logs
-      condition: .component != "gcm_exporter"
-    exclude_specific_error2:
-      type: filter
-      inputs:
-        - exclude_specific_error1
-      condition: 'contains!(.message, "Failed to flush GCM exporter") == false'
+        - create_key
+      fields :
+        match: [.md5_hash]
     modify:
       type: remap
       inputs:
@@ -310,7 +314,7 @@ customConfig:
     podlogs:
        type: remap
        inputs:
-          - exclude_specific_error
+          - app_logs
        source: |
               . = parse_json!(.message)
   data_dir: /vector-data-dir
@@ -357,7 +361,16 @@ customConfig:
       encoding:
         codec: json
       topic: applogs
-    
+    redislocal:
+      type: redis
+      inputs:
+        - dedupe
+      endpoint: redis://redis-headless.redpanda.svc.cluster.local:6379
+      key: "tetra {{ .message }}" # how to only insert uniques? HSETNX dataset <md5_hash> "<your_json_data>"
+      encoding:
+        codec: json
+
+
 
         
 # extraVolumes -- Additional Volumes to use with Vector Pods.

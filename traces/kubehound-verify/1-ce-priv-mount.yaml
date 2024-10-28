@@ -1,0 +1,20 @@
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy
+metadata:
+  name: "detect-ce-priv-mount"
+spec:
+  kprobes:
+  - call: "sys_mount"
+    syscall: true
+    args:
+    - index: 0
+      type: "string"  # source
+    - index: 1
+      type: "string"  # target
+    - index: 2
+      type: "string"  # filesystem type
+    - index: 4
+      type: "string"  # mount options
+    selectors:
+    - matchActions:
+      - action: Post

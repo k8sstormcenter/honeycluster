@@ -1,0 +1,52 @@
+# CE_VAR_LOG_SYMLINK edge
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: varlog-sa
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: default
+  name: read-logs
+rules:
+- apiGroups: [""] # "" indicates the core API group
+  resources: ["pods/log", "pods", "nodes", "nodes/log"]
+  verbs: ["get","list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pod-read-logs
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: read-logs
+subjects:
+  - kind: ServiceAccount
+    name: varlog-sa
+    namespace: default
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: varlog-pod
+  namespace: default
+  labels:
+    app: kubehound-edge-test
+spec:
+  containers:
+    - name: varlog-container
+      image: ubuntu
+      volumeMounts:
+      - mountPath: /host/var/log
+        name: nodelog
+      command: [ "/bin/sh", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]
+  serviceAccountName: varlog-sa
+  volumes:
+    - name: nodelog
+      hostPath:
+        path: /var/log

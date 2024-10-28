@@ -1,0 +1,16 @@
+# CE_NS_ENTER edge
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nsenter-pod
+  labels:
+    app: kubehound-edge-test
+spec:
+  hostPID: true
+  containers:
+    - name: nsenter-pod
+      image: ubuntu
+      securityContext:
+        privileged: true
+      command: [ "/bin/sh", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]

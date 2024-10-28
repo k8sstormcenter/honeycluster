@@ -1,0 +1,36 @@
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy
+metadata:
+  name: "detect-identity-assume"
+spec:
+  kprobes:
+  - call: "security_file_permission"
+    syscall: false
+    return: true
+    args:
+    - index: 0
+      type: "file" # (struct file *) used for getting the path
+    - index: 1
+      type: "int" # 0x04 is MAY_READ, 0x02 is MAY_WRITE
+    returnArg:
+      index: 0
+      type: "int"
+    returnArgAction: "Post"
+    selectors:
+    - matchArgs:      
+      - index: 0
+        operator: "Prefix"
+        values:
+         - "/run/secrets/kubernetes.io/serviceaccount"
+      - index: 1
+        operator: "Equal"
+        values:
+        - "4" # MAY_READ
+      matchBinaries:
+      - operator: "NotIn"
+        values:
+        - "/usr/bin/rancher"
+        - "/nginx-ingress-controller"
+        - "/usr/bin/dumb-init"
+        - "/main" #this excludes the hubble relay # dont use this in prod, its just for this demo
+

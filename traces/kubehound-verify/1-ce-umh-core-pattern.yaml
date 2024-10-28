@@ -1,0 +1,33 @@
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy
+metadata:
+  name: "detect-usermode-helper-creation" #TODO
+spec:
+  kprobes:
+  - call: "sys_write"
+    syscall: true
+    args:
+    - index: 1
+      type: "probe"
+      config:
+        bufFilter: true # Enable buffer filtering for argument 1 (the write buffer)
+    selectors:
+    - matchArgs:
+      - index: 0
+        operator: "Equal"
+        values:
+        - "4" # File descriptor 4 is typically stdout, but we're interested in writes to files
+      matchBinaries:
+      - operator: "NotIn"
+        values:
+        - "/usr/bin/bash" # Add other common shells to reduce false positives
+        - "/bin/bash"
+        - "/bin/sh"
+        - "/bin/zsh"
+      matchPath:
+      - operator: "In"
+        values:
+        - "/proc/sys/kernel/core_pattern" # Monitor writes to core_pattern
+        - "/etc/ld.so.preload" # Monitor writes to ld.so.preload (for library preloading)
+      matchActions:
+      - action: Post

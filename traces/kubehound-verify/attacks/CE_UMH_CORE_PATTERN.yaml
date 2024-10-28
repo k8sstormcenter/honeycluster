@@ -1,0 +1,22 @@
+# CE_UMH_CORE_PATTERN edge
+apiVersion: v1
+kind: Pod
+metadata:
+  name: umh-core-pod
+  labels:
+    app: kubehound-edge-test
+spec:
+  containers:
+    - name: umh-core-container
+      image: ubuntu
+      volumeMounts:
+      - mountPath: /sysproc
+        name: nodeproc
+      command: [ "/bin/sh", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]
+      securityContext:
+        runAsUser: 0
+  volumes:
+    - name: nodeproc
+      hostPath:
+        path: /proc/sys/kernel

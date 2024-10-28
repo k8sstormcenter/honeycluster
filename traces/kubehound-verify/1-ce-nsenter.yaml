@@ -1,0 +1,49 @@
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy
+metadata:
+  name: "detect-ce-nsenter"
+spec:
+  kprobes:
+  - call: "sys_execve"
+    syscall: true
+    args:
+    - index: 0
+      type: "string"
+    selectors:
+    - matchArgs:
+      - index: 0
+        operator: "Equal"
+        values:
+        - "/usr/bin/nsenter" # Detect nsenter execution
+    - matchArgs:
+      - index: 0
+        operator: "Prefix"
+        values:
+        - "/proc/" # Detect potential nsenter usage with /proc/<pid>/ns/
+    - matchBinaries:
+      - operator: "In"
+        values:
+        - "/bin/bash"
+        - "/bin/sh"
+        - "/bin/zsh" # Add other common shells if needed
+      matchArgs:
+      - index: 0
+        operator: "Prefix"
+        values:
+        - "-c" # Detect shell execution with commands as arguments
+      matchActions:
+      - action: Post
+
+  - call: "sys_setns"
+    syscall: true
+    args:
+    - index: 0
+      type: "int" # File descriptor of the namespace to enter
+    selectors:
+    - matchArgs:
+      - index: 0
+        operator: "GT"
+        values:
+        - "2" # File descriptors 0-2 are stdin, stdout, stderr
+      matchActions:
+      - action: Post

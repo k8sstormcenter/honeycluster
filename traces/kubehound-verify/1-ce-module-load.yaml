@@ -1,0 +1,8 @@
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy
+metadata:
+  name: "detect-ce-module-load"
+spec:
+  kprobes:
+  - call: "sys_init_module"
+    syscall: true

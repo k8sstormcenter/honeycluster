@@ -19,7 +19,7 @@ TOPICS := signal cr1 keygen applogs traceapi traceenum tracek8sclient tracescp t
 ##@ Scenario
 
 .PHONY: honey-up
-honey-up: tetragon-install redpanda vector redpanda-wasm-hosted kshark redis redpanda-connect-baseline redpanda-connect traces
+honey-up: tetragon-install vector redis traces k8spin
 
 .PHONY: honey-signal
 honey-signal: baseline-signal # redpanda-connect-mongo
@@ -56,6 +56,15 @@ cluster-down: kind  ## Delete the kind cluster
 	$(KIND) delete cluster --name $(CLUSTER_NAME)
 
 
+.PHONY: k8spin
+k8spin:
+	-$(HELM) repo add kwasm http://kwasm.sh/kwasm-operator/
+	-$(HELM) repo update
+	-$(HELM) install kwasm-operator kwasm/kwasm-operator --namespace kwasm --create-namespace --set kwasmOperator.installerImage=ghcr.io/spinkube/containerd-shim-spin/node-installer:v0.16.0
+	-kubectl annotate node --all kwasm.sh/kwasm-node=true
+
+
+
 ##@ Redpanda
 # useful:  alias internal-rpk="kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- rpk"
 .PHONY: redpanda
@@ -78,11 +87,18 @@ redpanda-wasm:
 		kubectl --namespace redpanda exec -i -t redpanda-src-0 -c redpanda -- /bin/bash -c "cd /tmp/$$dir/ && rpk transform deploy" ;\
 	done
 
+## curretly candidate #1 for the network observability 
+.PHONY: pixie
+pixie:
+	px deploy kubernetes
+
+## kshark is useful if youre running in a high-stakes environment and you want pcaps
 .PHONY: kshark
 kshark:
 	-$(HELM) repo add kubeshark https://helm.kubeshark.co
 	-$(HELM) repo update
 	-$(HELM) upgrade --install kubeshark kubeshark/kubeshark --create-namespace --namespace kubeshark --values kubeshark/values.yaml
+	# kubectl port-forward service/kubeshark-front 8899:80
 
 .PHONY: redpanda-wasm-hosted
 redpanda-wasm-hosted:	
