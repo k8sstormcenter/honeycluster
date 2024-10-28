@@ -1,0 +1,71 @@
+import uuid
+import json
+from datetime import datetime
+import redis
+from stix2 import Bundle, Process
+
+REDIS_HOST = '127.0.0.1'
+REDIS_PORT = 51598
+REDIS_KEY = 'tetra'
+REDIS_OUTKEY = 'importantfields'
+
+
+def transform_process_kprobe_to_match(log):
+    # Implement the transformation logic for process_kprobe
+    fields = {
+        "binary": log.get("process_kprobe", {}).get("process",{}).get("binary",""),
+        "arguments": log.get("process_kprobe",{}).get("process",{}).get("arguments",""),
+        "cwd": log.get("process_kprobe",{}).get("process",{}).get("cwd","")
+        # Add other fields as needed
+    }
+    return fields
+def transform_process_exec_to_match(log):
+    # Implement the transformation logic for process_kprobe
+    fields = {
+        "binary": log.get("process_exec", {}).get("process",{}).get("binary",""),
+        "arguments": log.get("process_exec",{}).get("process",{}).get("arguments",""),
+        "cwd": log.get("process_exec",{}).get("process",{}).get("cwd","")
+        # Add other fields as needed
+    }
+    return fields
+def transform_process_exit_to_match(log):
+    # Implement the transformation logic for process_kprobe
+    fields = {
+        "binary": log.get("process_exit", {}).get("process",{}).get("binary",""),
+        "arguments": log.get("process_exit",{}).get("process",{}).get("arguments",""),
+        "cwd": log.get("process_exit",{}).get("process",{}).get("cwd","")
+        # Add other fields as needed
+    }
+    return fields
+
+def transform_tetragon_to_stix(tetragon_log):
+    client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
+    fields = {}
+    for log in tetragon_log:
+        log = json.loads(log.decode('utf-8')) 
+        if "process_kprobe" in log:
+            fields = transform_process_kprobe_to_match(log)
+        elif "process_exec" in log:
+            fields = transform_process_exec_to_match(log)
+        elif "process_exit" in log:
+            fields = transform_process_exit_to_match(log)
+
+        client.hset(REDIS_OUTKEY,log.get("md5_hash"),json.dumps(fields))
+
+    return fields
+
+def main():
+    """Parse a tetragon log in json format from a file and print its
+    STIX representation in json format to stdout"""
+    # Connect to Redis
+    client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
+
+    # Read Tetragon logs from Redis
+    tetragon_logs = client.lrange(REDIS_KEY, 0, -1)
+    #extract the hash from each log
+    bundle = transform_tetragon_to_stix(tetragon_logs)
+
+
+
+if __name__ == "__main__":
+    main()
