@@ -4,6 +4,7 @@ from datetime import datetime
 import redis
 from stix2matcher.matcher import match
 from stix2 import Bundle, Process, Indicator
+from stix2patterns.v21 import pattern
 
 REDIS_HOST = '127.0.0.1'
 REDIS_PORT = 51598
@@ -35,6 +36,12 @@ def get_observable_id(bundle):
 
 #STIX_PATTERN="[process:binary = '/usr/bin/nsenter' AND process:arguments = '-t 1 -a sleep 300' AND process:cwd = '/']"
 STIX_PATTERN = "[process:command_line = '/usr/bin/nsenter -t 1 -a bash']"
+STIX_PATTERNS = {
+        "[process:command_line = '/usr/bin/nsenter -t 1 -a bash']": "NSENTER Container Escape",
+        "[file:name = '/etc/shadow']": "Access to Shadow File",
+        # Add more patterns here...
+    }
+
 OBSERVABLE_STIX_BUNDLE_EXAMPLE2 = {
     "type": "bundle",
     "id": "bundle--0749b3fa-5f45-41fc-b132-15f909b0e855",
@@ -139,7 +146,7 @@ STIX_ATTACK_PATTERN= {
           "id": "indicator--kh-ce-nsenter",
           "name": "Container Module Loading",
           "description": "Calibration test",
-          "pattern": "[process:binary = '/usr/bin/nsenter' AND process:arguments = '-t 1 -a sleep 300' AND process:cwd = '/']",
+          "pattern": "[process:command_line = '/usr/bin/nsenter -t 1 -a bash']",
           "pattern_type": "stix",
           "valid_from": "2024-01-01T00:00:00Z"
         },
@@ -152,6 +159,14 @@ STIX_ATTACK_PATTERN= {
         }
       ]
 }
+
+#needs to return the PATTERN and the ID from the indicator block
+def get_pattern(STIX_ATTACK_PATTERN):
+    for obj in STIX_ATTACK_PATTERN["objects"]:
+        if obj["type"] == "indicator":
+            return obj["pattern"], obj["id"]  # Return both pattern and id
+    return None, None
+    
 
 
 def transform_process_exec_to_stix(log):
@@ -337,6 +352,7 @@ def transform_tetragon_to_stix(tetragon_log):
 
     for log in tetragon_log:
         tetragon_log = json.loads(log.decode('utf-8'))  # Decode bytes to string
+        UNIQUE = tetragon_log.get("md5_hash")
         stix_objects = []
         stix_bundle = {
             "type": "bundle",
@@ -354,13 +370,21 @@ def transform_tetragon_to_stix(tetragon_log):
         # if yes, then we append it to the bundle accordingly
         try:
             stix_bundle["objects"].extend(stix_objects)
-            if matches(STIX_PATTERN, stix_bundle):
-            #if matches(STIX_PATTERN, OBSERVABLE_STIX_BUNDLE_EXAMPLE2):
-                print("success")
-                client.set(REDIS_OUTKEY, json.dumps(sanitize_bundle(stix_bundle)))
-                #raise Exception("success")
+            PATTERN,ID =get_pattern(STIX_ATTACK_PATTERN)
+            if matches(PATTERN, stix_bundle):
+                 print("success")
+        #         #for each pattern we check if an observable matches and write all matches to redis after appending the STIX_PATTERN ID to the observed-data.object_refs list
+                 redis_key = f"{REDIS_OUTKEY}:{ID}:{UNIQUE}"
+                 stix_bundle["objects"].extend(STIX_ATTACK_PATTERN["objects"])
+                 print(stix_bundle["objects"])
+                 for obj in stix_bundle["objects"]:
+                     if obj["type"] == "observed-data":
+                         obj["object_refs"].append(ID)
+                         break 
+                 #TODO: The Stix Attack Pattern must be a list of many attack patterns (currently one)
+                 client.rpush(redis_key, json.dumps(sanitize_bundle(stix_bundle)))
         except Exception as e:
-            print(f"Error extending bundle: {e}")
+             print(f"Error extending bundle: {e}")
 
     return stix_bundle
 
