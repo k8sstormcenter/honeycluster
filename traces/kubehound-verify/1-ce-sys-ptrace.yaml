@@ -6,6 +6,9 @@ spec:
   kprobes:
   - call: "sys_ptrace"
     syscall: true
+    args:
+     - index: 2
+       type: "int"
     selectors:
     - matchActions:
       - action: Post

@@ -1,0 +1,20 @@
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy
+metadata:
+  name: http-network-context
+spec:
+  selectors:
+    - matchLabels:
+        app: my-http-application # Label your HTTP application pods
+  tracepoints:
+    - syscalls:
+        - name: "sys_enter_sendto"
+        - name: "sys_enter_recvfrom"
+  actions:
+    - log:
+        level: "info"
+        fields:
+          - "comm" # Process name
+          - "pid"  # Process ID
+          - "args.fd" # File descriptor (can help identify the socket)
+          - "args.buf.size" # Size of the data being sent/received

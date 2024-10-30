@@ -1,4 +1,0 @@
-name: keygen
-input-topic: "cr1"
-output-topic: "keygen"
-language: tinygo-no-goroutines
