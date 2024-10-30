@@ -2,14 +2,13 @@ import uuid
 import json
 from datetime import datetime
 import redis
-from stix2 import Bundle, Process
+from stix2matcher.matcher import match
+from stix2 import Bundle, Process, Indicator
 
 REDIS_HOST = '127.0.0.1'
 REDIS_PORT = 51598
 REDIS_KEY = 'tetra'
 REDIS_OUTKEY = 'tetrastix'
-
-
 
 def generate_stix_id(type):
     return f"{type}--{uuid.uuid4()}"
@@ -32,6 +31,127 @@ def get_observable_id(bundle):
     return next(
         (obj["id"] for obj in bundle["objects"] if obj["type"] == "observed-data"), None
     )
+
+
+#STIX_PATTERN="[process:binary = '/usr/bin/nsenter' AND process:arguments = '-t 1 -a sleep 300' AND process:cwd = '/']"
+STIX_PATTERN = "[process:command_line = '/usr/bin/nsenter -t 1 -a bash']"
+OBSERVABLE_STIX_BUNDLE_EXAMPLE2 = {
+    "type": "bundle",
+    "id": "bundle--0749b3fa-5f45-41fc-b132-15f909b0e855",
+    "spec_version": "2.1",
+    "objects": [
+        {
+            "type": "file",
+            "id": "file--cc48c445-caaa-41ed-a067-9333c7841cc3",
+            "name": "tini"
+        },
+        {
+            "type": "file",
+            "id": "file--ce73aa8b-a8eb-4fd0-b492-cc90103ec689",
+            "name": "rancher"
+        },
+        {
+            "type": "file",
+            "id": "file--d6fa1f7f-867f-4023-91ab-c63281be2243",
+            "name": "/run/secrets/kubernetes.io/serviceaccount/..2024_05_30_17_59_36.871209644/token"
+        },
+        {
+            "type": "process",
+            "id": "process--9690fcaa-f707-44e1-a9ea-2341a4304c8a",
+            "pid": None,
+            "command_line": "/usr/bin/tini -- rancher --http-listen-port=80 --https-listen-port=443 --audit-log-path=/var/log/auditlog/rancher-api-audit.log --audit-level=1 --audit-log-maxage=1 --audit-log-maxbackup=1 --audit-log-maxsize=100 --no-cacerts --http-listen-port=80 --https-listen-port=443 --add-local=true",
+            "cwd": "/var/lib/rancher",
+            "created_time": None,
+            "image_ref": "file--cc48c445-caaa-41ed-a067-9333c7841cc3",
+            "extensions": {
+                "flags": "procFS auid"
+            }
+        },
+        {
+            "type": "process",
+            "id": "process--07176c3f-4514-4114-b764-572bea195d62",
+            "pid": None,
+            "command_line": "/usr/bin/nsenter -t 1 -a bash",
+            "cwd": "/",
+            "created_time": None,
+            "image_ref": "file--ce73aa8b-a8eb-4fd0-b492-cc90103ec689",
+            "parent_ref": "process--9690fcaa-f707-44e1-a9ea-2341a4304c8a",
+            "extensions": {
+                "flags": "procFS auid",
+                "docker": "7bd7197f085f946549f2e4fa0c28489",
+                "container_id": "containerd: //7bd7197f085f946549f2e4fa0c28489cf179745364be4c174bd96673061b10bd",
+                "pod_name": "rancher-55966c8d68-f56sc",
+                "namespace": "cattle-system"
+            }
+        },
+        {
+            "type": "observed-data",
+            "id": "observed-data--c4bd5cf6-86da-4446-bd76-25da430e9498",
+            "created": None,
+            "modified": None,
+            "first_observed": "2024-03-30T18:14:23.507328Z",
+            "last_observed": "2024-03-30T18:14:23.507328Z",
+            "number_observed": 1,
+            "object_refs": [
+                "process--07176c3f-4514-4114-b764-572bea195d62",
+                "process--9690fcaa-f707-44e1-a9ea-2341a4304c8a",
+                "file--cc48c445-caaa-41ed-a067-9333c7841cc3",
+                "file--ce73aa8b-a8eb-4fd0-b492-cc90103ec689",
+                "file--d6fa1f7f-867f-4023-91ab-c63281be2243"
+            ]
+        }
+    ]
+}
+
+STIX_ATTACK_PATTERN= {
+    "type": "bundle",
+    "id": "bundle--kubehound-attacks",
+    "spec_version": "2.1",
+    "objects": [
+      {
+        "type": "attack-pattern",
+        "id": "attack-pattern--kh-ce-nsenter",
+        "name": "CE_NSENTER",
+        "description": "Use NSENTER to Escape to HOST",
+        "external_references": [
+          {
+            "source_name": "Kubehound",
+            "url": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/main/controls/cis-kubernetes-v1.6.0/controls/5.1.5.go",
+            "description": "Control to ensure that the admission control plugin PodSecurityPolicy is set."
+          }
+        ]
+      },
+      {
+          "type": "attack-pattern",
+          "id": "attack-pattern--kh-ce-nsenter",
+          "name": "CE_NSENTER",
+          "description": "Container Escape via NSENTER.",
+          "external_references": [
+            {
+              "source_name": "Kubehound",
+              "url": "https://TODO",
+              "description": "Calibration test"
+            }
+          ]
+        },
+        {
+          "type": "indicator",
+          "id": "indicator--kh-ce-nsenter",
+          "name": "Container Module Loading",
+          "description": "Calibration test",
+          "pattern": "[process:binary = '/usr/bin/nsenter' AND process:arguments = '-t 1 -a sleep 300' AND process:cwd = '/']",
+          "pattern_type": "stix",
+          "valid_from": "2024-01-01T00:00:00Z"
+        },
+        {
+          "type": "relationship",
+          "id": "relationship--kh-ce-nsenter",
+          "relationship_type": "indicates",
+          "source_ref": "indicator--kh-ce-nsenter",
+          "target_ref": "attack-pattern--kh-ce-nsenter"
+        }
+      ]
+}
 
 
 def transform_process_exec_to_stix(log):
@@ -201,31 +321,46 @@ def transform_process_kprobe_to_stix(log):
 
     return stix_objects
 
+STIX_VERSION = '2.1'
+
+def matches(pattern, bundle, stix_version=STIX_VERSION):
+    try:
+        return len(match(pattern, [bundle], stix_version=stix_version)) == 1
+    except Exception as e:
+        print(f"Error matching pattern {pattern} to bundle {bundle}: {e}")
+        raise
 
 def transform_tetragon_to_stix(tetragon_log):
-    objects = []
-    client2 = redis.Redis(host=REDIS_HOST, port=6666)
-    stix_bundle = {
+
+    client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
+
+
+    for log in tetragon_log:
+        tetragon_log = json.loads(log.decode('utf-8'))  # Decode bytes to string
+        stix_objects = []
+        stix_bundle = {
             "type": "bundle",
             "id": generate_stix_id("bundle"),
             "spec_version": "2.1",
             "objects": [],
         }
-
-    for log in tetragon_log:
-        tetragon_log = json.loads(log.decode('utf-8'))  # Decode bytes to string
-        unique=tetragon_log.get("md5_hash")
-
         if "process_exec" in tetragon_log:
             stix_objects = transform_process_exec_to_stix(tetragon_log["process_exec"])
-            stix_bundle["objects"].extend(stix_objects)
+
         elif "process_kprobe" in tetragon_log:
             stix_objects = transform_process_kprobe_to_stix(tetragon_log["process_kprobe"])
+        # Now we have each individual logs in STIX observable format
+        # we test if it matches any known indicator
+        # if yes, then we append it to the bundle accordingly
+        try:
             stix_bundle["objects"].extend(stix_objects)
-
-
-    client2.json().set( f"tetratest:{stix_bundle['id']}", '$', json.dumps(sanitize_bundle(stix_bundle)))
-
+            if matches(STIX_PATTERN, stix_bundle):
+            #if matches(STIX_PATTERN, OBSERVABLE_STIX_BUNDLE_EXAMPLE2):
+                print("success")
+                client.set(REDIS_OUTKEY, json.dumps(sanitize_bundle(stix_bundle)))
+                #raise Exception("success")
+        except Exception as e:
+            print(f"Error extending bundle: {e}")
 
     return stix_bundle
 
@@ -243,10 +378,13 @@ def main():
     # Connect to Redis
     client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
 
+
     # Read Tetragon logs from Redis
     tetragon_logs = client.lrange(REDIS_KEY, 0, -1)
     #extract the hash from each log
     bundle = transform_tetragon_to_stix(tetragon_logs)
+
+    #print(json.dumps(sanitize_bundle(bundle), indent=4))
 
     # print(json.dumps(sanitize_bundle(bundle), indent=4))
     # Now for each record in Redis we write the Observable back into th
