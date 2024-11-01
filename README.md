@@ -1,5 +1,7 @@
 # K8sStormCenter HoneyCluster
 
+[Note: currently a major rewrite is in progress to improve usability and decrease complexity -> feature/harbour]
+
 Welcome to the K8sStormCenter HoneyCluster repository. Here you will find everything you need to set up your own HoneyCluster, a Kubernetes cluster that is instrumented with bait and tripwires to collect data on the attacks carried out against it and the ways in which it is targeted. With our complimentary [ThreatIntel](https://github.com/k8sstormcenter/threatintel) repository, you can then use this data to visualize, understand and detect these attacks.
 
 
