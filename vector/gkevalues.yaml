@@ -345,22 +345,6 @@ customConfig:
         - "**/*Error getting SSL certificate*"
         - "**/kube-system_image-package-extractor*/**"
   sinks:
-    redpanda:
-      type: kafka
-      inputs:
-        - modify
-      bootstrap_servers: redpanda-src.redpanda.svc.cluster.local:9093
-      encoding:
-        codec: json
-      topic: cr1
-    app_rp:
-      type: kafka
-      inputs:
-        - podlogs
-      bootstrap_servers: redpanda-src.redpanda.svc.cluster.local:9093
-      encoding:
-        codec: json
-      topic: applogs
     redislocal:
       type: redis
       inputs:
