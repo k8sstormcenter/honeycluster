@@ -2,12 +2,12 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: modload-pod
+  name: kh-calibration-mod-load
   labels:
     app: kubehound-edge-test
 spec:
   containers:
-    - name: modload-pod
+    - name: kh-calibration-mod-load-pod
       image: ubuntu
       securityContext:
         capabilities:

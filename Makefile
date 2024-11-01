@@ -13,7 +13,7 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 ##@ Scenario
 
 .PHONY: honey-up
-honey-up: tetragon-install vector redis traces tracee mongo #k8spin
+honey-up: tetragon-install vector redis traces # mongo k8spin tracee
 
 
 
@@ -23,7 +23,10 @@ honey-down: traces-off  wipe
 
 .PHONY: wipe
 wipe: 
-	- kubectl delete namespace ssh
+	-$(HELM) uninstall tracee -n tracee
+	- kubectl delete namespace tracee
+	-$(HELM) uninstall mongo -n mongo
+	- kubectl delete namespace mongo
 	-$(HELM) uninstall vector -n vector
 	- kubectl delete namespace vector
 	-$(HELM) uninstall -n redpanda redis

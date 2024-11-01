@@ -291,19 +291,20 @@ customConfig:
       inputs:
         - modify # Add hash to rest of message
       source: | 
-        .field1 = if exists(.process_exec.process.pod.container.id) { .process_exec.process.pod.container.id } else { if exists(.process_exit.process.pod.container.id) { .process_exit.process.pod.container.id } else { .process_kprobe.process.pod.container.id } }
-        .field2 = if exists(.process_exec.process.binary) { .process_exec.process.binary } else { if exists(.process_exit.process.binary) { .process_exit.process.binary } else { .process_kprobe.process.binary } }
-        .field3 = if exists(.process_exec.process.arguments) { .process_exec.process.arguments } else { if exists(.process_exit.process.arguments) { .process_exit.process.arguments } else { .process_kprobe.process.arguments } }
-        .field11 = if exists(.process_exec.parent.pod.container.id) { .process_exec.parent.pod.container.id } else { if exists(.process_exit.parent.pod.container.id) { .process_exit.parent.pod.container.id } else { if exists(.process_kprobe.parent.pod.container.id) { .process_kprobe.parent.pod.container.id } else { "1" } } }
-        .field22 = if exists(.process_exec.parent.binary) { .process_exec.parent.binary } else { if exists(.process_exit.parent.binary) { .process_exit.parent.binary } else { if exists(.process_kprobe.parent.binary) { .process_kprobe.parent.binary } else { "1" } } }
-        .field33 = if exists(.process_exec.parent.arguments) { .process_exec.parent.arguments } else { if exists(.process_exit.parent.arguments) { .process_exit.parent.arguments } else { if exists(.process_kprobe.parent.arguments) { .process_kprobe.parent.arguments } else { "1" } } }
+        .field1  = if exists(.process_exec.process.pod.container.id){ .process_exec.process.pod.container.id } else { if exists(.process_exit.process.pod.container.id) { .process_exit.process.pod.container.id } else { if exists(.process_kprobe.process.pod.container.id){ .process_kprobe.process.pod.container.id } else { "1" } } } 
+        .field2  = if exists(.process_exec.process.binary)          { .process_exec.process.binary }           else { if exists(.process_exit.process.binary)           { .process_exit.process.binary }           else { if exists(.process_kprobe.process.binary)          { .process_kprobe.process.binary}            else { "1" } } }
+        .field3  = if exists(.process_exec.process.arguments)       { .process_exec.process.arguments }        else { if exists(.process_exit.process.arguments)        { .process_exit.process.arguments }        else { if exists(.process_kprobe.process.arguments)       { .process_kprobe.process.arguments }        else { "1" } } }
+        .field11 = if exists(.process_exec.parent.pod.container.id) { .process_exec.parent.pod.container.id }  else { if exists(.process_exit.parent.pod.container.id)  { .process_exit.parent.pod.container.id }  else { if exists(.process_kprobe.parent.pod.container.id) { .process_kprobe.parent.pod.container.id }  else { "1" } } }
+        .field22 = if exists(.process_exec.parent.binary)           { .process_exec.parent.binary }            else { if exists(.process_exit.parent.binary)            { .process_exit.parent.binary }            else { if exists(.process_kprobe.parent.binary)           { .process_kprobe.parent.binary }            else { "1" } } }
+        .field33 = if exists(.process_exec.parent.arguments)        { .process_exec.parent.arguments }         else { if exists(.process_exit.parent.arguments)         { .process_exit.parent.arguments }         else { if exists(.process_kprobe.parent.arguments)        { .process_kprobe.parent.arguments }         else { "1" } } }
+        .pre     = if exists(.process_exec) { "exec" } else { if exists(.process_exit) { "exit" } else { if exists(.process_kprobe){ "kpro" }  else { "1" } } }
         .key, err = to_string(.field1) + to_string(.field2) + to_string(.field3) + to_string(.field11) + to_string(.field22) + to_string(.field33)
-        .md5_hash = md5(.key)
+        .md5_hash = to_string(.pre) + to_string(md5(.key))
 
     remove-fields:
       type: remap
       inputs:
-        - modify
+        - create_key
       source: |
         del(.field1)
         del(.field2)
@@ -311,6 +312,7 @@ customConfig:
         del(.field11)
         del(.field22)
         del(.field33)
+        del(.pre)
         del(.key)
 
     dedupe:
@@ -325,12 +327,12 @@ customConfig:
         - kubernetes_logs
       source: |
               . = parse_json!(.message)
-    podlogs:
-       type: remap
-       inputs:
-          - app_logs
-       source: |
-              . = parse_json!(.message)
+    # podlogs:
+    #    type: remap
+    #    inputs:
+    #       - app_logs
+    #    source: |
+    #           . = parse_json!(.message)
   data_dir: /vector-data-dir
   api:
     enabled: true

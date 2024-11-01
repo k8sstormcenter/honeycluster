@@ -2,13 +2,13 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: nsenter-pod
+  name: kh-calibration-ce-1
   labels:
     app: kubehound-edge-test
 spec:
   hostPID: true
   containers:
-    - name: nsenter-pod
+    - name: kh-calibration-ce-1-pod
       image: ubuntu
       securityContext:
         privileged: true

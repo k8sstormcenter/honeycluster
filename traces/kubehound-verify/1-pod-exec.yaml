@@ -1,7 +1,7 @@
 apiVersion: cilium.io/v1alpha1
 kind: TracingPolicy
 metadata:
-  name: "detect-POD_ATTACH"
+  name: "detect-pod-exec"
 spec:
   kprobes:
   - call: "sys_execve" # Capture process execution

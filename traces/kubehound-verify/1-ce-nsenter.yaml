@@ -8,17 +8,19 @@ spec:
     syscall: true
     args:
     - index: 0
-      type: "filename"
-    - index: 1
       type: "string"
-    - index: 2
-      type: "string"
-    # selectors:
-    # - matchArgs:
-    #   - index: 0
-    #     operator: "Equal"
-    #     values:
-    #     - "/usr/bin/nsenter"
+    # - index: 1   #those are pointers , so no use for logs 
+    #   type: "string"
+    # - index: 2
+    #   type: "string"
+    selectors:
+    - matchArgs:
+      - index: 0
+        operator: "Postfix"
+        values:
+        - "nsenter"
+    - matchActions:
+      - action: Post
   - call: "sys_setuid"
     syscall: true
     args:
