@@ -4,17 +4,12 @@ metadata:
   name: "detect-ce-priv-mount"
 spec:
   kprobes:
+  # int mount(const char *source, const char *target, const char *filesystemtype, unsigned long mountflags, const void *data);
   - call: "sys_mount"
     syscall: true
     args:
     - index: 0
-      type: "string"  # source
+      type:  "string"
     - index: 1
-      type: "string"  # target
-    - index: 2
-      type: "string"  # filesystem type
-    - index: 4
-      type: "string"  # mount options
-    selectors:
-    - matchActions:
-      - action: Post
+      type:  "string"
+
