@@ -10,8 +10,7 @@ spec:
   containers:
     - name: sys-ptrace-pod
       image: ubuntu
-      command: [ "/bin/sh", "-c", "--" ]
-      args: [ "while true; do sleep 30; done;" ]
+      command: ["/bin/bash", "-c", "while true; do sleep 3000; done"]
       securityContext:
         capabilities:
           add:

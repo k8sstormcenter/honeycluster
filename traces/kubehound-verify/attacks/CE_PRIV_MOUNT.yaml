@@ -2,14 +2,14 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: priv-pod
+  name: priv-mount-pod
   labels:
     app: kubehound-edge-test
 spec:
   containers:
-    - name: priv-pod
+    - name: priv-mount-pod
       image: ubuntu
       securityContext:
         privileged: true
-      command: [ "/bin/sh", "-c", "--" ]
-      args: [ "while true; do sleep 30; done;" ]
+      command: [ "/bin/sh", "-c" ]
+      args: [ "mount -t proc proc /proc && while true; do sleep 30; done;" ]

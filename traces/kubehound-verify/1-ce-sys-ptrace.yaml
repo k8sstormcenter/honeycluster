@@ -12,16 +12,4 @@ spec:
     selectors:
     - matchActions:
       - action: Post
-  - call: "sys_execve"
-    syscall: true
-    args:
-    - index: 0
-      type: "string"
-    selectors:
-    - matchArgs:
-      - index: 0
-        operator: "Postfix"
-        values:
-        - "gdb"
-    - matchActions:
-      - action: Post
+
