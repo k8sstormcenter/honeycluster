@@ -12,4 +12,4 @@ spec:
       securityContext:
         privileged: true
       command: [ "/bin/sh", "-c" ]
-      args: [ "mount -t proc proc /proc && while true; do sleep 30; done;" ]
+      args: [ "mount -t proc proc /proc && while true; do sleep 300; done;" ]

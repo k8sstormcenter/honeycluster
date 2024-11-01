@@ -12,8 +12,8 @@ spec:
       image: ubuntu
       securityContext:
         privileged: true
-      command: ["/bin/bash", "-c", "while true; do sleep 3000; done"]
-      #command: ["nsenter -t 1 -a /bin/bash", "-c", "while true; do sleep 3000; done"]
+      command: [ "/bin/sh", "-c" ]
+      args: [ "nsenter -t 1 -a /bin/bashc && while true; do sleep 300; done;" ]
 
 
 

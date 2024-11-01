@@ -12,6 +12,6 @@ spec:
       securityContext:
         capabilities:
           add: ["SYS_MODULE"]
-      command: [ "/bin/sh", "-c", "--" ]
-      args: ["modprobe ip_tables && sleep 30"] 
+      command: [ "/bin/sh", "-c" ]
+      args: ["modprobe ip_tables && sleep 300"] 
 

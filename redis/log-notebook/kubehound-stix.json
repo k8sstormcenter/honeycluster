@@ -1,5 +1,5 @@
-STIX_ATTACK_PATTERN= 
-[{
+[
+{
   "type": "bundle",
   "id": "bundle--kubehound-attack-CE_NSENTER",
   "name": "CE_NSENTER",
@@ -54,7 +54,7 @@ STIX_ATTACK_PATTERN=
         "id": "indicator--kh-ce-sys-ptrace",
         "name": "Ptrace System Call from Container",
         "description": "Detecting the use of the 'ptrace' system call from within a container, which can be used to manipulate other processes.",
-        "pattern": "[process:pid = <container_pid> AND process:system_call = 'ptrace']",
+        "pattern": "[process:command_line MATCHES '/usr/bin/gdb']",
         "pattern_type": "stix",
         "valid_from": "2024-01-01T00:00:00Z"
       },
@@ -64,6 +64,35 @@ STIX_ATTACK_PATTERN=
         "relationship_type": "indicates",
         "source_ref": "indicator--kh-ce-sys-ptrace",
         "target_ref": "attack-pattern--kh-ce-sys-ptrace"
+      }]
+},{
+  "type": "bundle",
+  "id": "bundle--kubehound-attack-CE_PRIV_MOUNT",
+  "name": "CE_PRIV_MOUNT",
+  "version": "1.0.0",
+  "spec_version": "2.1",
+  "objects": [
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--kh-ce-priv-mount",
+      "name": "CE_PRIV_MOUNT",
+      "description": "Mounting directories from inside a container."
+    },
+    {
+        "type": "indicator",
+        "id": "indicator--kh-ce-priv-mount",
+        "name": "Ptrace System Call from Container",
+        "description": "Detecting the mounting of the proc directory.",
+        "pattern": "[process:command_line MATCHES 'mount -t proc proc /proc']",
+        "pattern_type": "stix",
+        "valid_from": "2024-01-01T00:00:00Z"
+      },
+      {
+        "type": "relationship",
+        "id": "relationship--kh-ce-priv-mount",
+        "relationship_type": "indicates",
+        "source_ref": "indicator--kh-ce-priv-mount",
+        "target_ref": "attack-pattern--kh-ce-priv-mount"
       }]
 }
 ]

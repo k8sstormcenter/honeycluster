@@ -1,4 +1,5 @@
-# CE_SYS_PTRACE edge
+# CE_SYS_PTRACE edge  https://hub.docker.com/r/andyneff/hello-world-gdb
+# TODO: build our own image for this
 apiVersion: v1
 kind: Pod
 metadata:
@@ -9,8 +10,9 @@ spec:
   hostPID: true
   containers:
     - name: sys-ptrace-pod
-      image: ubuntu
-      command: ["/bin/bash", "-c", "while true; do sleep 3000; done"]
+      image: andyneff/hello-world-gdb
+      command: [ "/bin/sh", "-c" ]
+      args: [ "gdb && while true; do sleep 30; done;" ]
       securityContext:
         capabilities:
           add:
