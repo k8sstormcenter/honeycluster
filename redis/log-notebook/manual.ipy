@@ -1,5 +1,6 @@
 import uuid
 import json
+import os
 from datetime import datetime
 import redis
 from stix2matcher.matcher import match
@@ -10,6 +11,14 @@ REDIS_HOST = '127.0.0.1'
 REDIS_PORT = 51598
 REDIS_KEY = 'tetra'
 REDIS_OUTKEY = 'tetrastix'
+
+# Get the directory of the current script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+json_file_path = os.path.join(script_dir, 'kubehound-stix.json')
+
+# Read the JSON file
+with open(json_file_path, 'r') as file:
+    STIX_ATTACK_PATTERNS = json.load(file)
 
 def generate_stix_id(type):
     return f"{type}--{uuid.uuid4()}"
@@ -109,6 +118,75 @@ OBSERVABLE_STIX_BUNDLE_EXAMPLE2 = {
         }
     ]
 }
+
+STIX_ATTACK_PATTERNS = [{
+  "type": "bundle",
+  "id": "bundle--kubehound-attack-CE_NSENTER",
+  "name": "CE_NSENTER",
+  "version": "1.0.0",
+  "spec_version": "2.1",
+  "objects": [
+    {
+        "type": "attack-pattern",
+        "id": "attack-pattern--kh-ce-nsenter",
+        "name": "CE_NSENTER",
+        "description": "Container Escape via NSENTER.",
+        "external_references": [
+          {
+            "source_name": "Kubehound",
+            "url": "https://TODO",
+            "description": "Usually a priviledged container can escape to the host using nsenter"
+          }
+        ]
+      },
+      {
+        "type": "indicator",
+        "id": "indicator--kh-ce-nsenter",
+        "name": "Container Module Loading",
+        "description": "Calibration test",
+        "pattern": "[process:command_line = '/usr/bin/nsenter -t 1 -a bash']",
+        "pattern_type": "stix",
+        "valid_from": "2024-01-01T00:00:00Z"
+      },
+      {
+        "type": "relationship",
+        "id": "relationship--kh-ce-nsenter",
+        "relationship_type": "indicates",
+        "source_ref": "indicator--kh-ce-nsenter",
+        "target_ref": "attack-pattern--kh-ce-nsenter"
+      }
+    ]},
+{
+  "type": "bundle",
+  "id": "bundle--kubehound-attack-CE_SYS_PTRACE",
+  "name": "CE_SYS_PTRACE",
+  "version": "1.0.0",
+  "spec_version": "2.1",
+  "objects": [
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--kh-ce-sys-ptrace",
+      "name": "CE_SYS_PTRACE",
+      "description": "Using ptrace for process manipulation from a container."
+    },
+    {
+        "type": "indicator",
+        "id": "indicator--kh-ce-sys-ptrace",
+        "name": "Ptrace System Call from Container",
+        "description": "Detecting the use of the 'ptrace' system call from within a container, which can be used to manipulate other processes.",
+        "pattern": "[process:command_line MATCHES '/usr/bin/gdb']",
+        "pattern_type": "stix",
+        "valid_from": "2024-01-01T00:00:00Z"
+      },
+      {
+        "type": "relationship",
+        "id": "relationship--kh-ce-sys-ptrace",
+        "relationship_type": "indicates",
+        "source_ref": "indicator--kh-ce-sys-ptrace",
+        "target_ref": "attack-pattern--kh-ce-sys-ptrace"
+      }]
+}
+]
 
 STIX_ATTACK_PATTERN= {
     "type": "bundle",
@@ -368,23 +446,24 @@ def transform_tetragon_to_stix(tetragon_log):
         # Now we have each individual logs in STIX observable format
         # we test if it matches any known indicator
         # if yes, then we append it to the bundle accordingly
-        try:
-            stix_bundle["objects"].extend(stix_objects)
-            PATTERN,ID =get_pattern(STIX_ATTACK_PATTERN)
-            if matches(PATTERN, stix_bundle):
-                 print("success")
-        #         #for each pattern we check if an observable matches and write all matches to redis after appending the STIX_PATTERN ID to the observed-data.object_refs list
-                 redis_key = f"{REDIS_OUTKEY}:{ID}:{UNIQUE}"
-                 stix_bundle["objects"].extend(STIX_ATTACK_PATTERN["objects"])
-                 print(stix_bundle["objects"])
-                 for obj in stix_bundle["objects"]:
-                     if obj["type"] == "observed-data":
-                         obj["object_refs"].append(ID)
-                         break 
-                 #TODO: The Stix Attack Pattern must be a list of many attack patterns (currently one)
-                 client.rpush(redis_key, json.dumps(sanitize_bundle(stix_bundle)))
-        except Exception as e:
-             print(f"Error extending bundle: {e}")
+        for STIX_ATTACK_PATTERN in STIX_ATTACK_PATTERNS:
+            try:
+                stix_bundle["objects"].extend(stix_objects)
+                PATTERN,ID =get_pattern(STIX_ATTACK_PATTERN)
+                if matches(PATTERN, stix_bundle):
+                    print("success")
+            #         #for each pattern we check if an observable matches and write all matches to redis after appending the STIX_PATTERN ID to the observed-data.object_refs list
+                    redis_key = f"{REDIS_OUTKEY}:{ID}:{UNIQUE}"
+                    stix_bundle["objects"].extend(STIX_ATTACK_PATTERN["objects"])
+                    print(stix_bundle["objects"])
+                    for obj in stix_bundle["objects"]:
+                        if obj["type"] == "observed-data":
+                            obj["object_refs"].append(ID)
+                            break 
+                    #TODO: The Stix Attack Pattern must be a list of many attack patterns (currently one)
+                    client.rpush(redis_key, json.dumps(sanitize_bundle(stix_bundle)))
+            except Exception as e:
+                print(f"Error extending bundle: {e}")
 
     return stix_bundle
 

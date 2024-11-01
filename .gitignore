@@ -50,3 +50,4 @@ jupyterhub/rke2values.yaml
 *.sqlite
 pip-log.txt
 
+attacks/managedidentitygke/deploy-9-beta.yaml

@@ -6,12 +6,6 @@ OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 
 
-# keygen: generates hash for every message
-DIRS := keygen
-TOPICS := signal cr1 keygen applogs traceapi traceenum tracek8sclient tracescp tracessh tracesymlink 
-
-
-
 .EXPORT_ALL_VARIABLES:
 
 ##@ If you are on kind , first create the cluster with `make cluster-up` and then run `make honey-up`
@@ -19,7 +13,7 @@ TOPICS := signal cr1 keygen applogs traceapi traceenum tracek8sclient tracescp t
 ##@ Scenario
 
 .PHONY: honey-up
-honey-up: tetragon-install vector redis traces k8spin
+honey-up: tetragon-install vector redis traces tracee mongo #k8spin
 
 
 
@@ -55,10 +49,21 @@ cluster-down: kind  ## Delete the kind cluster
 k8spin:
 	-$(HELM) repo add kwasm http://kwasm.sh/kwasm-operator/
 	-$(HELM) repo update
-	-$(HELM) install kwasm-operator kwasm/kwasm-operator --namespace kwasm --create-namespace --set kwasmOperator.installerImage=ghcr.io/spinkube/containerd-shim-spin/node-installer:v0.16.0
+	-$(HELM) upgrade --install kwasm-operator kwasm/kwasm-operator --namespace kwasm --create-namespace --set kwasmOperator.installerImage=ghcr.io/spinkube/containerd-shim-spin/node-installer:v0.16.0
 	-kubectl annotate node --all kwasm.sh/kwasm-node=true
 
 
+.PHONY: tracee
+tracee:
+	-$(HELM) repo add aqua https://aquasecurity.github.io/helm-charts/
+	-$(HELM) repo update
+	-$(HELM) upgrade --install tracee aqua/tracee --namespace tracee --create-namespace
+
+.PHONY: mongo	
+mongo:
+	-$(HELM) repo add bitnami https://charts.bitnami.com/bitnami
+	-$(HELM) repo update
+	-$(HELM) upgrade --install mongo bitnami/mongodb --namespace mongo --create-namespace --values mongo/values.yaml
 
 ## curretly candidate #1 for the network observability 
 .PHONY: pixie
