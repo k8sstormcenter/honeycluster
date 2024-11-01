@@ -6,10 +6,10 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 .EXPORT_ALL_VARIABLES:
 
 
-calibrate: calibration-traces calibration-attacks
+calibrate: calibration-traces calibration-attack
 
 # wipe all the stuff accumulated in REDIS ... just in case its nonsense... just saying :) 
-wipe: redis-wipe remove-calibration-attacks remove-calibration-traces
+wipe:  remove-calibration-attack remove-calibration-traces #redis-wipe
 
 
 
@@ -21,52 +21,24 @@ calibration-traces:
 	-kubectl apply -f traces/kubehound-verify/1-ce-sys-ptrace.yaml
 
 
-.PHONY: attack
-attack: 
+.PHONY: calibration-attack
+calibration-attack: 
 	@echo "Attacking"
 	-kubectl apply -f traces/kubehound-verify/attacks/CE_NSENTER.yaml
 	-kubectl apply -f traces/kubehound-verify/attacks/CE_PRIV_MOUNT.yaml
 	-kubectl apply -f traces/kubehound-verify/attacks/CE_SYS_PTRACE.yaml
 
-.PHONY: bait-delete 
-bait-delete: sc-delete stop-local-port-forwarding
-	-kubectl delete namespace ssh
-	-kubectl delete -f scenario/rbac.yaml
 
+.PHONY: remove-calibration-attack	
+remove-calibration-attack:
+	@echo "Removing calibration attack"
+	-kubectl delete -f traces/kubehound-verify/attacks/CE_NSENTER.yaml
+	-kubectl delete -f traces/kubehound-verify/attacks/CE_PRIV_MOUNT.yaml
+	-kubectl delete -f traces/kubehound-verify/attacks/CE_SYS_PTRACE.yaml
 
-
-.PHONY: ssh-install
-ssh-install:
-	-kubectl create namespace ssh
-	-kubectl apply -f insecure-ssh/insecure-ssh.yaml -n ssh 
-	-kubectl -n ssh wait --for=condition=Ready pod -l app.kubernetes.io/name=ssh-proxy
-
-.PHONY: rbac
-rbac: 
-	kubectl apply -f scenario/rbac.yaml
-
-
-.PHONY: port-forward
-port-forward:
-	-kubectl port-forward -n ssh svc/ssh-proxy 5555:22 &
-
-
-
-.PHONY: stop-local-port-forwarding
-stop-port-forwarding:
-	-lsof -ti:5555 | xargs kill -9
-
-.PHONY: copy-scripts
-copy-scripts:
-	scp -P 5555 scripts/create.py scripts/priv-create.sh root@127.0.0.1:/root
-
-
-.PHONY: ssh-connect
-ssh-connect:
-	ssh -p 5555 root@127.0.0.1
-
-
-.PHONY: exec 
-exec:
-	-kubectl exec my-pod  -- /bin/bash -c "cd /hostlogs/pods/default_my-pod_**/my-pod/ && rm  0.log & ln -s /home/ansible/.id_rsa_tmp 0.log"
-
+.PHONY: remove-calibration-traces		
+remove-calibration-traces:
+	@echo "Rmoving calibration traces"
+	-kubectl delete -f traces/kubehound-verify/1-ce-nsenter.yaml
+	-kubectl delete -f traces/kubehound-verify/1-ce-priv-mount.yaml
+	-kubectl delete -f traces/kubehound-verify/1-ce-sys-ptrace.yaml
