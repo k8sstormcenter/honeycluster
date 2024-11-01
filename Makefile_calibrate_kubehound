@@ -16,9 +16,9 @@ wipe:  remove-calibration-attack remove-calibration-traces #redis-wipe
 .PHONY:
 calibration-traces: 
 	@echo "Calibrating traces"
-	-kubectl apply -f traces/kubehound-verify/1-ce-nsenter.yaml
-	-kubectl apply -f traces/kubehound-verify/1-ce-priv-mount.yaml
-	-kubectl apply -f traces/kubehound-verify/1-ce-sys-ptrace.yaml
+	kubectl apply -f traces/kubehound-verify/1-ce-nsenter.yaml
+	kubectl apply -f traces/kubehound-verify/1-ce-priv-mount.yaml
+	kubectl apply -f traces/kubehound-verify/1-ce-sys-ptrace.yaml
 
 
 .PHONY: calibration-attack

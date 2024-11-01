@@ -299,10 +299,24 @@ customConfig:
         .field33 = if exists(.process_exec.parent.arguments) { .process_exec.parent.arguments } else { if exists(.process_exit.parent.arguments) { .process_exit.parent.arguments } else { if exists(.process_kprobe.parent.arguments) { .process_kprobe.parent.arguments } else { "1" } } }
         .key, err = to_string(.field1) + to_string(.field2) + to_string(.field3) + to_string(.field11) + to_string(.field22) + to_string(.field33)
         .md5_hash = md5(.key)
+
+    remove-fields:
+      type: remap
+      inputs:
+        - modify
+      source: |
+        del(.field1)
+        del(.field2)
+        del(.field3)
+        del(.field11)
+        del(.field22)
+        del(.field33)
+        del(.key)
+
     dedupe:
       type: dedupe
       inputs:
-        - create_key
+        - remove-fields
       fields :
         match: [.md5_hash]
     modify:
