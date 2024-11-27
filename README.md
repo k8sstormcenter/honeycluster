@@ -1,31 +1,33 @@
 # K8sStormCenter HoneyCluster
 
-Welcome to the K8sStormCenter HoneyCluster repository. Here you will find everything you need to set up your own HoneyCluster, a Kubernetes cluster that is instrumented with bait and tripwires to collect data on the attacks carried out against it and the ways in which it is targeted. With our complimentary [ThreatIntel](https://github.com/k8sstormcenter/threatintel) repository, you can then use this data to visualize, understand and detect these attacks.
+Welcome to the K8sStormCenter HoneyCluster repository. Here you will find everything you need to set up your own HoneyCluster, a Kubernetes cluster that is instrumented with bait and tripwires to collect data on the attacks carried out against it and the ways in which it is targeted. With our complimentary [WIP](https://github.com/k8sstormcenter/threatintel) repository, you can then use this data to visualize, understand and detect these attacks.
 
 
 
 ## Table of Contents
 
-- [How does it work?](#how-does-it-work)
-  - [Creating a HoneyCluster](#creating-a-honeycluster)
-  - [The four fold path to threat intelligence](#the-four-fold-path-to-threat-intelligence)
-  - [Threat Model](#threat-model)
-  - [Attack Model](#attack-model)
-- [Getting started](#getting-started)
-  - [1. Create a Kubernetes Cluster](#1-create-a-kubernetes-cluster)
-  - [2. Set up the HoneyCluster](#2-set-up-the-honeycluster)
-  - [3. Baseline Redaction](#3-baseline-redaction)
-  - [4. Attack and observe](#4-attack-and-observe)
-  - [5. Teardown](#5-teardown)
-- [Tailoring the instrumentation to your needs](#tailoring-the-instrumentation-to-your-needs)
-  - [Tracing Policies](#tracing-policies)
-  - [Application & Audit Logs](#application-audit-logs)
-  - [Mapping and Matching: Stix Observables and Stix Indicators](#mapping-and-matching-stix-observables-and-stix-indicators)
-- [Explorative analysis: From nothing to an attack path](#explorative-analysis-from-nothing-to-an-attack-path)
-- [Experiment: Detect Leaky Vessel on live clusters](#experiment-detect-leaky-vessel-on-live-clusters)
-  - [Bait](#bait)
-  - [Security Considerations](#security-considerations)
-- [Contributing](#contributing)
+- [K8sStormCenter HoneyCluster](#k8sstormcenter-honeycluster)
+  - [Table of Contents](#table-of-contents)
+  - [How does it work?](#how-does-it-work)
+    - [Creating a HoneyCluster](#creating-a-honeycluster)
+    - [The four fold path to threat intelligence](#the-four-fold-path-to-threat-intelligence)
+    - [Threat Model](#threat-model)
+      - [Generate a full Threat Tree using OSS tool such as Kubehound](#generate-a-full-threat-tree-using-oss-tool-such-as-kubehound)
+    - [Attack Model](#attack-model)
+  - [Getting started](#getting-started)
+    - [1. Create a Kubernetes Cluster](#1-create-a-kubernetes-cluster)
+    - [2. Set up the HoneyCluster](#2-set-up-the-honeycluster)
+    - [3. Baseline Redaction](#3-baseline-redaction)
+    - [4. Attack and observe](#4-attack-and-observe)
+    - [5. Teardown](#5-teardown)
+  - [Tailoring the instrumentation to your needs](#tailoring-the-instrumentation-to-your-needs)
+    - [Tracing Policies](#tracing-policies)
+    - [Application \& Audit Logs](#application--audit-logs)
+    - [Mapping and Matching: Stix Observables and Stix Indicators](#mapping-and-matching-stix-observables-and-stix-indicators)
+  - [Experiment: Detect Leaky Vessel on live clusters](#experiment-detect-leaky-vessel-on-live-clusters)
+    - [Bait](#bait)
+    - [Security Considerations](#security-considerations)
+  - [Contributing](#contributing)
 
 
 
@@ -44,6 +46,12 @@ However, you don't want to expose your cluster to real threats. That's where the
 <img width="1083" alt="Screenshot 2024-04-26 at 22 32 32" src="https://github.com/k8sstormcenter/honeycluster/assets/70207455/f574e663-fb7b-4c43-af6f-b3544b8b63a6">
 
 To set up a HoneyCluster, you start by creating a copy of your "normal" cluster. This copy has the same services as the real cluster, but without its data and with some additional instrumentation to collect data on the attacks carried out against it. This data is then used to create a baseline of normal behaviour, which is used to filter out benign signals. The remaining signals are then used to detect and understand the attacks carried out against the cluster.
+
+If working locally on `kind`, you might wanna start with 
+```bash
+make cluster-up
+```
+[We are currently testing this on kind 1.31.2]
 
 
 ### The four fold path to threat intelligence
@@ -77,6 +85,10 @@ flowchart TD
     D --> EE[ServiceAccount \n creates Pod]
 ```
 
+#### Generate a full Threat Tree using OSS tool such as Kubehound
+One of the critical aspects of modelling threats is having a good threat model to start with. 
+This is why we looked at the cloud-native OSS space and are collecting the best tools and combining them
+to generate a good starting point. In this branch, we work with `Kubehound`.
 
 ### Attack Model
 
