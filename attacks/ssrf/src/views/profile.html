@@ -232,22 +232,35 @@
        */
       async function uploadProfilePicture() {
         const formData = new URLSearchParams();
+        if (!fileInput.files[0] && !urlInput.value) {
+          alert("Please provide an image to upload");
+          return;
+        }
+
+        if (fileInput.files[0] && urlInput.value) {
+          alert("Please only provide one image source");
+          return;
+        }
+
+        let response;
+
         if (fileInput.files[0]) {
           // Read the file as a base64-encoded data URL and append it to the form data.
           const file = fileInput.files[0];
-          const base64 = await readFile(file);
-          formData.append("file", base64);
+          const dataUrl = await readFile(file);
+          
+          // Initiate the picture upload request.
+          response = await fetch("/api/profile/upload-picture", {
+            method: "POST",
+            body: dataUrl,
+          });
         }
         if (urlInput.value) {
-          // Append the URL pointing to the image to the form data.
-          formData.append("url", urlInput.value);
+          // Initiate the picture change request with the URL pointing to the image.
+          response = await fetch("/api/profile/change-picture?" + new URLSearchParams({url: urlInput.value}), {
+            method: "PATCH",
+          });
         }
-
-        // Initiate the picture upload request.
-        const response = await fetch("/api/profile/picture-upload", {
-          method: "POST",
-          body: formData,
-        });
 
         // If an error occured, alert the user.
         if (!response.ok) {
