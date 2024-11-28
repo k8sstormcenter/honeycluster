@@ -8,7 +8,7 @@ from stix2 import Bundle, Process, Indicator
 from stix2patterns.v21 import pattern
 
 REDIS_HOST = '127.0.0.1'
-REDIS_PORT = 51598
+REDIS_PORT = 6379
 REDIS_KEY = 'tetra'
 REDIS_OUTKEY = 'tetrastix'
 
@@ -17,6 +17,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 json_file_path = os.path.join(script_dir, 'kubehound-stix.json')
 
 # Read the JSON file
+# here we should paramterize on attack type (which kubehound edge) so we can later parallelize the processing
 with open(json_file_path, 'r') as file:
     STIX_ATTACK_PATTERNS = json.load(file)
 
