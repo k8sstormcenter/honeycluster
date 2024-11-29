@@ -1,0 +1,15 @@
+# CE_PRIV_MOUNT edge
+apiVersion: v1
+kind: Pod
+metadata:
+  name: priv-mount-pod
+  labels:
+    app: kubehound-edge-test
+spec:
+  containers:
+    - name: priv-mount-pod
+      image: ubuntu
+      securityContext:
+        privileged: true
+      command: [ "/bin/sh", "-c" ]
+      args: [ "mount -t proc proc /proc && while true; do sleep 30; done;" ]

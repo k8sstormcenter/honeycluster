@@ -1,0 +1,19 @@
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy
+metadata:
+  name: "detect-pod-exec"
+spec:
+  kprobes:
+  - call: "sys_execve" # Capture process execution
+    syscall: true
+    args:
+    - index: 0
+      type: "string" # Argument 0 is the executable path
+    selectors:
+    - matchArgs:
+      - index: 0
+        operator: "Equal"
+        values:
+        - "/pause" # Pause container is a strong indicator of pod creation
+      matchActions:
+      - action: Post # Log after successful execve

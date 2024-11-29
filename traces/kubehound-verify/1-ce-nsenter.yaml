@@ -1,0 +1,139 @@
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy
+metadata:
+  name: "detect-ce-nsenter"
+spec:
+  kprobes:
+  - call: "sys_execve"
+    syscall: true
+    args:
+    - index: 0
+      type: "string"
+    # - index: 1   #those are pointers , so no use for logs 
+    #   type: "string"
+    # - index: 2
+    #   type: "string"
+    selectors:
+    - matchArgs:
+      - index: 0
+        operator: "Postfix"
+        values:
+        - "nsenter"
+    - matchActions:
+      - action: Post
+  - call: "sys_setuid"
+    syscall: true
+    args:
+    - index: 0
+      type: "int"
+    selectors:
+      - matchNamespaces:
+        - namespace: Pid
+          operator: NotIn
+          values:
+          - "host_ns"
+  - call: "sys_setgid"
+    syscall: true
+    args:
+    - index: 0
+      type: "int"
+    selectors:
+      - matchNamespaces:
+        - namespace: Pid
+          operator: NotIn
+          values:
+          - "host_ns"
+  - call: "sys_setreuid"
+    syscall: true
+    args:
+    - index: 0
+      type: "int"
+    - index: 1
+      type: "int"
+    selectors:
+      - matchNamespaces:
+        - namespace: Pid
+          operator: NotIn
+          values:
+          - "host_ns"
+  - call: "sys_setregid"
+    syscall: true
+    args:
+    - index: 0
+      type: "int"
+    - index: 1
+      type: "int"
+    selectors:
+      - matchNamespaces:
+        - namespace: Pid
+          operator: NotIn
+          values:
+          - "host_ns"
+  - call: "sys_setresuid"
+    syscall: true
+    args:
+    - index: 0
+      type: "int"
+    - index: 1
+      type: "int"
+    - index: 2
+      type: "int"
+    selectors:
+      - matchNamespaces:
+        - namespace: Pid
+          operator: NotIn
+          values:
+          - "host_ns"
+  - call: "sys_setresgid"
+    syscall: true
+    args:
+    - index: 0
+      type: "int"
+    - index: 1
+      type: "int"
+    - index: 2
+      type: "int"
+    selectors:
+      - matchNamespaces:
+        - namespace: Pid
+          operator: NotIn
+          values:
+          - "host_ns"
+  - call: "sys_setfsuid"
+    syscall: true
+    args:
+    - index: 0
+      type: "int"
+    selectors:
+      - matchNamespaces:
+        - namespace: Pid
+          operator: NotIn
+          values:
+          - "host_ns"
+  - call: "sys_setfsgid"
+    syscall: true
+    args:
+    - index: 0
+      type: "int"
+    selectors:
+      - matchNamespaces:
+        - namespace: Pid
+          operator: NotIn
+          values:
+          - "host_ns"
+
+
+
+  # - call: "sys_setns"
+  #   syscall: true
+  #   args:
+  #   - index: 0
+  #     type: "int" # File descriptor of the namespace to enter
+  #   selectors:
+  #   - matchArgs:
+  #     - index: 0
+  #       operator: "GT"
+  #       values:
+  #       - "2" # File descriptors 0-2 are stdin, stdout, stderr
+  #     matchActions:
+  #     - action: Post

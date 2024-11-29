@@ -1,33 +1,33 @@
 # K8sStormCenter HoneyCluster
 
-[Note: currently a major rewrite is in progress to improve usability and decrease complexity -> feature/harbour]
-
-Welcome to the K8sStormCenter HoneyCluster repository. Here you will find everything you need to set up your own HoneyCluster, a Kubernetes cluster that is instrumented with bait and tripwires to collect data on the attacks carried out against it and the ways in which it is targeted. With our complimentary [ThreatIntel](https://github.com/k8sstormcenter/threatintel) repository, you can then use this data to visualize, understand and detect these attacks.
+Welcome to the K8sStormCenter HoneyCluster repository. Here you will find everything you need to set up your own HoneyCluster, a Kubernetes cluster that is instrumented with bait and tripwires to collect data on the attacks carried out against it and the ways in which it is targeted. With our complimentary [WIP](https://github.com/k8sstormcenter/threatintel) repository, you can then use this data to visualize, understand and detect these attacks.
 
 
 
 ## Table of Contents
 
-- [How does it work?](#how-does-it-work)
-  - [Creating a HoneyCluster](#creating-a-honeycluster)
-  - [The four fold path to threat intelligence](#the-four-fold-path-to-threat-intelligence)
-  - [Threat Model](#threat-model)
-  - [Attack Model](#attack-model)
-- [Getting started](#getting-started)
-  - [1. Create a Kubernetes Cluster](#1-create-a-kubernetes-cluster)
-  - [2. Set up the HoneyCluster](#2-set-up-the-honeycluster)
-  - [3. Baseline Redaction](#3-baseline-redaction)
-  - [4. Attack and observe](#4-attack-and-observe)
-  - [5. Teardown](#5-teardown)
-- [Tailoring the instrumentation to your needs](#tailoring-the-instrumentation-to-your-needs)
-  - [Tracing Policies](#tracing-policies)
-  - [Application & Audit Logs](#application-audit-logs)
-  - [Mapping and Matching: Stix Observables and Stix Indicators](#mapping-and-matching-stix-observables-and-stix-indicators)
-- [Explorative analysis: From nothing to an attack path](#explorative-analysis-from-nothing-to-an-attack-path)
-- [Experiment: Detect Leaky Vessel on live clusters](#experiment-detect-leaky-vessel-on-live-clusters)
-  - [Bait](#bait)
-  - [Security Considerations](#security-considerations)
-- [Contributing](#contributing)
+- [K8sStormCenter HoneyCluster](#k8sstormcenter-honeycluster)
+  - [Table of Contents](#table-of-contents)
+  - [How does it work?](#how-does-it-work)
+    - [Creating a HoneyCluster](#creating-a-honeycluster)
+    - [The four fold path to threat intelligence](#the-four-fold-path-to-threat-intelligence)
+    - [Threat Model](#threat-model)
+      - [Generate a full Threat Tree using OSS tool such as Kubehound](#generate-a-full-threat-tree-using-oss-tool-such-as-kubehound)
+    - [Attack Model](#attack-model)
+  - [Getting started](#getting-started)
+    - [1. Create a Kubernetes Cluster](#1-create-a-kubernetes-cluster)
+    - [2. Set up the HoneyCluster](#2-set-up-the-honeycluster)
+    - [3. Baseline Redaction  (DEPRECATED)](#3-baseline-redaction--deprecated)
+    - [4. Attack and observe](#4-attack-and-observe)
+    - [5. Teardown](#5-teardown)
+  - [Tailoring the instrumentation to your needs](#tailoring-the-instrumentation-to-your-needs)
+    - [Tracing Policies](#tracing-policies)
+    - [Application \& Audit Logs](#application--audit-logs)
+    - [Mapping and Matching: Stix Observables and Stix Indicators](#mapping-and-matching-stix-observables-and-stix-indicators)
+  - [Experiment: Detect Leaky Vessel on live clusters](#experiment-detect-leaky-vessel-on-live-clusters)
+    - [Bait](#bait)
+    - [Security Considerations](#security-considerations)
+  - [Contributing](#contributing)
 
 
 
@@ -46,6 +46,12 @@ However, you don't want to expose your cluster to real threats. That's where the
 <img width="1083" alt="Screenshot 2024-04-26 at 22 32 32" src="https://github.com/k8sstormcenter/honeycluster/assets/70207455/f574e663-fb7b-4c43-af6f-b3544b8b63a6">
 
 To set up a HoneyCluster, you start by creating a copy of your "normal" cluster. This copy has the same services as the real cluster, but without its data and with some additional instrumentation to collect data on the attacks carried out against it. This data is then used to create a baseline of normal behaviour, which is used to filter out benign signals. The remaining signals are then used to detect and understand the attacks carried out against the cluster.
+
+If working locally on `kind`, you might wanna start with 
+```bash
+make cluster-up
+```
+[We are currently testing this on kind 1.31.2]
 
 
 ### The four fold path to threat intelligence
@@ -79,6 +85,10 @@ flowchart TD
     D --> EE[ServiceAccount \n creates Pod]
 ```
 
+#### Generate a full Threat Tree using OSS tool such as Kubehound
+One of the critical aspects of modelling threats is having a good threat model to start with. 
+This is why we looked at the cloud-native OSS space and are collecting the best tools and combining them
+to generate a good starting point. In this branch, we work with `Kubehound`.
 
 ### Attack Model
 
@@ -87,7 +97,7 @@ Based on the Threat Model, you now create a concrete AttackModel (or many).
 You can use this for multiple purposes:
 - to understand if a ThreatModel can be exploited IRL . You can attack yourself or hire an offensive expert, create a bug bounty program etc.
 - to  calibrate all event-producing instrumentation in your deployment: can you see events from executing your attack-model, if not, you might need to add more TracingPolicies or change some filters.
-- to verify the pattern-matching between your events and your STIX observables: is the attack correctly picked up in your Neo4J/Stix database.
+- to verify the pattern-matching between your events and your STIX observables: the `cti-stix-visualizer` UI can help calibrating
 - to simulate a breach: once you have at least one attack model implemented (e.g. via bash-script), you can test diverse detective/responsive processes in your deployment, e.g. if your pager starts blinking.
 
 
@@ -124,16 +134,25 @@ The `honey-up` target installs all the necessary components to collect eBPF trac
 
 While we provide you with a set of default traces and log forwarding configurations, you can adjust them to your needs in the [traces](traces/) and [vector/values.yaml](vector/values.yaml) files respectively. Find out more about it in the [Tailoring the instrumentation to your needs](#tailoring-the-instrumentation-to-your-needs) section.
 
-You can verify the data collection by taking a look at the Redpanda dashboard, which you can access by port-forwarding the Redpanda service:
+While in `Calibration Mode` , you ll likely want to run your python scripts over your logs to check if the logs (in `Redis`) are being picked up by your `Patterns`. Currently, I m running the python scripts under `./redis/log-notebook/manual.py` in a devcontainer against the `redis` running on `k8s/kind` , while the `cti-stix-visualizer` runs next to `redis`.
 
 ```bash
-kubectl port-forward service/redpanda-src-console -n redpanda 30000:8080
+kubectl port-forward service/redis-headless -n redpanda 6379:6379
+kubectl port-forward pod/stix-visualizer-<UUID> -n redpanda 3000:3000
 ```
+TODO: properly deploy the visualizer, with a service and all.
 
-After port-forwarding, you can access the Redpanda dashboard at [http://localhost:30000](http://localhost:30000). Here you can see the messages being collected by the in Redpanda under the `keygen*` topics.
 
+After port-forwarding, (and running the python scripts)you can access the detected hash-entries in redis via the UI [http://localhost:30000](http://localhost:30000). WIP: the amazing design will get better (as it cant get worse)
 
-### 3. Baseline Redaction
+TODO: picture here
+
+### 3. Baseline Redaction  (DEPRECATED)
+
+WIP: during the redpanda-deprecation, we now have simple dedup inside vector, where the hashing is done (previsously inside redpanda-wasm-transform), however, inserting the known hashes into seperate hash-tables is currently turned off, until the visualisation features are finished.
+You can manually implement it yourself, by letting vector write all hashes to a redis table until your `baseline recording` is done, and then implementing in your analysis scripts to ignore all those hashes.
+
+OLD TEXT:
 
 After the successful HoneyCluster setup, it starts collecting all data on the cluster. The idea is that at this point, all traffic is benign and therefore we can use this data to create a baseline of what non-malicous behaviour looks like. We can then use this baseline to filter out what we are not interested in, leaving us with the good stuff - the signal.
 
@@ -190,6 +209,7 @@ flowchart TD
 Close the SSH connection, and run the full attack which will again make an SSH connection to our vulnerable server, run a malicious script which will create a HostPath type PersistentVolume, allowing a pod to access `/var/log` on the host (inspired by [this blog post](https://jackleadford.github.io/containers/2020/03/06/pvpost.html)), using the [Python Kubernetes client library](https://github.com/kubernetes-client/python). Note that you could modify the hostPath in the Python script to go directly for the data on the host that you want to compromise, however, in order to increase the number of attack steps in our scenario (and hence the number of indicators that we can look for), let's imagine that we are not able to create arbitrary hostPaths. In this scenario, perhaps a `hostPath` type `PersistentVolume` is allowed for `/var/log` so that a Pod can monitor other Pod's logs.
 
 ```bash
+make --makefile=calibrate_kubehound calibrate
 make --makefile=Makefile_attack attack
 ```
 
@@ -197,13 +217,7 @@ When prompted, the password is again `root`.
 
 If the service account compromised by our attacker could inspect the logs of the containers it can create, running `kubectl logs bad-pv-pod --tail=-1` (or making an API call from within the bad pod) will enable an attacker to view arbitrary files (line by line) on the host. In this example, we have a single node cluster, so we can access control plane data.
 
-Note that we have a lot more messages in the `signal` topic following the attack.
-
-[![K8sstormcenterSSH](https://img.youtube.com/vi/EcZcLz3kkUs/0.jpg)](https://www.youtube.com/watch?v=EcZcLz3kkUs)
-
-
-The above screen recording shows the newly established ssh connection being picked up by the eBPF traces and appearing as anomaly in the topic `signal` (previously named `signalminusbaseline` )  in the Redpanda console.
-
+TOOO: insert SSH detction here.
 
 ### 5. Teardown
 
@@ -211,6 +225,7 @@ After you have finished experimenting with your HoneyCluster, you can remove the
 
 ```bash
 make --makefile=Makefile_attack bait-delete
+make --makefile=calibrate_kubehound wipe
 ```
 
 And finally, you can wipe the HoneyCluster instrumentation from your Kubernetes cluster:
@@ -223,7 +238,7 @@ make wipe
 
 ## Tailoring the instrumentation to your needs
 
-This repository (together with the [ThreatIntel repo](https://github.com/k8sstormcenter/threatintel)) aims at giving you a framework to run experiments, simulations and to make threat-modelling concrete and actionable.
+This repository aims at giving you a framework to run experiments, simulations and to make threat-modelling concrete and actionable.
 This is why we are working on providing some example setups to understand what the various pieces do and how you can make them your own.
 
 
@@ -267,7 +282,7 @@ Coming soon: examples and how to test it locally
 
 ### Mapping and Matching: Stix Observables and Stix Indicators
 
-Using the [threatintel repo](https://github.com/k8sstormcenter/threatintel), the collected logs are transformed into [STIX observables](https://docs.oasis-open.org/cti/stix/v2.1/cs01/stix-v2.1-cs01.html#_mlbmudhl16lr), which are then matched against [STIX indicators](https://docs.oasis-open.org/cti/stix/v2.1/cs01/stix-v2.1-cs01.html#_muftrcpnf89v). Observables, which match the provided indicators represent potentially malicious behavior and are persisted into a document store. More detailed information on the setup of the indicators and how the matching works is provided in the [README](https://github.com/k8sstormcenter/threatintel/blob/main/README.md) of the threatintel repository.
+The collected logs are transformed into [STIX observables](https://docs.oasis-open.org/cti/stix/v2.1/cs01/stix-v2.1-cs01.html#_mlbmudhl16lr), which are then matched against [STIX indicators](https://docs.oasis-open.org/cti/stix/v2.1/cs01/stix-v2.1-cs01.html#_muftrcpnf89v). Observables, which match the provided indicators represent potentially malicious behavior and are persisted into a document store. More detailed information on the setup of the indicators and how the matching works is provided in the [README](https://github.com/k8sstormcenter/threatintel/blob/main/README.md) of the threatintel repository.
 
 [![Detection](./docs/log-detection.png)](https://drive.google.com/file/d/1RfPr_7RmXDlU22-l7ZFoMnWJKloP0VpG/view?usp=sharing)
 

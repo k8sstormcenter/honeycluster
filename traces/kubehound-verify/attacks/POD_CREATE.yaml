@@ -1,0 +1,44 @@
+# POD_CREATE edge
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pod-create-sa
+  namespace: default
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: default
+  name: create-pods
+rules:
+  - apiGroups: ["*"]
+    resources: ["pods"]
+    verbs: ["get", "list", "create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pod-create-pods
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: create-pods
+subjects:
+  - kind: ServiceAccount
+    name: pod-create-sa
+    namespace: default
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-create-pod
+  labels:
+    app: kubehound-edge-test
+spec:
+  serviceAccountName: pod-create-sa
+  containers:
+    - name: pod-create-pod
+      image: ubuntu
+      command: [ "/bin/sh", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]

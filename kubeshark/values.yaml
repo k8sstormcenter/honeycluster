@@ -1,0 +1,7 @@
+tap:
+  regex: .*
+  namespaces: ["harbor"]
+  excludedNamespaces: ["redpanda", "vector"] 
+  enabledDissectors:
+  - http 
+

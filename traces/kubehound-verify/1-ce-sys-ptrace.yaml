@@ -1,0 +1,27 @@
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy
+metadata:
+  name: "detect-ce-sys-ptrace"
+spec:
+  kprobes:
+  - call: "sys_ptrace"
+    syscall: true
+    args:
+     - index: 2
+       type: "int"
+    selectors:
+    - matchActions:
+      - action: Post
+  - call: "sys_execve"
+    syscall: true
+    args:
+    - index: 0
+      type: "string"
+    selectors:
+    - matchArgs:
+      - index: 0
+        operator: "Postfix"
+        values:
+        - "gdb"
+    - matchActions:
+      - action: Post

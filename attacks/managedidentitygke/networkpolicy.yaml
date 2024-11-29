@@ -1,0 +1,15 @@
+kind: NetworkLogging
+apiVersion: networking.gke.io/v1alpha1
+metadata:
+  name: metadata-api-logging
+spec:
+  ingress:
+    - from:
+        - ipBlock:
+            cidr: 169.254.169.254/32
+      log: true
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 169.254.169.254/32
+      log: true

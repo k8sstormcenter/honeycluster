@@ -1,0 +1,20 @@
+# CE_SYS_PTRACE edge  https://hub.docker.com/r/andyneff/hello-world-gdb
+# TODO: build our own image for this
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kh-calibration-ce-2
+  labels:
+    app: kubehound-edge-test
+spec:
+  hostPID: true
+  containers:
+    - name: kh-calibration-ce-2-pod
+      image: andyneff/hello-world-gdb
+      command: [ "/bin/sh", "-c" ]
+      args: [ "gdb && while true; do sleep 30; done;" ]
+      securityContext:
+        capabilities:
+          add:
+          - SYS_PTRACE
+          - SYS_ADMIN

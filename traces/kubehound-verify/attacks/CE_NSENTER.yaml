@@ -1,0 +1,19 @@
+# CE_NS_ENTER edge
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kh-calibration-ce-1
+  labels:
+    app: kubehound-edge-test
+spec:
+  hostPID: true
+  containers:
+    - name: kh-calibration-ce-1-pod
+      image: ubuntu
+      securityContext:
+        privileged: true
+      command: [ "/bin/sh", "-c" ]
+      args: [ "nsenter -t 1 -a /bin/bash && while true; do sleep 300; done;" ]
+
+
+

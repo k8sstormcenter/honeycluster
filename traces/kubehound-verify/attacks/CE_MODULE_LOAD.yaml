@@ -1,0 +1,17 @@
+# CE_MODULE_LOAD edge
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kh-calibration-mod-load
+  labels:
+    app: kubehound-edge-test
+spec:
+  containers:
+    - name: kh-calibration-mod-load-pod
+      image: ubuntu
+      securityContext:
+        capabilities:
+          add: ["SYS_MODULE"]
+      command: [ "/bin/sh", "-c" ]
+      args: ["modprobe ip_tables && sleep 300"] 
+
