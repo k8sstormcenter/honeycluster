@@ -1,4 +1,4 @@
-externalURL: https://harbor.caas-0009.beta.oakshirley.com
+externalURL: https://xxxx
 expose:
   type: ingress
   tls:
