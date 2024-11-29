@@ -10,7 +10,8 @@ from stix2patterns.v21 import pattern
 REDIS_HOST = '127.0.0.1'
 REDIS_PORT = 6379
 REDIS_KEY = 'tetra'
-REDIS_OUTKEY = 'tetrastix'
+REDIS_OUTKEY = 'tetrasingle'
+REDIS_VISKEY = 'tetrastix'
 
 # Get the directory of the current script
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -433,6 +434,7 @@ def transform_tetragon_to_stix(tetragon_log):
         tetragon_log = json.loads(log.decode('utf-8'))  # Decode bytes to string
         UNIQUE = tetragon_log.get("md5_hash")
         stix_objects = []
+        # We need to bundle the observables differently 
         stix_bundle = {
             "type": "bundle",
             "id": generate_stix_id("bundle"),
@@ -463,6 +465,9 @@ def transform_tetragon_to_stix(tetragon_log):
                             break 
                     #TODO: The Stix Attack Pattern must be a list of many attack patterns (currently one)
                     client.rpush(redis_key, json.dumps(sanitize_bundle(stix_bundle)))
+                    #now we write the bundle to redis for the visualization to the viskey
+                    client.hset(REDIS_VISKEY,f"{ID}:{UNIQUE}", json.dumps(sanitize_bundle(stix_bundle)))
+                    print(f"Writing to Redis key: {REDIS_VISKEY}")
             except Exception as e:
                 print(f"Error extending bundle: {e}")
 
