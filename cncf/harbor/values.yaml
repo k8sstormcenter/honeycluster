@@ -6,7 +6,7 @@ expose:
     secretName: harbor-tls
   ingress:
     hosts:
-      core: harbor.caas-0009.beta.oakshirley.com
+      core: harbor.xxx
     annotations:
       kubernetes.io/ingress.class: "nginx"
       nginx.ingress.kubernetes.io/ssl-redirect: "false"
