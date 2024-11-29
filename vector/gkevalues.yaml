@@ -327,6 +327,8 @@ customConfig:
         - kubernetes_logs
       source: |
               . = parse_json!(.message)
+
+    
     # podlogs:
     #    type: remap
     #    inputs:
@@ -369,6 +371,12 @@ customConfig:
       key: "tetra {{ .message }}" # how to only insert uniques? HSETNX dataset <md5_hash> "<your_json_data>"
       encoding:
         codec: json
+    # redisbaseline: #TODO: here we want to be able to switch on and off the collection of the baseline
+    #   type: redis
+    #   inputs:
+    #     - dedupe
+    #   endpoint: redis://redis-headless.redpanda.svc.cluster.local:6379
+    #   key: "baseline {{ .md5_hash}}"
 
 
 
