@@ -15,7 +15,8 @@ spec:
     spec:
       containers:
       - name: stix-visualizer
-        image: ghcr.io/k8sstormcenter/cti-stix-visualizer:0.0.1
+        image: ghcr.io/k8sstormcenter/cti-stix-visualizer:0.0.2
+        imagePullPolicy: Always
         ports:
         - containerPort: 3000
         env:
