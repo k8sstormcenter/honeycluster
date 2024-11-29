@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stix-visualizer
+  namespace: redpanda
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stix-visualizer
+  template:
+    metadata:
+      labels:
+        app: stix-visualizer
+    spec:
+      containers:
+      - name: stix-visualizer
+        image: ghcr.io/k8sstormcenter/cti-stix-visualizer:0.0.1
+        ports:
+        - containerPort: 3000
+        env:
+        - name: PORT
+          value: "3000"
+        - name: REDIS_HOST
+          value: "redis-headless.redpanda.svc.cluster.local"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_KEY_PREFIX
+          value: "tetrastix"
