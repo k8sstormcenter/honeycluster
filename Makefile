@@ -13,7 +13,7 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 ##@ Scenario
 
 .PHONY: honey-up
-honey-up: tetragon-install vector redis traces  mongo #k8spin tracee
+honey-up: tetragon-install vector redis traces  mongo  stixviz#k8spin tracee
 
 
 
@@ -55,6 +55,9 @@ k8spin:
 	-$(HELM) upgrade --install kwasm-operator kwasm/kwasm-operator --namespace kwasm --create-namespace --set kwasmOperator.installerImage=ghcr.io/spinkube/containerd-shim-spin/node-installer:v0.16.0
 	-kubectl annotate node --all kwasm.sh/kwasm-node=true
 
+.PHONY: stixviz
+stixviz:
+	-kubectl apply -f test/cti-stix-vizualizer.yaml
 
 .PHONY: tracee
 tracee:
