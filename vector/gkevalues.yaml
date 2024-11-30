@@ -300,6 +300,8 @@ customConfig:
         .pre     = if exists(.process_exec) { "exec" } else { if exists(.process_exit) { "exit" } else { if exists(.process_kprobe){ "kpro" }  else { "1" } } }
         .key, err = to_string(.field1) + to_string(.field2) + to_string(.field3) + to_string(.field11) + to_string(.field22) + to_string(.field33)
         .md5_hash = to_string(md5(.key))
+        .dedup    = .md5_hash + to_string(.pre)
+        
 
     remove-fields:
       type: remap
@@ -320,7 +322,7 @@ customConfig:
       inputs:
         - remove-fields
       fields :
-        match: [.md5_hash]
+        match: [.dedup]
     modify:
       type: remap
       inputs:

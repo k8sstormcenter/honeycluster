@@ -6,3 +6,6 @@ spec:
   kprobes:
   - call: "sys_init_module"
     syscall: true
+    args:
+    - index: 0
+      type: "string"

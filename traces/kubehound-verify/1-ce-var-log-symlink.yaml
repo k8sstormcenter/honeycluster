@@ -4,18 +4,24 @@ metadata:
   name: "detect-ce-var-log-symlink"
 spec:
   kprobes:
-  - call: "sys_symlink"
+  - call: "sys_symlinkat"
     syscall: true
     args:
     - index: 0
       type: "string"
     - index: 1
+      type: "int"
+    - index: 2
       type: "string"
     selectors:
     - matchArgs:
       - index: 0
-        operator: "Postfix"
+        operator: "Prefix"
         values:
-        - "var-log"
+        - "/"
+      - index: 2
+        operator: "Equal"
+        values:
+        - "/host/var/log/root_link"
       matchActions:
       - action: Post  

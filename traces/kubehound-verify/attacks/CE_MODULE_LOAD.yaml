@@ -8,10 +8,13 @@ metadata:
 spec:
   containers:
     - name: kh-calibration-mod-load-pod
-      image: ubuntu
+      image: centos:latest
       securityContext:
+        privileged: true
         capabilities:
           add: ["SYS_MODULE"]
       command: [ "/bin/sh", "-c" ]
-      args: ["modprobe ip_tables && sleep 300"] 
+      args: ["lsmod && modprobe dummy && sleep 300"] 
 
+
+#https://www.baeldung.com/linux/docker-container-kernel-modules
