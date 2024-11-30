@@ -1,7 +1,7 @@
 [
 {
   "type": "bundle",
-  "id": "bundle--kubehound-attack-CE_NSENTER",
+  "id": "bundle--kubehound-attempt-CE_NSENTER",
   "name": "CE_NSENTER",
   "version": "1.0.0",
   "spec_version": "2.1",
@@ -10,7 +10,7 @@
         "type": "attack-pattern",
         "id": "attack-pattern--kh-ce-nsenter",
         "name": "CE_NSENTER",
-        "description": "Container Escape via NSENTER.",
+        "description": "Attempted Container Escape via NSENTER.",
         "external_references": [
           {
             "source_name": "Kubehound",
@@ -38,7 +38,7 @@
     ]},
 {
   "type": "bundle",
-  "id": "bundle--kubehound-attack-CE_SYS_PTRACE",
+  "id": "bundle--kubehound-attempt-CE_SYS_PTRACE",
   "name": "CE_SYS_PTRACE",
   "version": "1.0.0",
   "spec_version": "2.1",
@@ -47,13 +47,13 @@
       "type": "attack-pattern",
       "id": "attack-pattern--kh-ce-sys-ptrace",
       "name": "CE_SYS_PTRACE",
-      "description": "Using ptrace for process manipulation from a container."
+      "description": "Attempted use of GDB"
     },
     {
         "type": "indicator",
         "id": "indicator--kh-ce-sys-ptrace",
         "name": "Ptrace System Call from Container",
-        "description": "Detecting the use of the 'ptrace' system call from within a container, which can be used to manipulate other processes. TODO: thats not true",
+        "description": "Detecting the attempted use of the 'ptrace' system call from within a container, which can be used to manipulate other processes. TODO: thats not true",
         "pattern": "[process:command_line MATCHES '/usr/bin/gdb']",
         "pattern_type": "stix",
         "valid_from": "2024-01-01T00:00:00Z"
@@ -67,7 +67,7 @@
       }]
 },{
   "type": "bundle",
-  "id": "bundle--kubehound-attack-CE_PRIV_MOUNT",
+  "id": "bundle--kubehound-attempt-CE_PRIV_MOUNT",
   "name": "CE_PRIV_MOUNT",
   "version": "1.0.0",
   "spec_version": "2.1",
@@ -97,7 +97,7 @@
     }
 ,{
     "type": "bundle",
-    "id": "bundle--kubehound-attack-CE_MODULE_LOAD",
+    "id": "bundle--kubehound-attempt-CE_MODULE_LOAD",
     "name": "CE_MODULE_LOAD",
     "version": "1.0.0",
     "spec_version": "2.1",
@@ -125,6 +125,39 @@
           "target_ref": "attack-pattern--kh-ce-module-load"
         }]
   }
+  ,{
+    "type": "bundle",
+    "id": "bundle--kubehound-attempt-CE_NET_MITM",
+    "name": "CE_NET_MITM",
+    "version": "1.0.0",
+    "spec_version": "2.1",
+    "objects": [
+      {
+        "type": "attack-pattern",
+        "id": "attack-pattern--kh-ce-net-mitm",
+        "name": "CE_NET_MITM",
+        "description": "Attempting to tamper with iptables and trying to run mitmdump."
+      },
+      {
+          "type": "indicator",
+          "id": "indicator--kh-ce-net-mitm",
+          "name": "Modprobe from within Container",
+          "description": "Detecting an attempt to tamper with iptables",
+          "pattern": "[process:command_line MATCHES 'iptables -t nat -A PREROUTING' AND process:command_line MATCHES 'mitmdump']",
+          "pattern_type": "stix",
+          "valid_from": "2024-01-01T00:00:00Z"
+        },
+        {
+          "type": "relationship",
+          "id": "relationship--kh-ce-net-mitm",
+          "relationship_type": "indicates",
+          "source_ref": "indicator--kh-ce-net-mitm",
+          "target_ref": "attack-pattern--kh-ce-net-mitm"
+        }]
+  }
 ]
+
+
+
 
 
