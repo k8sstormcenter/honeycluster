@@ -9,10 +9,11 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 calibrate: calibration-traces calibration-attack
 
 # wipe all the stuff accumulated in REDIS ... just in case its nonsense... just saying :) 
-wipe:  remove-calibration-attack remove-calibration-traces redis-wipe
+wipe:  remove-calibration-attack remove-calibration-traces 
 
 
-# Target to flush Redis database
+# Target to flush Redis database #Doesnt work since that features is blocked in most containers
+# TODO: think if you really want a full wipe
 redis-wipe:
 	@echo "Flushing Redis database..."
 	@REDIS_POD=$$(kubectl get pods -n redpanda -l app.kubernetes.io/name=redis -o jsonpath="{.items[0].metadata.name}");\
@@ -22,29 +23,34 @@ redis-wipe:
 .PHONY:
 calibration-traces: 
 	@echo "Calibrating traces"
-	kubectl apply -f traces/kubehound-verify/1-ce-nsenter.yaml
-	kubectl apply -f traces/kubehound-verify/1-ce-priv-mount.yaml
-	kubectl apply -f traces/kubehound-verify/1-ce-sys-ptrace.yaml
+	#kubectl apply -f traces/kubehound-verify/1-ce-nsenter.yaml
+	#kubectl apply -f traces/kubehound-verify/1-ce-priv-mount.yaml
+	#kubectl apply -f traces/kubehound-verify/1-ce-sys-ptrace.yaml
+	kubectl apply -f traces/kubehound-verify/1-ce-module-load.yaml
 
 
 .PHONY: calibration-attack
 calibration-attack: 
 	@echo "Attacking"
-	-kubectl apply -f traces/kubehound-verify/attacks/CE_NSENTER.yaml
-	-kubectl apply -f traces/kubehound-verify/attacks/CE_PRIV_MOUNT.yaml
-	-kubectl apply -f traces/kubehound-verify/attacks/CE_SYS_PTRACE.yaml
+	#-kubectl apply -f traces/kubehound-verify/attacks/CE_NSENTER.yaml && kubectl exec -n default kh-calibration-ce-1 -- nsenter -t 1 -a /bin/bash 
+	#-kubectl apply -f traces/kubehound-verify/attacks/CE_PRIV_MOUNT.yaml
+	#-kubectl apply -f traces/kubehound-verify/attacks/CE_SYS_PTRACE.yaml
+	-kubectl apply -f traces/kubehound-verify/attacks/CE_MODULE_LOAD.yaml
 
 
 .PHONY: remove-calibration-attack	
 remove-calibration-attack:
 	@echo "Removing calibration attack"
-	-kubectl delete -f traces/kubehound-verify/attacks/CE_NSENTER.yaml
-	-kubectl delete -f traces/kubehound-verify/attacks/CE_PRIV_MOUNT.yaml
-	-kubectl delete -f traces/kubehound-verify/attacks/CE_SYS_PTRACE.yaml
+	#-kubectl delete -f traces/kubehound-verify/attacks/CE_NSENTER.yaml
+	#-kubectl delete -f traces/kubehound-verify/attacks/CE_PRIV_MOUNT.yaml
+	#-kubectl delete -f traces/kubehound-verify/attacks/CE_SYS_PTRACE.yaml
+	-kubectl delete -f traces/kubehound-verify/attacks/CE_MODULE_LOAD.yaml
+
 
 .PHONY: remove-calibration-traces		
 remove-calibration-traces:
 	@echo "Rmoving calibration traces"
-	-kubectl delete -f traces/kubehound-verify/1-ce-nsenter.yaml
-	-kubectl delete -f traces/kubehound-verify/1-ce-priv-mount.yaml
-	-kubectl delete -f traces/kubehound-verify/1-ce-sys-ptrace.yaml
+	#-kubectl delete -f traces/kubehound-verify/1-ce-nsenter.yaml
+	#-kubectl delete -f traces/kubehound-verify/1-ce-priv-mount.yaml
+	#-kubectl delete -f traces/kubehound-verify/1-ce-sys-ptrace.yaml
+	-kubectl delete -f traces/kubehound-verify/1-ce-module-load.yaml

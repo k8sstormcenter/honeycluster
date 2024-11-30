@@ -53,7 +53,7 @@
         "type": "indicator",
         "id": "indicator--kh-ce-sys-ptrace",
         "name": "Ptrace System Call from Container",
-        "description": "Detecting the use of the 'ptrace' system call from within a container, which can be used to manipulate other processes.",
+        "description": "Detecting the use of the 'ptrace' system call from within a container, which can be used to manipulate other processes. TODO: thats not true",
         "pattern": "[process:command_line MATCHES '/usr/bin/gdb']",
         "pattern_type": "stix",
         "valid_from": "2024-01-01T00:00:00Z"
@@ -94,5 +94,37 @@
         "source_ref": "indicator--kh-ce-priv-mount",
         "target_ref": "attack-pattern--kh-ce-priv-mount"
       }]
-}
+    }
+,{
+    "type": "bundle",
+    "id": "bundle--kubehound-attack-CE_MODULE_LOAD",
+    "name": "CE_MODULE_LOAD",
+    "version": "1.0.0",
+    "spec_version": "2.1",
+    "objects": [
+      {
+        "type": "attack-pattern",
+        "id": "attack-pattern--kh-ce-module-load",
+        "name": "CE_MODULE_LOAD",
+        "description": "Loading kernel modules from inside a container."
+      },
+      {
+          "type": "indicator",
+          "id": "indicator--kh-ce-module-load",
+          "name": "Modprobe from within Container",
+          "description": "Detecting an attempt to execute modprobe",
+          "pattern": "[process:command_line MATCHES 'modprobe']",
+          "pattern_type": "stix",
+          "valid_from": "2024-01-01T00:00:00Z"
+        },
+        {
+          "type": "relationship",
+          "id": "relationship--kh-ce-module-load",
+          "relationship_type": "indicates",
+          "source_ref": "indicator--kh-ce-module-load",
+          "target_ref": "attack-pattern--kh-ce-module-load"
+        }]
+  }
 ]
+
+
