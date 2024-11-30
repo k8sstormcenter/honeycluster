@@ -27,7 +27,8 @@ calibration-traces:
 	#kubectl apply -f traces/kubehound-verify/1-ce-priv-mount.yaml
 	#kubectl apply -f traces/kubehound-verify/1-ce-sys-ptrace.yaml
 	#kubectl apply -f traces/kubehound-verify/1-ce-module-load.yaml
-	kubectl apply -f traces/kubehound-verify/1-ce-net-mitm.yaml
+	#kubectl apply -f traces/kubehound-verify/1-ce-net-mitm.yaml
+	kubectl apply -f traces/kubehound-verify/1-ce-var-log-symlink.yaml
 
 
 .PHONY: calibration-attack
@@ -37,7 +38,8 @@ calibration-attack:
 	#-kubectl apply -f traces/kubehound-verify/attacks/CE_PRIV_MOUNT.yaml
 	#-kubectl apply -f traces/kubehound-verify/attacks/CE_SYS_PTRACE.yaml
 	#-kubectl apply -f traces/kubehound-verify/attacks/CE_MODULE_LOAD.yaml
-	-kubectl apply -f traces/kubehound-verify/attacks/CE_NET_MITM.yaml
+	#-kubectl apply -f traces/kubehound-verify/attacks/CE_NET_MITM.yaml
+	-kubectl apply -f traces/kubehound-verify/attacks/CE_VAR_LOG_SYMLINK.yaml
 
 
 .PHONY: remove-calibration-attack	
@@ -47,7 +49,8 @@ remove-calibration-attack:
 	#-kubectl delete -f traces/kubehound-verify/attacks/CE_PRIV_MOUNT.yaml
 	#-kubectl delete -f traces/kubehound-verify/attacks/CE_SYS_PTRACE.yaml
 	#-kubectl delete -f traces/kubehound-verify/attacks/CE_MODULE_LOAD.yaml
-	-kubectl delete -f traces/kubehound-verify/attacks/CE_NET_MITM.yaml
+	#-kubectl delete -f traces/kubehound-verify/attacks/CE_NET_MITM.yaml
+	-kubectl delete -f traces/kubehound-verify/attacks/CE_VAR_LOG_SYMLINK.yaml
 
 
 
@@ -58,4 +61,5 @@ remove-calibration-traces:
 	#-kubectl delete -f traces/kubehound-verify/1-ce-priv-mount.yaml
 	#-kubectl delete -f traces/kubehound-verify/1-ce-sys-ptrace.yaml
 	#-kubectl delete -f traces/kubehound-verify/1-ce-module-load.yaml
-	-kubectl delete -f traces/kubehound-verify/1-ce-net-mitm.yaml
+	#-kubectl delete -f traces/kubehound-verify/1-ce-net-mitm.yaml
+	-kubectl delete -f traces/kubehound-verify/1-ce-var-log-symlink.yaml

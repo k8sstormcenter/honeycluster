@@ -44,7 +44,7 @@ spec:
       - mountPath: /host/var/log
         name: nodelog
       command: [ "/bin/sh", "-c", "--" ]
-      args: [ "while true; do sleep 30; done;" ]
+      args: [ "ln -s / /host/var/log/root_link &&  sleep 30 && rm -f /host/var/log/root_link" ]
   serviceAccountName: varlog-sa
   volumes:
     - name: nodelog

@@ -155,7 +155,43 @@
           "target_ref": "attack-pattern--kh-ce-net-mitm"
         }]
   }
+  ,{
+    "type": "bundle",
+    "id": "bundle--kubehound-attempt-CE_VAR_LOG_SYMLINK",
+    "name": "CE_VAR_LOG_SYMLINK",
+    "version": "1.0.0",
+    "spec_version": "2.1",
+    "objects": [
+      {
+        "type": "attack-pattern",
+        "id": "attack-pattern--kh-ce-var-log-symlink",
+        "name": "CE_VAR_LOG_SYMLINK",
+        "description": "Attempting to tamper with iptables and trying to run mitmdump."
+      },
+      {
+          "type": "indicator",
+          "id": "indicator--kh-ce-var-log-symlink",
+          "name": "Modprobe from within Container",
+          "description": "Detecting an attempt to tamper with iptables",
+          "pattern": "[process:command_line MATCHES 'ln -s' AND process:command_line MATCHES '/var/log']",
+          "pattern_type": "stix",
+          "valid_from": "2024-01-01T00:00:00Z"
+        },
+        {
+          "type": "relationship",
+          "id": "relationship--kh-ce-var-log-symlink",
+          "relationship_type": "indicates",
+          "source_ref": "indicator--kh-ce-var-log-symlink",
+          "target_ref": "attack-pattern--kh-ce-var-log-symlink"
+        }]
+  }
 ]
+
+
+
+
+
+
 
 
 
