@@ -28,3 +28,27 @@ spec:
           value: "6379"
         - name: REDIS_KEY_PREFIX
           value: "tetrastix"
+  #  securityContext:  # TODO add sec defaults, its running as nonroot and needs no caps
+  #    runAsUser: 1000
+  #    runAsGroup: 1000
+  #    fsGroup: 1000
+  #    fsGroupChangePolicy: OnRootMismatch
+  #    seccompProfile:
+  #      type: RuntimeDefault
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: stix-visualizer
+  namespace: redpanda
+spec:
+  selector:
+    app: stix-visualizer
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
