@@ -24,7 +24,7 @@
         "id": "indicator--kh-ce-nsenter",
         "name": "Container Module Loading",
         "description": "Calibration test",
-        "pattern": "[process:command_line = '/usr/bin/nsenter -t 1 -a bash']",
+        "pattern": "[process:command_line MATCHES '/usr/bin/nsenter -t 1']",
         "pattern_type": "stix",
         "valid_from": "2024-01-01T00:00:00Z"
       },
