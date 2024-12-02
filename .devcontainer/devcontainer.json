@@ -8,7 +8,7 @@
 		},
 		"features": {
 			"ghcr.io/nikobockerman/devcontainer-features/poetry-persistent-cache:1": {}
-		}
+		},
 		"runArgs": [
 		  "--network=host"
 		],

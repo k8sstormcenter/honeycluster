@@ -69,3 +69,5 @@ spec:
       - name: check-script-volume
         configMap:
           name: check-script
+
+# kubectl create configmap check-script -n storm --from-file=check.sh

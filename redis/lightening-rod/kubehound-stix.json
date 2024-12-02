@@ -1,7 +1,7 @@
 [
 {
   "type": "bundle",
-  "id": "bundle--kubehound-attempt-CE_NSENTER",
+  "id": "1",
   "name": "CE_NSENTER",
   "version": "1.0.0",
   "spec_version": "2.1",
@@ -38,7 +38,7 @@
     ]},
 {
   "type": "bundle",
-  "id": "bundle--kubehound-attempt-CE_SYS_PTRACE",
+  "id": "2",
   "name": "CE_SYS_PTRACE",
   "version": "1.0.0",
   "spec_version": "2.1",
@@ -67,7 +67,7 @@
       }]
 },{
   "type": "bundle",
-  "id": "bundle--kubehound-attempt-CE_PRIV_MOUNT",
+  "id": "3",
   "name": "CE_PRIV_MOUNT",
   "version": "1.0.0",
   "spec_version": "2.1",
@@ -97,7 +97,7 @@
     }
 ,{
     "type": "bundle",
-    "id": "bundle--kubehound-attempt-CE_MODULE_LOAD",
+    "id": "5",
     "name": "CE_MODULE_LOAD",
     "version": "1.0.0",
     "spec_version": "2.1",
@@ -127,7 +127,7 @@
   }
   ,{
     "type": "bundle",
-    "id": "bundle--kubehound-attempt-CE_NET_MITM",
+    "id": "4",
     "name": "CE_NET_MITM",
     "version": "1.0.0",
     "spec_version": "2.1",
@@ -157,7 +157,7 @@
   }
   ,{
     "type": "bundle",
-    "id": "bundle--kubehound-attempt-CE_VAR_LOG_SYMLINK",
+    "id": "6",
     "name": "CE_VAR_LOG_SYMLINK",
     "version": "1.0.0",
     "spec_version": "2.1",
@@ -171,7 +171,7 @@
       {
           "type": "indicator",
           "id": "indicator--kh-ce-var-log-symlink",
-          "name": "Modprobe from within Container",
+          "name": "Symlink to log dir",
           "description": "Detecting an attempt to tamper with iptables",
           "pattern": "[process:command_line MATCHES 'ln -s' AND process:command_line MATCHES '/var/log']",
           "pattern_type": "stix",
