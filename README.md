@@ -1,6 +1,10 @@
 # K8sStormCenter HoneyCluster
 
-Welcome to the K8sStormCenter HoneyCluster repository. Here you will find everything you need to set up your own HoneyCluster, a Kubernetes cluster that is instrumented with bait and tripwires to collect data on the attacks carried out against it and the ways in which it is targeted. With our complimentary [WIP](https://github.com/k8sstormcenter/threatintel) repository, you can then use this data to visualize, understand and detect these attacks.
+> [!NOTE]
+> I'm currently rewriting about 90% of the underlying stack, so expect quite some breaking changes until end of 2024. I'm aiming at a stablilization in January '25
+> The focus of the rewrite is to give it an achievable UX and a lightweight footprint
+
+Welcome to the K8sStormCenter HoneyCluster repository. Here you will find everything you need to set up your own HoneyCluster, a Kubernetes cluster that is instrumented with bait and tripwires to collect data on the attacks carried out against it and the ways in which it is targeted. WIP: With our complimentary [cti-stix-visualizater](https://github.com/k8sstormcenter/cti-stix-visualization) , you can then use this data to visualize, understand and detect these attacks.
 
 
 
@@ -117,6 +121,7 @@ In order to set up your own HoneyCluster, you first need a Kubernetes cluster on
 ```bash
 make cluster-up
 ```
+> !NOTE
 
 
 ### 2. Set up the HoneyCluster
@@ -138,14 +143,29 @@ While in `Calibration Mode` , you ll likely want to run your python scripts over
 
 ```bash
 kubectl port-forward service/redis-headless -n redpanda 6379:6379
-kubectl port-forward pod/stix-visualizer-<UUID> -n redpanda 3000:3000
+kubectl port-forward service/stix-visualizer -n redpanda 80:3000
 ```
-TODO: properly deploy the visualizer, with a service and all.
 
 
-After port-forwarding, (and running the python scripts)you can access the detected hash-entries in redis via the UI [http://localhost:30000](http://localhost:30000). WIP: the amazing design will get better (as it cant get worse)
+After port-forwarding, (and running the python scripts)you can access the detected hash-entries in redis via the UI [http://localhost:30000](http://localhost:30000). WIP !!
 
-TODO: picture here
+Attack yourself with the calibration attacks 1-by-1 or as you like (please un/comment in the Makefile respectively)
+```
+make --makefile=Makefile_calibrate_kubehound calibrate
+```
+
+Then, you need to create your `STIX-bundles` , WIP currently manually
+```
+cd redis/log-notebook/
+poetry run python manual.py
+```
+
+You can then look at the Visualisation (WIP, it has hiccups, feel free to suggest improvements):
+
+<img width="1426" alt="Screenshot 2024-12-02 at 12 24 46" src="https://github.com/user-attachments/assets/b1b064f4-55ec-4cb2-9370-5f5fb3d104e2">
+
+
+
 
 ### 3. Baseline Redaction  (DEPRECATED)
 
