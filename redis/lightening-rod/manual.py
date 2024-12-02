@@ -11,6 +11,7 @@ REDIS_HOST = '127.0.0.1'
 REDIS_PORT = 6379
 REDIS_KEY = 'tetra'
 REDIS_OUTKEY = 'tetrasingle'
+REDIS_VISKEYSINGLE = 'tetrastixsingle'
 REDIS_VISKEY = 'tetrastix'
 
 # Get the directory of the current script
@@ -233,19 +234,25 @@ def matches(pattern, bundle, stix_version=STIX_VERSION):
 def transform_tetragon_to_stix(tetragon_log):
 
     client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
-
-
+    stix_objects = []
+    IDFULL =""
+    stix_bundle = {
+        "type": "bundle",
+        "id": generate_stix_id("bundle"),
+        "spec_version": "2.1",
+        "objects": [],
+    }
     for log in tetragon_log:
         tetragon_log = json.loads(log.decode('utf-8'))  # Decode bytes to string
         UNIQUE = tetragon_log.get("md5_hash")
-        stix_objects = []
-        # We need to bundle the observables differently 
-        stix_bundle = {
-            "type": "bundle",
-            "id": generate_stix_id("bundle"),
-            "spec_version": "2.1",
-            "objects": [],
-        }
+        # stix_objects = []
+        # # We need to bundle the observables differently 
+        # stix_bundle = {
+        #     "type": "bundle",
+        #     "id": generate_stix_id("bundle"),
+        #     "spec_version": "2.1",
+        #     "objects": [],
+        # }
         if "process_exec" in tetragon_log:
             stix_objects = transform_process_exec_to_stix(tetragon_log["process_exec"])
 
@@ -258,6 +265,7 @@ def transform_tetragon_to_stix(tetragon_log):
             try:
                 stix_bundle["objects"].extend(stix_objects)
                 PATTERN,ID =get_pattern(STIX_ATTACK_PATTERN)
+                IDFULL = IDFULL + ID
                 if matches(PATTERN, stix_bundle):
                     print("success")
             #         #for each pattern we check if an observable matches and write all matches to redis after appending the STIX_PATTERN ID to the observed-data.object_refs list
@@ -269,13 +277,14 @@ def transform_tetragon_to_stix(tetragon_log):
                             obj["object_refs"].append(ID)
                             break 
                     #TODO: The Stix Attack Pattern must be a list of many attack patterns (currently one)
-                    client.rpush(redis_key, json.dumps(sanitize_bundle(stix_bundle)))
+                    #client.rpush(redis_key, json.dumps(sanitize_bundle(stix_bundle)))
                     #now we write the bundle to redis for the visualization to the viskey
-                    client.hset(REDIS_VISKEY,f"{ID}:{UNIQUE}", json.dumps(sanitize_bundle(stix_bundle)))
+                    client.hset(REDIS_VISKEYSINGLE,f"{ID}:{UNIQUE}", json.dumps(sanitize_bundle(stix_bundle)))
                     print(f"Writing to Redis key: {REDIS_VISKEY}")
             except Exception as e:
                 print(f"Error extending bundle: {e}")
-
+    client.rpush(redis_key, json.dumps(sanitize_bundle(stix_bundle)))
+    client.hset(REDIS_VISKEY,f"{IDFULL}", json.dumps(sanitize_bundle(stix_bundle)))
     return stix_bundle
 
 

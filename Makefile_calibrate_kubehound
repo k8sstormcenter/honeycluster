@@ -23,12 +23,12 @@ redis-wipe:
 .PHONY:
 calibration-traces: 
 	@echo "Calibrating traces"
-	#kubectl apply -f traces/kubehound-verify/1-ce-nsenter.yaml
-	#kubectl apply -f traces/kubehound-verify/1-ce-priv-mount.yaml
-	#kubectl apply -f traces/kubehound-verify/1-ce-sys-ptrace.yaml
-	#kubectl apply -f traces/kubehound-verify/1-ce-module-load.yaml
-	#kubectl apply -f traces/kubehound-verify/1-ce-net-mitm.yaml
-	kubectl apply -f traces/kubehound-verify/1-ce-var-log-symlink.yaml
+	#kubectl apply -f traces/kubehound-verify/traces/1-ce-nsenter.yaml
+	#kubectl apply -f traces/kubehound-verify/traces/1-ce-priv-mount.yaml
+	#kubectl apply -f traces/kubehound-verify/traces/1-ce-sys-ptrace.yaml
+	#kubectl apply -f traces/kubehound-verify/traces/1-ce-module-load.yaml
+	#kubectl apply -f traces/kubehound-verify/traces/1-ce-net-mitm.yaml
+	kubectl apply -f traces/kubehound-verify/traces/1-ce-var-log-symlink.yaml
 
 
 .PHONY: calibration-attack
@@ -57,9 +57,9 @@ remove-calibration-attack:
 .PHONY: remove-calibration-traces		
 remove-calibration-traces:
 	@echo "Rmoving calibration traces"
-	#-kubectl delete -f traces/kubehound-verify/1-ce-nsenter.yaml
-	#-kubectl delete -f traces/kubehound-verify/1-ce-priv-mount.yaml
-	#-kubectl delete -f traces/kubehound-verify/1-ce-sys-ptrace.yaml
-	#-kubectl delete -f traces/kubehound-verify/1-ce-module-load.yaml
-	#-kubectl delete -f traces/kubehound-verify/1-ce-net-mitm.yaml
-	-kubectl delete -f traces/kubehound-verify/1-ce-var-log-symlink.yaml
+	#-kubectl delete -f traces/kubehound-verify/traces/1-ce-nsenter.yaml
+	#-kubectl delete -f traces/kubehound-verify/traces/1-ce-priv-mount.yaml
+	#-kubectl delete -f traces/kubehound-verify/traces/1-ce-sys-ptrace.yaml
+	#-kubectl delete -f traces/kubehound-verify/traces/1-ce-module-load.yaml
+	#-kubectl delete -f traces/kubehound-verify/traces/1-ce-net-mitm.yaml
+	-kubectl delete -f traces/kubehound-verify/traces/1-ce-var-log-symlink.yaml
