@@ -11,7 +11,10 @@ REDIS_HOST = '127.0.0.1'
 REDIS_PORT = 6379
 REDIS_KEY = 'tetra'
 REDIS_OUTKEY = 'tetrasingle'
-REDIS_VISKEY = 'tetrastix'
+REDIS_VISKEY = 'tetrastix2'
+REDIS_BUNDLEKEY = 'tetra_bundle'
+REDIS_BUNDLEVISKEY = 'tetrastix'
+
 
 # Get the directory of the current script
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -258,16 +261,18 @@ def transform_tetragon_to_stix(tetragon_log):
             try:
                 stix_bundle["objects"].extend(stix_objects)
                 PATTERN,ID =get_pattern(STIX_ATTACK_PATTERN)
+                IDD= STIX_ATTACK_PATTERN["id"]
                 if matches(PATTERN, stix_bundle):
                     print("success")
             #         #for each pattern we check if an observable matches and write all matches to redis after appending the STIX_PATTERN ID to the observed-data.object_refs list
                     redis_key = f"{REDIS_OUTKEY}:{ID}:{UNIQUE}"
-                    stix_bundle["objects"].extend(STIX_ATTACK_PATTERN["objects"])
                     print(stix_bundle["objects"])
                     for obj in stix_bundle["objects"]:
                         if obj["type"] == "observed-data":
                             obj["object_refs"].append(ID)
                             break 
+                    client.hset(REDIS_BUNDLEKEY,f"{IDD}:{UNIQUE}", json.dumps(sanitize_bundle(stix_bundle)))
+                    stix_bundle["objects"].extend(STIX_ATTACK_PATTERN["objects"])
                     #TODO: The Stix Attack Pattern must be a list of many attack patterns (currently one)
                     client.rpush(redis_key, json.dumps(sanitize_bundle(stix_bundle)))
                     #now we write the bundle to redis for the visualization to the viskey
@@ -277,6 +282,48 @@ def transform_tetragon_to_stix(tetragon_log):
                 print(f"Error extending bundle: {e}")
 
     return stix_bundle
+
+
+def pattern_to_int(ID, id_map):
+    if ID not in id_map:
+        id_map[ID] = len(id_map) + 1
+    return id_map[ID]
+    
+
+def group_bundles(individual_bundles):
+    client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
+    idmap = {}
+    stix_bundle_array = {} #maybe the python dict is not the best data structure for this
+    for key, value in individual_bundles.items():
+        stix_bundle = json.loads(value)
+        k= key.decode('utf-8').split(":")[0]
+        ID = int(k) #the ID is the first part of the key
+        print(k)
+        # Now we sort the bundles by the ID
+        #if the ID hasnt been seen before we create the header
+        if ID not in  stix_bundle_array:
+            stix_bundle_array[ID] = {
+                "type": "bundle",
+                "id": "bundle-"+k,
+                "name": str(ID),
+                "spec_version": "2.1",
+                "objects": [],
+            }
+        stix_bundle_array[ID]["objects"].extend(stix_bundle["objects"])
+    # Now we are done with all the observed-data objects in one bundle per attack pattern, we finally appent only once the header
+    for STIX_ATTACK_PATTERN in STIX_ATTACK_PATTERNS:
+        ID= int(STIX_ATTACK_PATTERN["id"])
+        PATTERN,LONGID =get_pattern(STIX_ATTACK_PATTERN)
+        if ID  in  stix_bundle_array:
+            stix_bundle_array[ID]["objects"].extend(STIX_ATTACK_PATTERN["objects"])
+            for obj in stix_bundle_array[ID]["objects"]:
+                if obj["type"] == "observed-data":
+                    obj["object_refs"].append(LONGID)
+                    print(LONGID)
+                    break 
+            client.hset(REDIS_BUNDLEVISKEY,f"{ID}", json.dumps(sanitize_bundle(stix_bundle_array[ID])))
+
+    return stix_bundle_array
 
 
 def get_hash(tetragon_log):
@@ -294,9 +341,13 @@ def main():
 
 
     # Read Tetragon logs from Redis
-    tetragon_logs = client.lrange(REDIS_KEY, 0, -1)
+    tetragon_logs = client.lrange(REDIS_KEY, -50, -1)
     #extract the hash from each log
     bundle = transform_tetragon_to_stix(tetragon_logs)
+
+    #now as a second step we bundle the bundles
+    individual_bundles = client.hgetall(REDIS_BUNDLEKEY)
+    trees = group_bundles(individual_bundles)
 
     #print(json.dumps(sanitize_bundle(bundle), indent=4))
 

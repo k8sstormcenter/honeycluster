@@ -57,7 +57,7 @@ k8spin:
 
 .PHONY: stixviz
 stixviz:
-	-kubectl apply -f test/cti-stix-vizualizer.yaml
+	-kubectl apply -f test/cti-stix-visualizer.yaml
 
 .PHONY: tracee
 tracee:

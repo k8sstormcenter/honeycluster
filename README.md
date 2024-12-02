@@ -156,7 +156,8 @@ make --makefile=Makefile_calibrate_kubehound calibrate
 
 Then, you need to create your `STIX-bundles` , WIP currently manually
 ```
-cd redis/log-notebook/
+cd redis/lightening-rod
+poetry install
 poetry run python manual.py
 ```
 
