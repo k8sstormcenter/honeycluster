@@ -30,6 +30,18 @@ client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
 # Furture features will also include a backup/restore option to file
 # In a future enterprise version, you will be able to let the AI/RAG generate the patterns for you
 
+@app.route('/convert_to_stix', methods=['GET'])
+def convert_to_stix():
+    offset = int(request.args.get('i', 30)) 
+    # Read Tetragon logs from Redis #yes, this is not a secure way to query a DB, please fix
+    tetragon_logs = client.lrange(REDIS_KEY, -offset, -1)
+    #extract the hash from each log
+    bundle = transform_tetragon_to_stix(tetragon_logs)
+
+    #now as a second step we bundle the bundles
+    individual_bundles = client.hgetall(REDIS_BUNDLEKEY)
+    trees = group_bundles(individual_bundles)
+    return jsonify({"message": "STIX conversion successful"}), 200
 
 @app.route('/add_attack_bundle', methods=['POST'])
 def add_attack_bundle():
