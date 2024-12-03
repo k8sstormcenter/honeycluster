@@ -12,6 +12,9 @@ python = "^3.9"
 redis = "^5.2.0"
 stix2 = "^3.0.0"
 stix2-matcher = "^3.0.0"
+flask = "^2.1.2"
+setuptools = ">=65.5.1"
+
 
 
 [build-system]
