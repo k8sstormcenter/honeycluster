@@ -38,7 +38,7 @@ wipe:
 
 .PHONY: cluster-up
 cluster-up: kind ## Create the kind cluster
-	$(KIND) create cluster --name $(CLUSTER_NAME) 
+	$(KIND) create cluster --name $(CLUSTER_NAME)  
 	-$(HELM) repo add jetstack https://charts.jetstack.io
 	-$(HELM) repo update
 	-$(HELM) upgrade --install cert-manager jetstack/cert-manager --set installCRDs=true --namespace cert-manager  --create-namespace
