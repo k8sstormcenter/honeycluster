@@ -379,6 +379,7 @@ def group_bundles(individual_bundles):
         stix_bundle_array[ID]["objects"].extend(stix_bundle["objects"])
     # Now we are done with all the observed-data objects in one bundle per attack pattern, we finally appent only once the header
     for STIX_ATTACK_PATTERN in STIX_ATTACK_PATTERNS:
+        print(STIX_ATTACK_PATTERN)
         ID= int(STIX_ATTACK_PATTERN["id"])
         PATTERN,LONGID =get_pattern(STIX_ATTACK_PATTERN)
         if ID  in  stix_bundle_array:
