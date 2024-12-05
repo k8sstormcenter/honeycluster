@@ -1,36 +1,113 @@
 import uuid
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
+from flask import Flask, request, jsonify
 import redis
 from stix2matcher.matcher import match
 from stix2 import Bundle, Process, Indicator
 from stix2patterns.v21 import pattern
 
-REDIS_HOST = '127.0.0.1'
-REDIS_PORT = 6379
-REDIS_KEY = 'tetra'
-REDIS_OUTKEY = 'tetrasingle'
-REDIS_VISKEY = 'tetrastix2'
-REDIS_BUNDLEKEY = 'tetra_bundle'
-REDIS_BUNDLEVISKEY = 'tetrastix'
+
+# Initialize Flask app
+app = Flask(__name__)
+
+REDIS_HOST = os.getenv('REDIS_HOST', '127.0.0.1')
+REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
+REDIS_KEY = os.getenv('REDIS_KEY', 'tetra')
+REDIS_OUTKEY = os.getenv('REDIS_OUTKEY', 'tetrasingle')
+REDIS_VISKEY = os.getenv('REDIS_VISKEY', 'tetrastix2')
+REDIS_BUNDLEKEY = os.getenv('REDIS_BUNDLEKEY', 'tetra_bundle')
+REDIS_BUNDLEVISKEY = os.getenv('REDIS_BUNDLEVISKEY', 'tetrastix')
+REDIS_PATTERNKEY = os.getenv('REDIS_PATTERNKEY', 'tetra_pattern')
+
+client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
+# in this app you can calibrate the attack patterns that you will use in the real time processing
+# so, you have the kubehound-stix.json as a reference, but its very trivial
+# The real patterns should be stored in Redis for efficient processing
+# You can test them one by one or all at once
+# Once you are happy with your set of patterns, you should persist them to MongoDB 
+# Furture features will also include a backup/restore option to file
+# In a future enterprise version, you will be able to let the AI/RAG generate the patterns for you
+
+@app.route('/convert_to_stix', methods=['GET'])
+def convert_to_stix():
+    offset = int(request.args.get('i', 30)) 
+    # Read Tetragon logs from Redis #yes, this is not a secure way to query a DB, please fix
+    tetragon_logs = client.lrange(REDIS_KEY, -offset, -1)
+    #extract the hash from each log
+    bundle = transform_tetragon_to_stix(tetragon_logs)
+
+
+    #now as a second step we bundle the bundles
+    individual_bundles = client.hgetall(REDIS_BUNDLEKEY)
+    trees = group_bundles(individual_bundles)
+    return jsonify({"message": "STIX conversion successful"}), 200
+
+@app.route('/add_attack_bundle', methods=['POST'])
+def add_attack_bundle():
+    data = request.json
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+
+    try:
+        #count the number of keys in the bundle and add one
+        #important that you use contiguous integers as keys
+        bundle_id = str(len(client.hgetall(REDIS_PATTERNKEY)) + 1)
+        client.hset(REDIS_PATTERNKEY, bundle_id, json.dumps(data))
+        return jsonify({"message": "STIX attack bundle added successfully", "bundle_id": bundle_id}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/get_attack_bundles', methods=['GET'])
+def get_attack_bundles():
+    try:
+        bundles = client.hgetall(REDIS_PATTERNKEY)
+        bundles = {k.decode('utf-8'): json.loads(v) for k, v in bundles.items()}
+        return jsonify(bundles), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/delete_attack_bundle/<bundle_id>', methods=['DELETE'])
+def delete_attack_bundle(bundle_id):
+    try:
+        client.hdel(REDIS_BUNDLEKEY, bundle_id)
+        return jsonify({"message": "STIX bundle deleted successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 
 # Get the directory of the current script
-script_dir = os.path.dirname(os.path.abspath(__file__))
-json_file_path = os.path.join(script_dir, 'kubehound-stix.json')
+#In absence of a database, we will use a JSON file to provide some attack patterns
+def get_attack_patterns():
+    try:
+        attack_patterns = client.hgetall(REDIS_PATTERNKEY)
+        if not attack_patterns:
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            json_file_path = os.path.join(script_dir, 'kubehound-stix.json')
 
-# Read the JSON file
-# here we should paramterize on attack type (which kubehound edge) so we can later parallelize the processing
-with open(json_file_path, 'r') as file:
-    STIX_ATTACK_PATTERNS = json.load(file)
+            # Read the JSON file
+            with open(json_file_path, 'r') as file:
+                STIX_ATTACK_PATTERNS = json.load(file)
+        else:
+            STIX_ATTACK_PATTERNS = [json.loads(v.decode('utf-8')) for v in attack_patterns.values()]
+        return STIX_ATTACK_PATTERNS
+    except Exception as e:
+        print(f"Error retrieving attack patterns: {e}")
+        return []
+
+
+
+
 
 def generate_stix_id(type):
     return f"{type}--{uuid.uuid4()}"
 
 
 def _get_current_time_iso_format():
-    return datetime.utcnow().isoformat(timespec="microseconds") + "Z"
+    #return datetime.utcnow().isoformat(timespec="microseconds") + "Z"
+    return datetime.now(timezone.utc).isoformat(timespec="microseconds") + "Z"
 
 
 def sanitize_bundle(bundle):
@@ -54,7 +131,7 @@ def get_pattern(STIX_ATTACK_PATTERN):
         if obj["type"] == "indicator":
             return obj["pattern"], obj["id"]  # Return both pattern and id
     return None, None
-    
+
 
 
 def transform_process_exec_to_stix(log):
@@ -234,10 +311,9 @@ def matches(pattern, bundle, stix_version=STIX_VERSION):
         raise
 
 def transform_tetragon_to_stix(tetragon_log):
-
-    client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
-
-
+    stix_objects = []
+    STIX_ATTACK_PATTERNS = get_attack_patterns()
+   
     for log in tetragon_log:
         tetragon_log = json.loads(log.decode('utf-8'))  # Decode bytes to string
         UNIQUE = tetragon_log.get("md5_hash")
@@ -263,10 +339,8 @@ def transform_tetragon_to_stix(tetragon_log):
                 PATTERN,ID =get_pattern(STIX_ATTACK_PATTERN)
                 IDD= STIX_ATTACK_PATTERN["id"]
                 if matches(PATTERN, stix_bundle):
-                    print("success")
             #         #for each pattern we check if an observable matches and write all matches to redis after appending the STIX_PATTERN ID to the observed-data.object_refs list
                     redis_key = f"{REDIS_OUTKEY}:{ID}:{UNIQUE}"
-                    print(stix_bundle["objects"])
                     for obj in stix_bundle["objects"]:
                         if obj["type"] == "observed-data":
                             obj["object_refs"].append(ID)
@@ -277,34 +351,28 @@ def transform_tetragon_to_stix(tetragon_log):
                     client.rpush(redis_key, json.dumps(sanitize_bundle(stix_bundle)))
                     #now we write the bundle to redis for the visualization to the viskey
                     client.hset(REDIS_VISKEY,f"{ID}:{UNIQUE}", json.dumps(sanitize_bundle(stix_bundle)))
-                    print(f"Writing to Redis key: {REDIS_VISKEY}")
+                    #print(f"Writing to Redis key: {REDIS_VISKEY}")
             except Exception as e:
-                print(f"Error extending bundle: {e}")
+                print(f"Error extending bundle in tranform_tetragon_to_stix: {e}")
 
     return stix_bundle
 
 
-def pattern_to_int(ID, id_map):
-    if ID not in id_map:
-        id_map[ID] = len(id_map) + 1
-    return id_map[ID]
-    
 
 def group_bundles(individual_bundles):
-    client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
-    idmap = {}
+    STIX_ATTACK_PATTERNS = get_attack_patterns()
     stix_bundle_array = {} #maybe the python dict is not the best data structure for this
     for key, value in individual_bundles.items():
         stix_bundle = json.loads(value)
         k= key.decode('utf-8').split(":")[0]
         ID = int(k) #the ID is the first part of the key
-        print(k)
+ 
         # Now we sort the bundles by the ID
         #if the ID hasnt been seen before we create the header
         if ID not in  stix_bundle_array:
             stix_bundle_array[ID] = {
                 "type": "bundle",
-                "id": "bundle-"+k,
+                "id": generate_stix_id("bundle"),
                 "name": str(ID),
                 "spec_version": "2.1",
                 "objects": [],
@@ -319,9 +387,8 @@ def group_bundles(individual_bundles):
             for obj in stix_bundle_array[ID]["objects"]:
                 if obj["type"] == "observed-data":
                     obj["object_refs"].append(LONGID)
-                    print(LONGID)
                     break 
-            client.hset(REDIS_BUNDLEVISKEY,f"{ID}", json.dumps(sanitize_bundle(stix_bundle_array[ID])))
+            client.hset(REDIS_BUNDLEVISKEY,f"{ID}:{LONGID}", json.dumps(sanitize_bundle(stix_bundle_array[ID])))
 
     return stix_bundle_array
 
@@ -336,8 +403,6 @@ def get_hash(tetragon_log):
 def main():
     """Parse a tetragon log in json format from a file and print its
     STIX representation in json format to stdout"""
-    # Connect to Redis
-    client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
 
 
     # Read Tetragon logs from Redis
@@ -360,4 +425,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    app.run(host='0.0.0.0', port=8000)
