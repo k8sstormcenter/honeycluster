@@ -98,7 +98,7 @@ curl -X POST http://localhost:8000/add_attack_bundle \
     {
         "type": "indicator",
         "id": "indicator--kh-ce-priv-mount",
-        "name": "Ptrace System Call from Container",
+        "name": "Mounting the /proc dir from Container",
         "description": "Detecting the mounting of the proc directory.",
         "pattern": "[process:command_line MATCHES 'mount -t proc proc /proc']",
         "pattern_type": "stix",

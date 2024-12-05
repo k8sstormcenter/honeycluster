@@ -339,10 +339,8 @@ def transform_tetragon_to_stix(tetragon_log):
                 PATTERN,ID =get_pattern(STIX_ATTACK_PATTERN)
                 IDD= STIX_ATTACK_PATTERN["id"]
                 if matches(PATTERN, stix_bundle):
-                    print("success")
             #         #for each pattern we check if an observable matches and write all matches to redis after appending the STIX_PATTERN ID to the observed-data.object_refs list
                     redis_key = f"{REDIS_OUTKEY}:{ID}:{UNIQUE}"
-                    #print(stix_bundle["objects"])
                     for obj in stix_bundle["objects"]:
                         if obj["type"] == "observed-data":
                             obj["object_refs"].append(ID)
@@ -353,7 +351,7 @@ def transform_tetragon_to_stix(tetragon_log):
                     client.rpush(redis_key, json.dumps(sanitize_bundle(stix_bundle)))
                     #now we write the bundle to redis for the visualization to the viskey
                     client.hset(REDIS_VISKEY,f"{ID}:{UNIQUE}", json.dumps(sanitize_bundle(stix_bundle)))
-                    print(f"Writing to Redis key: {REDIS_VISKEY}")
+                    #print(f"Writing to Redis key: {REDIS_VISKEY}")
             except Exception as e:
                 print(f"Error extending bundle in tranform_tetragon_to_stix: {e}")
 
@@ -374,7 +372,7 @@ def group_bundles(individual_bundles):
         if ID not in  stix_bundle_array:
             stix_bundle_array[ID] = {
                 "type": "bundle",
-                "id": "bundle-"+k,
+                "id": generate_stix_id("bundle"),
                 "name": str(ID),
                 "spec_version": "2.1",
                 "objects": [],
@@ -389,9 +387,8 @@ def group_bundles(individual_bundles):
             for obj in stix_bundle_array[ID]["objects"]:
                 if obj["type"] == "observed-data":
                     obj["object_refs"].append(LONGID)
-                    print(LONGID)
                     break 
-            client.hset(REDIS_BUNDLEVISKEY,f"{ID}", json.dumps(sanitize_bundle(stix_bundle_array[ID])))
+            client.hset(REDIS_BUNDLEVISKEY,f"{ID}:{LONGID}", json.dumps(sanitize_bundle(stix_bundle_array[ID])))
 
     return stix_bundle_array
 
