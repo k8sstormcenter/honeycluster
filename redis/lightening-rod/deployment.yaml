@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: storm
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lighteningrod
+  namespace: storm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lighteningrod
+  template:
+    metadata:
+      labels:
+        app: lighteningrod
+    spec:
+      containers:
+      - name: lighteningrod
+        image: entlein/lighteningrod:0.0.1
+        imagePullPolicy: Always
+        env:
+        - name: REDIS_HOST
+          value: "redis-headless.redpanda.svc.cluster.local"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_KEY
+          value: "tetra"
+        - name: REDIS_OUTKEY
+          value: "tetrasingle"
+        - name: REDIS_VISKEY
+          value: "tetrastix2"
+        - name: REDIS_BUNDLEKEY
+          value: "tetra_bundle"
+        - name: REDIS_BUNDLEVISKEY
+          value: "tetrastix"
+        ports:
+        - containerPort: 8000
