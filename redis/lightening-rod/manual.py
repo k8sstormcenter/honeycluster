@@ -5,13 +5,16 @@ from datetime import datetime, timezone
 from flask import Flask, request, jsonify
 import redis
 from stix2matcher.matcher import match
-from stix2 import Bundle, Process, Indicator
+from stix2 import Bundle, Process, Indicator, Relationship
 from stix2patterns.v21 import pattern
 
 
 # Initialize Flask app
 app = Flask(__name__)
 
+
+# Constants
+STIX_VERSION = '2.1'
 REDIS_HOST = os.getenv('REDIS_HOST', '127.0.0.1')
 REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
 REDIS_KEY = os.getenv('REDIS_KEY', 'tetra')
@@ -21,7 +24,11 @@ REDIS_BUNDLEKEY = os.getenv('REDIS_BUNDLEKEY', 'tetra_bundle')
 REDIS_BUNDLEVISKEY = os.getenv('REDIS_BUNDLEVISKEY', 'tetrastix')
 REDIS_PATTERNKEY = os.getenv('REDIS_PATTERNKEY', 'tetra_pattern')
 
+
+# Global client to DB
 client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
+
+
 # in this app you can calibrate the attack patterns that you will use in the real time processing
 # so, you have the kubehound-stix.json as a reference, but its very trivial
 # The real patterns should be stored in Redis for efficient processing
@@ -29,6 +36,8 @@ client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
 # Once you are happy with your set of patterns, you should persist them to MongoDB 
 # Furture features will also include a backup/restore option to file
 # In a future enterprise version, you will be able to let the AI/RAG generate the patterns for you
+
+### first part of code (TODO: move to a separate file) routes
 
 @app.route('/convert_to_stix', methods=['GET'])
 def convert_to_stix():
@@ -78,7 +87,8 @@ def delete_attack_bundle(bundle_id):
 
 
 
-# Get the directory of the current script
+## Second part of code (TODO: move to a separate file) function definitions
+
 #In absence of a database, we will use a JSON file to provide some attack patterns
 def get_attack_patterns():
     try:
@@ -97,7 +107,18 @@ def get_attack_patterns():
         print(f"Error retrieving attack patterns: {e}")
         return []
 
-
+def create_relationship(source_ref, target_ref, relationship_type):
+    """Creates a STIX relationship object."""
+    return {
+        "type": "relationship",
+        "spec_version": STIX_VERSION,  # Ensure consistent version
+        "id": generate_stix_id("relationship"),
+        "created": _get_current_time_iso_format(),  # Add created/modified timestamps
+        "modified": _get_current_time_iso_format(),
+        "relationship_type": relationship_type,
+        "source_ref": source_ref,
+        "target_ref": target_ref,
+    }
 
 
 
@@ -132,87 +153,43 @@ def get_pattern(STIX_ATTACK_PATTERN):
             return obj["pattern"], obj["id"]  # Return both pattern and id
     return None, None
 
+def validate_stix_bundle(bundle):
+    """
+    Validates a STIX bundle to ensure all objects have IDs.
+
+    Args:
+        bundle (dict): The STIX bundle as a dictionary.
+
+    Returns:
+        bool: True if the bundle is valid, False otherwise.
+    """
+    if not isinstance(bundle, dict):
+        print("Error: Bundle is not a dictionary.")
+        return False
+
+    if "objects" not in bundle:
+        print("Error: Bundle does not contain 'objects' key.")
+        return False
+
+    for obj in bundle["objects"]:
+        if not isinstance(obj, dict):
+            print("Error: Object is not a dictionary.", obj)
+            return False
+        if "id" not in obj or not obj["id"]:  # Corrected check
+            print("Error: Object is missing an ID or has an empty ID.", obj)
+            return False
+        # Check if 'id' is a valid STIX ID (optional but recommended)
+        if not obj["id"].startswith(("indicator--", "attack-pattern--", "observed-data--", "file--", "process--", "bundle--", "relationship--")):
+             print(f"Invalid STIX ID format: {obj['id']}")
+             return False
+
+    return True
 
 
-def transform_process_exec_to_stix(log):
-    parent = log.get("parent", {})
-    process = log.get("process", {})
-
-    parent_image_name = parent.get("binary", "").split("/")[-1]
-    process_image_name = process.get("binary", "").split("/")[-1]
-
-    parent_file_id = generate_stix_id("file") if parent_image_name else None
-    process_file_id = generate_stix_id("file") if process_image_name else None
-
-    stix_objects = []
-
-    if parent_image_name:
-        stix_objects.append(
-            {"type": "file", "id": parent_file_id, "name": parent_image_name}
-        )
-
-    if process_image_name:
-        stix_objects.append(
-            {"type": "file", "id": process_file_id, "name": process_image_name}
-        )
-
-    parent_process_object = {
-        "type": "process",
-        "id": generate_stix_id("process"),
-        "pid": parent.get("pid", -1),
-        "command_line": f"{parent.get('binary')} {parent.get('arguments')}",
-        "cwd": parent.get("cwd"),
-        "created_time": parent.get("start_time", _get_current_time_iso_format()),
-        "image_ref": parent_file_id,
-        "extensions": {
-            "flags": parent.get("flags", ""),
-            "parent_exec_id": parent.get("parent_exec_id", ""),
-        },
-    }
-    stix_objects.append(parent_process_object)
-
-    process_object = {
-        "type": "process",
-        "id": generate_stix_id("process"),
-        "pid": process.get("pid", -1),
-        "command_line": f"{process.get('binary')} {process.get('arguments')}",
-        "cwd": process.get("cwd"),
-        "created_time": process.get("start_time", _get_current_time_iso_format()),
-        "image_ref": process_file_id,
-        "parent_ref": parent_process_object["id"],
-        "extensions": {
-            "flags": process.get("flags", ""),
-            "docker": process.get("docker", ""),
-            "container_id": process.get("pod", {}).get("container", {}).get("id", ""),
-            "pod_name": process.get("pod", {}).get("name", ""),
-            "namespace": process.get("pod", {}).get("namespace", ""),
-        },
-    }
-    stix_objects.append(process_object)
-
-    current_time = log.get("time", _get_current_time_iso_format())
-    observed_data_object = {
-        "type": "observed-data",
-        "id": generate_stix_id("observed-data"),
-        "created": current_time,
-        "modified": current_time,
-        "first_observed": current_time,
-        "last_observed": current_time,
-        "number_observed": 1,
-        "object_refs": [process_object["id"], parent_process_object["id"]],
-        "extensions": {"node_info": {"node_name": log.get("node_name")}},
-    }
-    if parent_file_id:
-        observed_data_object["object_refs"].append(parent_file_id)
-    if process_file_id:
-        observed_data_object["object_refs"].append(process_file_id)
-
-    stix_objects.append(observed_data_object)
-
-    return stix_objects
 
 
-def transform_process_kprobe_to_stix(log):
+
+def transform_process_to_stix(log):
     parent = log.get("parent", {})
     process = log.get("process", {})
     file_arg = next(
@@ -276,6 +253,10 @@ def transform_process_kprobe_to_stix(log):
         },
     }
     stix_objects.append(process_object)
+    parent_child_relationship = create_relationship(
+        parent_process_object["id"], process_object["id"], "parent-child"
+    )
+    stix_objects.append(parent_child_relationship)
 
     current_time = log.get("time", _get_current_time_iso_format())
     observed_data_object = {
@@ -290,18 +271,24 @@ def transform_process_kprobe_to_stix(log):
         "extensions": {"node_info": {"node_name": log.get("node_name")}},
     }
 
-    if parent_file_id:
-        observed_data_object["object_refs"].append(parent_file_id)
-    if process_file_id:
-        observed_data_object["object_refs"].append(process_file_id)
-    if file_arg_id:
-        observed_data_object["object_refs"].append(file_arg_id)
+    #if parent_file_id:
+    #    observed_data_object["object_refs"].append(parent_file_id)
+    #if process_file_id:
+    #    observed_data_object["object_refs"].append(process_file_id)
+    #if file_arg_id:
+    #    observed_data_object["object_refs"].append(file_arg_id)
 
     stix_objects.append(observed_data_object)
+    # Create relationship between observed-data and process, parent process, files
+    for obj_ref in observed_data_object["object_refs"]:
+        observed_data_relationship = create_relationship(
+            observed_data_object["id"], obj_ref, "refers-to"
+        )
+        stix_objects.append(observed_data_relationship)
 
     return stix_objects
 
-STIX_VERSION = '2.1'
+
 
 def matches(pattern, bundle, stix_version=STIX_VERSION):
     try:
@@ -313,6 +300,8 @@ def matches(pattern, bundle, stix_version=STIX_VERSION):
 def transform_tetragon_to_stix(tetragon_log):
     stix_objects = []
     STIX_ATTACK_PATTERNS = get_attack_patterns()
+    if not tetragon_log:
+        return []
    
     for log in tetragon_log:
         tetragon_log = json.loads(log.decode('utf-8'))  # Decode bytes to string
@@ -326,10 +315,10 @@ def transform_tetragon_to_stix(tetragon_log):
             "objects": [],
         }
         if "process_exec" in tetragon_log:
-            stix_objects = transform_process_exec_to_stix(tetragon_log["process_exec"])
+            stix_objects = transform_process_to_stix(tetragon_log["process_exec"])
 
         elif "process_kprobe" in tetragon_log:
-            stix_objects = transform_process_kprobe_to_stix(tetragon_log["process_kprobe"])
+            stix_objects = transform_process_to_stix(tetragon_log["process_kprobe"])
         # Now we have each individual logs in STIX observable format
         # we test if it matches any known indicator
         # if yes, then we append it to the bundle accordingly
@@ -341,16 +330,25 @@ def transform_tetragon_to_stix(tetragon_log):
                 if matches(PATTERN, stix_bundle):
             #         #for each pattern we check if an observable matches and write all matches to redis after appending the STIX_PATTERN ID to the observed-data.object_refs list
                     redis_key = f"{REDIS_OUTKEY}:{ID}:{UNIQUE}"
+                    indicator_relationship = create_relationship(
+                            stix_bundle["id"], ID, "indicates"  # Assuming "indicates" relationship
+                        )
+                    stix_bundle["objects"].append(indicator_relationship)
                     for obj in stix_bundle["objects"]:
                         if obj["type"] == "observed-data":
                             obj["object_refs"].append(ID)
                             break 
-                    client.hset(REDIS_BUNDLEKEY,f"{IDD}:{UNIQUE}", json.dumps(sanitize_bundle(stix_bundle)))
+                    #for obj in STIX_ATTACK_PATTERN["objects"]:
+                    #    if obj["type"] == "relationship": #we add the relationship from the attack pattern here
+                    #        stix_bundle["objects"].append(obj)
+
+                    if validate_stix_bundle(stix_bundle):
+                       client.hset(REDIS_BUNDLEKEY,f"{IDD}:{UNIQUE}", json.dumps(sanitize_bundle(stix_bundle)))
                     stix_bundle["objects"].extend(STIX_ATTACK_PATTERN["objects"])
-                    #TODO: The Stix Attack Pattern must be a list of many attack patterns (currently one)
-                    client.rpush(redis_key, json.dumps(sanitize_bundle(stix_bundle)))
+                    if validate_stix_bundle(stix_bundle):
+                       client.rpush(redis_key, json.dumps(sanitize_bundle(stix_bundle)))
                     #now we write the bundle to redis for the visualization to the viskey
-                    client.hset(REDIS_VISKEY,f"{ID}:{UNIQUE}", json.dumps(sanitize_bundle(stix_bundle)))
+                       client.hset(REDIS_VISKEY,f"{ID}:{UNIQUE}", json.dumps(sanitize_bundle(stix_bundle)))
                     #print(f"Writing to Redis key: {REDIS_VISKEY}")
             except Exception as e:
                 print(f"Error extending bundle in tranform_tetragon_to_stix: {e}")
@@ -384,11 +382,12 @@ def group_bundles(individual_bundles):
         PATTERN,LONGID =get_pattern(STIX_ATTACK_PATTERN)
         if ID  in  stix_bundle_array:
             stix_bundle_array[ID]["objects"].extend(STIX_ATTACK_PATTERN["objects"])
-            for obj in stix_bundle_array[ID]["objects"]:
-                if obj["type"] == "observed-data":
-                    obj["object_refs"].append(LONGID)
-                    break 
-            client.hset(REDIS_BUNDLEVISKEY,f"{ID}:{LONGID}", json.dumps(sanitize_bundle(stix_bundle_array[ID])))
+            #for obj in stix_bundle_array[ID]["objects"]:
+            #    if obj["type"] == "relationship":
+            #        obj["object_refs"].append(LONGID)
+            #        break 
+            if validate_stix_bundle(stix_bundle_array[ID]):
+                client.hset(REDIS_BUNDLEVISKEY,f"{ID}:{LONGID}", json.dumps(sanitize_bundle(stix_bundle_array[ID])))
 
     return stix_bundle_array
 
@@ -414,14 +413,7 @@ def main():
     individual_bundles = client.hgetall(REDIS_BUNDLEKEY)
     trees = group_bundles(individual_bundles)
 
-    #print(json.dumps(sanitize_bundle(bundle), indent=4))
 
-    # print(json.dumps(sanitize_bundle(bundle), indent=4))
-    # Now for each record in Redis we write the Observable back into th
-    #r.json().set("your_key", "$", json_document)
-    #docker run -it --rm -p 6666:6379  redis/redis-stack
-    #client2 = redis.Redis(host=REDIS_HOST, port=6666)
-    #client2.json().set( "tetratest", "$", json.dumps(sanitize_bundle(bundle)))
 
 
 if __name__ == "__main__":
