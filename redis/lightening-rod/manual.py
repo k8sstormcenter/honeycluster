@@ -39,6 +39,18 @@ client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
 
 ### first part of code (TODO: move to a separate file) routes
 
+@app.route('/wipesafe', methods=['GET'])
+def wipesafe():
+    try:
+        keys_to_delete = [REDIS_BUNDLEKEY, REDIS_VISKEY, REDIS_BUNDLEVISKEY] # Target specific keys
+        for key in keys_to_delete:
+            client.delete(key)  # Use DELETE for individual keys
+        return jsonify({"message": "Specified Redis keys deleted successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
 @app.route('/convert_to_stix', methods=['GET'])
 def convert_to_stix():
     offset = int(request.args.get('i', 30)) 
@@ -46,11 +58,13 @@ def convert_to_stix():
     tetragon_logs = client.lrange(REDIS_KEY, -offset, -1)
     #extract the hash from each log
     bundle = transform_tetragon_to_stix(tetragon_logs)
+    #print(bundle)
 
 
     #now as a second step we bundle the bundles
     individual_bundles = client.hgetall(REDIS_BUNDLEKEY)
-    trees = group_bundles(individual_bundles)
+    deduplicate_bundles(individual_bundles)
+    #trees = group_bundles(individual_bundles)
     return jsonify({"message": "STIX conversion successful"}), 200
 
 @app.route('/add_attack_bundle', methods=['POST'])
@@ -271,20 +285,9 @@ def transform_process_to_stix(log):
         "extensions": {"node_info": {"node_name": log.get("node_name")}},
     }
 
-    #if parent_file_id:
-    #    observed_data_object["object_refs"].append(parent_file_id)
-    #if process_file_id:
-    #    observed_data_object["object_refs"].append(process_file_id)
-    #if file_arg_id:
-    #    observed_data_object["object_refs"].append(file_arg_id)
 
     stix_objects.append(observed_data_object)
-    # Create relationship between observed-data and process, parent process, files
-    for obj_ref in observed_data_object["object_refs"]:
-        observed_data_relationship = create_relationship(
-            observed_data_object["id"], obj_ref, "refers-to"
-        )
-        stix_objects.append(observed_data_relationship)
+
 
     return stix_objects
 
@@ -312,6 +315,7 @@ def transform_tetragon_to_stix(tetragon_log):
             "type": "bundle",
             "id": generate_stix_id("bundle"),
             "spec_version": "2.1",
+            "name" : "",
             "objects": [],
         }
         if "process_exec" in tetragon_log:
@@ -327,9 +331,11 @@ def transform_tetragon_to_stix(tetragon_log):
                 stix_bundle["objects"].extend(stix_objects)
                 PATTERN,ID =get_pattern(STIX_ATTACK_PATTERN)
                 IDD= STIX_ATTACK_PATTERN["id"]
+                stix_bundle["name"] = ID
                 if matches(PATTERN, stix_bundle):
             #         #for each pattern we check if an observable matches and write all matches to redis after appending the STIX_PATTERN ID to the observed-data.object_refs list
                     redis_key = f"{REDIS_OUTKEY}:{ID}:{UNIQUE}"
+                    print(f"Writing to Redis key: {REDIS_BUNDLEKEY}")
                     indicator_relationship = create_relationship(
                             stix_bundle["id"], ID, "indicates"  # Assuming "indicates" relationship
                         )
@@ -338,17 +344,13 @@ def transform_tetragon_to_stix(tetragon_log):
                         if obj["type"] == "observed-data":
                             obj["object_refs"].append(ID)
                             break 
-                    #for obj in STIX_ATTACK_PATTERN["objects"]:
-                    #    if obj["type"] == "relationship": #we add the relationship from the attack pattern here
-                    #        stix_bundle["objects"].append(obj)
 
-                    if validate_stix_bundle(stix_bundle):
-                       client.hset(REDIS_BUNDLEKEY,f"{IDD}:{UNIQUE}", json.dumps(sanitize_bundle(stix_bundle)))
                     stix_bundle["objects"].extend(STIX_ATTACK_PATTERN["objects"])
-                    if validate_stix_bundle(stix_bundle):
-                       client.rpush(redis_key, json.dumps(sanitize_bundle(stix_bundle)))
+                    client.hset(REDIS_BUNDLEKEY,f"{IDD}:{UNIQUE}", json.dumps(sanitize_bundle(stix_bundle)))
+                    #if validate_stix_bundle(stix_bundle):
+                    #   client.rpush(redis_key, json.dumps(sanitize_bundle(stix_bundle)))
                     #now we write the bundle to redis for the visualization to the viskey
-                       client.hset(REDIS_VISKEY,f"{ID}:{UNIQUE}", json.dumps(sanitize_bundle(stix_bundle)))
+                    #   client.hset(REDIS_VISKEY,f"{ID}:{UNIQUE}", json.dumps(sanitize_bundle(stix_bundle)))
                     #print(f"Writing to Redis key: {REDIS_VISKEY}")
             except Exception as e:
                 print(f"Error extending bundle in tranform_tetragon_to_stix: {e}")
@@ -356,10 +358,63 @@ def transform_tetragon_to_stix(tetragon_log):
     return stix_bundle
 
 
+def compare_stix_objects(obj, objects_array):
+    """Compares a STIX object to an array of STIX objects, ignoring the 'id' field.
+
+    Args:
+        obj (dict): The STIX object to compare.
+        objects_array (list): The array of STIX objects to compare against.
+
+    Returns:
+        bool: True if the object already exists in the array (ignoring ID), False otherwise.
+    """
+    for other_obj in objects_array:
+        if obj["type"] == other_obj["type"]:  # Only compare objects of the same type
+            # Compare all fields except 'id', 'created', and 'modified'
+            # TODO: test if the timestamp based patterns still work if we ignore these date-fields
+            if all(
+                obj.get(key) == other_obj.get(key)
+                for key in obj
+                if key not in ["id", "created", "modified", "spec_version"]
+            ) and all(
+                other_obj.get(key) == obj.get(key)
+                for key in other_obj
+                if key not in ["id", "created", "modified", "spec_version"]
+            ):
+                return True  # Object already exists (ignoring ID)
+    return False  # Object not found
+
+
+def deduplicate_bundles(individual_bundles):
+    stix_bundle_array = {} 
+    for key, value in individual_bundles.items():
+        stix_bundle = json.loads(value)
+        ID = int(key.decode('utf-8').split(":")[0])
+        if ID not in  stix_bundle_array:
+            stix_bundle_array[ID] = {
+                "type": "bundle",
+                "id": stix_bundle["id"],
+                "name": stix_bundle["name"],
+                "spec_version": "2.1",
+                "objects": stix_bundle["objects"],
+            }
+        else:
+            # we extend those objects that we have NOT already seen
+            for obj in stix_bundle["objects"]:
+                if compare_stix_objects(obj, stix_bundle_array[ID]["objects"]):
+                    #print(f"Object already exists in bundle {ID}: {obj}")
+                    continue
+                else:
+                    stix_bundle_array[ID]["objects"].append(obj)
+
+        client.hset(REDIS_BUNDLEVISKEY,f"{ID}", json.dumps(sanitize_bundle(stix_bundle_array[ID])))    
+    return stix_bundle_array
+
+
 
 def group_bundles(individual_bundles):
     STIX_ATTACK_PATTERNS = get_attack_patterns()
-    stix_bundle_array = {} #maybe the python dict is not the best data structure for this
+    stix_bundle_array = {} 
     for key, value in individual_bundles.items():
         stix_bundle = json.loads(value)
         k= key.decode('utf-8').split(":")[0]
@@ -386,8 +441,8 @@ def group_bundles(individual_bundles):
             #    if obj["type"] == "relationship":
             #        obj["object_refs"].append(LONGID)
             #        break 
-            if validate_stix_bundle(stix_bundle_array[ID]):
-                client.hset(REDIS_BUNDLEVISKEY,f"{ID}:{LONGID}", json.dumps(sanitize_bundle(stix_bundle_array[ID])))
+            #if validate_stix_bundle(stix_bundle_array[ID]):
+            client.hset(REDIS_BUNDLEVISKEY,f"{ID}:{LONGID}", json.dumps(sanitize_bundle(stix_bundle_array[ID])))
 
     return stix_bundle_array
 
@@ -405,13 +460,13 @@ def main():
 
 
     # Read Tetragon logs from Redis
-    tetragon_logs = client.lrange(REDIS_KEY, -50, -1)
+    #tetragon_logs = client.lrange(REDIS_KEY, -50, -1)
     #extract the hash from each log
-    bundle = transform_tetragon_to_stix(tetragon_logs)
+    #bundle = transform_tetragon_to_stix(tetragon_logs)
 
     #now as a second step we bundle the bundles
-    individual_bundles = client.hgetall(REDIS_BUNDLEKEY)
-    trees = group_bundles(individual_bundles)
+    #individual_bundles = client.hgetall(REDIS_BUNDLEKEY)
+    #trees = group_bundles(individual_bundles)
 
 
 
