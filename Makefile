@@ -13,7 +13,7 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 ##@ Scenario
 
 .PHONY: honey-up
-honey-up: tetragon-install vector redis traces  mongo  stixviz#k8spin tracee
+honey-up: tetragon vector redis traces  mongo lighteningrod stixviz #k8spin tracee
 
 
 
@@ -25,12 +25,12 @@ honey-down: traces-off  wipe
 wipe: 
 	-$(HELM) uninstall tracee -n tracee
 	- kubectl delete namespace tracee
+	- kubectl delete -f test/cti-stix-visualizer.yaml
 	-$(HELM) uninstall mongo -n mongo
-	- kubectl delete namespace mongo
-	-$(HELM) uninstall vector -n vector
-	- kubectl delete namespace vector
-	-$(HELM) uninstall -n redpanda redis
-	- kubectl delete namespace redpanda
+	-$(HELM) uninstall honey -n vector
+	- kubectl delete namespace honey
+	-$(HELM) uninstall -n storm redis
+	- kubectl delete namespace storm
 	-$(HELM) uninstall tetragon -n kube-system
 
 
@@ -52,12 +52,16 @@ cluster-down: kind  ## Delete the kind cluster
 k8spin:
 	-$(HELM) repo add kwasm http://kwasm.sh/kwasm-operator/
 	-$(HELM) repo update
-	-$(HELM) upgrade --install kwasm-operator kwasm/kwasm-operator --namespace kwasm --create-namespace --set kwasmOperator.installerImage=ghcr.io/spinkube/containerd-shim-spin/node-installer:v0.16.0
+	-$(HELM) upgrade --install kwasm-operator kwasm/kwasm-operator --namespace storm --create-namespace --set kwasmOperator.installerImage=ghcr.io/spinkube/containerd-shim-spin/node-installer:v0.16.0
 	-kubectl annotate node --all kwasm.sh/kwasm-node=true
 
 .PHONY: stixviz
 stixviz:
-	-kubectl apply -f test/cti-stix-visualizer.yaml
+	-kubectl apply -f test/cti-stix-visualizer.yaml 
+	
+.PHONY: lighteningrod
+lighteningrod:
+	-kubectl apply -f redis/lighteningrod/deployment.yaml	&& kubectl create configmap check-script -n storm --from-file=test/check.sh
 
 .PHONY: tracee
 tracee:
@@ -69,7 +73,7 @@ tracee:
 mongo:
 	-$(HELM) repo add bitnami https://charts.bitnami.com/bitnami
 	-$(HELM) repo update
-	-$(HELM) upgrade --install mongo bitnami/mongodb --namespace mongo --create-namespace --values mongo/values.yaml
+	-$(HELM) upgrade --install mongo bitnami/mongodb --namespace honey --create-namespace --values mongo/values.yaml
 
 ## curretly candidate #1 for the network observability 
 .PHONY: pixie
@@ -90,31 +94,26 @@ kshark:
 redis:
 	-$(HELM) repo add bitnami https://charts.bitnami.com/bitnami
 	-$(HELM) repo update
-	$(HELM) upgrade --install redis bitnami/redis -n redpanda --create-namespace --values redis/values.yaml
+	$(HELM) upgrade --install redis bitnami/redis -n storm --create-namespace --values redis/values.yaml
 
 
 
 	
 ##@ Tetragon
-.PHONY: tetragon-install
-tetragon-install: helm check-context
+.PHONY: tetragon
+tetragon: helm check-context
 	-$(HELM) repo add cilium https://helm.cilium.io
 	-$(HELM) repo update
-	-$(HELM) upgrade --install tetragon cilium/tetragon -n kube-system --values tetragon/values.yaml
-	while [ "$$(kubectl -n kube-system get po -l app.kubernetes.io/name=tetragon -o jsonpath='{.items[0].metadata.generateName}')" != "tetragon-" ]; do \
-		sleep 2; \
-   	echo "Waiting for Tetragon pod to be created."; \
-	done
+	-$(HELM) upgrade --install tetragon cilium/tetragon -n honey --create-namespace --values tetragon/values.yaml
+	-kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=tetragon -n honey --timeout=5m 
+
 
 
 .PHONY: vector
 vector: helm 
 	-$(HELM) repo add vector https://helm.vector.dev
-	-$(HELM) upgrade --install vector vector/vector --namespace vector --create-namespace --values vector/gkevalues.yaml
-	while [ "$$(kubectl -n vector get po -l app.kubernetes.io/name=vector -o jsonpath='{.items[0].metadata.generateName}')" != "vector-" ]; do \
-		sleep 2; \
-   	echo "Waiting for Vector pod to be created."; \
-	done
+	-$(HELM) upgrade --install vector vector/vector --namespace honey --create-namespace --values vector/gkevalues.yaml
+	-kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=vector  -n honey --timeout=5m 
 
 
 .PHONY: traces

@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: stix-visualizer
-  namespace: redpanda
+  namespace: storm
 spec:
   replicas: 1
   selector:
@@ -23,11 +23,13 @@ spec:
         - name: PORT
           value: "3000"
         - name: REDIS_HOST
-          value: "redis-headless.redpanda.svc.cluster.local"
+          value: "redis-headless.storm.svc.cluster.local"
         - name: REDIS_PORT
           value: "6379"
         - name: REDIS_KEY_PREFIX
           value: "tetrastix"
+        - name: MONGODB_URI
+          value: "mongodb://mongo-mongodb.honey.svc.cluster.local:27017"
   #  securityContext:  # TODO add sec defaults, its running as nonroot and needs no caps
   #    runAsUser: 1000
   #    runAsGroup: 1000
@@ -43,7 +45,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: stix-visualizer
-  namespace: redpanda
+  namespace: storm
 spec:
   selector:
     app: stix-visualizer

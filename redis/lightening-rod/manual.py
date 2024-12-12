@@ -141,7 +141,6 @@ def generate_stix_id(type):
 
 
 def _get_current_time_iso_format():
-    #return datetime.utcnow().isoformat(timespec="microseconds") + "Z"
     return datetime.now(timezone.utc).isoformat(timespec="microseconds") + "Z"
 
 
@@ -410,41 +409,6 @@ def deduplicate_bundles(individual_bundles):
         client.hset(REDIS_BUNDLEVISKEY,f"{ID}", json.dumps(sanitize_bundle(stix_bundle_array[ID])))    
     return stix_bundle_array
 
-
-
-def group_bundles(individual_bundles):
-    STIX_ATTACK_PATTERNS = get_attack_patterns()
-    stix_bundle_array = {} 
-    for key, value in individual_bundles.items():
-        stix_bundle = json.loads(value)
-        k= key.decode('utf-8').split(":")[0]
-        ID = int(k) #the ID is the first part of the key
- 
-        # Now we sort the bundles by the ID
-        #if the ID hasnt been seen before we create the header
-        if ID not in  stix_bundle_array:
-            stix_bundle_array[ID] = {
-                "type": "bundle",
-                "id": generate_stix_id("bundle"),
-                "name": str(ID),
-                "spec_version": "2.1",
-                "objects": [],
-            }
-        stix_bundle_array[ID]["objects"].extend(stix_bundle["objects"])
-    # Now we are done with all the observed-data objects in one bundle per attack pattern, we finally appent only once the header
-    for STIX_ATTACK_PATTERN in STIX_ATTACK_PATTERNS:
-        ID= int(STIX_ATTACK_PATTERN["id"])
-        PATTERN,LONGID =get_pattern(STIX_ATTACK_PATTERN)
-        if ID  in  stix_bundle_array:
-            stix_bundle_array[ID]["objects"].extend(STIX_ATTACK_PATTERN["objects"])
-            #for obj in stix_bundle_array[ID]["objects"]:
-            #    if obj["type"] == "relationship":
-            #        obj["object_refs"].append(LONGID)
-            #        break 
-            #if validate_stix_bundle(stix_bundle_array[ID]):
-            client.hset(REDIS_BUNDLEVISKEY,f"{ID}:{LONGID}", json.dumps(sanitize_bundle(stix_bundle_array[ID])))
-
-    return stix_bundle_array
 
 
 def get_hash(tetragon_log):
