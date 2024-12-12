@@ -141,7 +141,6 @@ def generate_stix_id(type):
 
 
 def _get_current_time_iso_format():
-    #return datetime.utcnow().isoformat(timespec="microseconds") + "Z"
     return datetime.now(timezone.utc).isoformat(timespec="microseconds") + "Z"
 
 
