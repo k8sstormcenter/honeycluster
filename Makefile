@@ -25,6 +25,7 @@ honey-down: traces-off  wipe
 wipe: 
 	-$(HELM) uninstall tracee -n tracee
 	- kubectl delete namespace tracee
+	- kubectl delete -f test/cti-stix-visualizer.yaml
 	-$(HELM) uninstall mongo -n mongo
 	-$(HELM) uninstall honey -n vector
 	- kubectl delete namespace honey
@@ -51,7 +52,7 @@ cluster-down: kind  ## Delete the kind cluster
 k8spin:
 	-$(HELM) repo add kwasm http://kwasm.sh/kwasm-operator/
 	-$(HELM) repo update
-	-$(HELM) upgrade --install kwasm-operator kwasm/kwasm-operator --namespace kwasm --create-namespace --set kwasmOperator.installerImage=ghcr.io/spinkube/containerd-shim-spin/node-installer:v0.16.0
+	-$(HELM) upgrade --install kwasm-operator kwasm/kwasm-operator --namespace storm --create-namespace --set kwasmOperator.installerImage=ghcr.io/spinkube/containerd-shim-spin/node-installer:v0.16.0
 	-kubectl annotate node --all kwasm.sh/kwasm-node=true
 
 .PHONY: stixviz
@@ -99,8 +100,8 @@ redis:
 tetragon-install: helm check-context
 	-$(HELM) repo add cilium https://helm.cilium.io
 	-$(HELM) repo update
-	-$(HELM) upgrade --install tetragon cilium/tetragon -n kube-system --values tetragon/values.yaml
-	while [ "$$(kubectl -n kube-system get po -l app.kubernetes.io/name=tetragon -o jsonpath='{.items[0].metadata.generateName}')" != "tetragon-" ]; do \
+	-$(HELM) upgrade --install tetragon cilium/tetragon -n honey --values tetragon/values.yaml
+	while [ "$$(kubectl -n honey get po -l app.kubernetes.io/name=tetragon -o jsonpath='{.items[0].metadata.generateName}')" != "tetragon-" ]; do \
 		sleep 2; \
    	echo "Waiting for Tetragon pod to be created."; \
 	done

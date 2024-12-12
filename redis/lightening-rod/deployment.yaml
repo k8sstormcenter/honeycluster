@@ -25,7 +25,7 @@ spec:
         imagePullPolicy: Always
         env:
         - name: REDIS_HOST
-          value: "redis-headless.redpanda.svc.cluster.local"
+          value: "redis-headless.storm.svc.cluster.local"
         - name: REDIS_PORT
           value: "6379"
         - name: REDIS_KEY

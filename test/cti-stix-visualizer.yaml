@@ -2,8 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: stix-visualizer
-  namespace: redpanda
-  #namespace: storm
+  #namespace: redpanda
+  namespace: storm
 spec:
   replicas: 1
   selector:
@@ -25,8 +25,7 @@ spec:
         - name: PORT
           value: "3000"
         - name: REDIS_HOST
-          value: "redis-headless.redpanda.svc.cluster.local"
-          #TODO: redeploy and move to "storm"
+          value: "redis-headless.storm.svc.cluster.local"
         - name: REDIS_PORT
           value: "6379"
         - name: REDIS_KEY_PREFIX
