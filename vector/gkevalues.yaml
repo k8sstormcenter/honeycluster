@@ -369,7 +369,7 @@ customConfig:
       type: redis
       inputs:
         - dedupe
-      endpoint: redis://redis-headless.redpanda.svc.cluster.local:6379
+      endpoint: redis://redis-headless.storm.svc.cluster.local:6379
       key: "tetra {{ .message }}" # how to only insert uniques? HSETNX dataset <md5_hash> "<your_json_data>"
       encoding:
         codec: json

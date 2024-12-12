@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
       - name: lighteningrod
-        image: entlein/lighteningrod:0.0.1
+        image: ghcr.io/k8sstormcenter/lightning-rod:0.0.1
         imagePullPolicy: Always
         env:
         - name: REDIS_HOST

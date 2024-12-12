@@ -13,7 +13,7 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 ##@ Scenario
 
 .PHONY: honey-up
-honey-up: tetragon-install vector redis traces  mongo  stixviz#k8spin tracee
+honey-up: tetragon vector redis traces  mongo lighteningrod stixviz #k8spin tracee
 
 
 
@@ -57,7 +57,11 @@ k8spin:
 
 .PHONY: stixviz
 stixviz:
-	-kubectl apply -f test/cti-stix-visualizer.yaml
+	-kubectl apply -f test/cti-stix-visualizer.yaml 
+	
+.PHONY: lighteningrod
+lighteningrod:
+	-kubectl apply -f redis/lighteningrod/deployment.yaml	&& kubectl create configmap check-script -n storm --from-file=test/check.sh
 
 .PHONY: tracee
 tracee:
@@ -96,25 +100,20 @@ redis:
 
 	
 ##@ Tetragon
-.PHONY: tetragon-install
-tetragon-install: helm check-context
+.PHONY: tetragon
+tetragon: helm check-context
 	-$(HELM) repo add cilium https://helm.cilium.io
 	-$(HELM) repo update
-	-$(HELM) upgrade --install tetragon cilium/tetragon -n honey --values tetragon/values.yaml
-	while [ "$$(kubectl -n honey get po -l app.kubernetes.io/name=tetragon -o jsonpath='{.items[0].metadata.generateName}')" != "tetragon-" ]; do \
-		sleep 2; \
-   	echo "Waiting for Tetragon pod to be created."; \
-	done
+	-$(HELM) upgrade --install tetragon cilium/tetragon -n honey --create-namespace --values tetragon/values.yaml
+	-kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=tetragon -n honey --timeout=5m 
+
 
 
 .PHONY: vector
 vector: helm 
 	-$(HELM) repo add vector https://helm.vector.dev
 	-$(HELM) upgrade --install vector vector/vector --namespace honey --create-namespace --values vector/gkevalues.yaml
-	while [ "$$(kubectl -n vector get po -l app.kubernetes.io/name=vector -o jsonpath='{.items[0].metadata.generateName}')" != "vector-" ]; do \
-		sleep 2; \
-   	echo "Waiting for Vector pod to be created."; \
-	done
+	-kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=vector  -n honey --timeout=5m 
 
 
 .PHONY: traces

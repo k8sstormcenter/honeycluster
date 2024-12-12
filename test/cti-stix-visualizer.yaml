@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: stix-visualizer
-  #namespace: redpanda
   namespace: storm
 spec:
   replicas: 1
@@ -16,8 +15,7 @@ spec:
     spec:
       containers:
       - name: stix-visualizer
-        #image: ghcr.io/k8sstormcenter/cti-stix-visualizer:0.0.2
-        image: entlein/cti-stix-visualization:0.0.2
+        image: ghcr.io/k8sstormcenter/cti-stix-visualizer:0.0.2
         imagePullPolicy: Always
         ports:
         - containerPort: 3000
@@ -47,7 +45,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: stix-visualizer
-  namespace: redpanda
+  namespace: storm
 spec:
   selector:
     app: stix-visualizer
