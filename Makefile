@@ -26,11 +26,10 @@ wipe:
 	-$(HELM) uninstall tracee -n tracee
 	- kubectl delete namespace tracee
 	-$(HELM) uninstall mongo -n mongo
-	- kubectl delete namespace mongo
-	-$(HELM) uninstall vector -n vector
-	- kubectl delete namespace vector
-	-$(HELM) uninstall -n redpanda redis
-	- kubectl delete namespace redpanda
+	-$(HELM) uninstall honey -n vector
+	- kubectl delete namespace honey
+	-$(HELM) uninstall -n storm redis
+	- kubectl delete namespace storm
 	-$(HELM) uninstall tetragon -n kube-system
 
 
@@ -69,7 +68,7 @@ tracee:
 mongo:
 	-$(HELM) repo add bitnami https://charts.bitnami.com/bitnami
 	-$(HELM) repo update
-	-$(HELM) upgrade --install mongo bitnami/mongodb --namespace mongo --create-namespace --values mongo/values.yaml
+	-$(HELM) upgrade --install mongo bitnami/mongodb --namespace honey --create-namespace --values mongo/values.yaml
 
 ## curretly candidate #1 for the network observability 
 .PHONY: pixie
@@ -90,7 +89,7 @@ kshark:
 redis:
 	-$(HELM) repo add bitnami https://charts.bitnami.com/bitnami
 	-$(HELM) repo update
-	$(HELM) upgrade --install redis bitnami/redis -n redpanda --create-namespace --values redis/values.yaml
+	$(HELM) upgrade --install redis bitnami/redis -n storm --create-namespace --values redis/values.yaml
 
 
 
@@ -110,7 +109,7 @@ tetragon-install: helm check-context
 .PHONY: vector
 vector: helm 
 	-$(HELM) repo add vector https://helm.vector.dev
-	-$(HELM) upgrade --install vector vector/vector --namespace vector --create-namespace --values vector/gkevalues.yaml
+	-$(HELM) upgrade --install vector vector/vector --namespace honey --create-namespace --values vector/gkevalues.yaml
 	while [ "$$(kubectl -n vector get po -l app.kubernetes.io/name=vector -o jsonpath='{.items[0].metadata.generateName}')" != "vector-" ]; do \
 		sleep 2; \
    	echo "Waiting for Vector pod to be created."; \

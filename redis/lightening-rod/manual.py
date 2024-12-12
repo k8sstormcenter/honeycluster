@@ -412,41 +412,6 @@ def deduplicate_bundles(individual_bundles):
 
 
 
-def group_bundles(individual_bundles):
-    STIX_ATTACK_PATTERNS = get_attack_patterns()
-    stix_bundle_array = {} 
-    for key, value in individual_bundles.items():
-        stix_bundle = json.loads(value)
-        k= key.decode('utf-8').split(":")[0]
-        ID = int(k) #the ID is the first part of the key
- 
-        # Now we sort the bundles by the ID
-        #if the ID hasnt been seen before we create the header
-        if ID not in  stix_bundle_array:
-            stix_bundle_array[ID] = {
-                "type": "bundle",
-                "id": generate_stix_id("bundle"),
-                "name": str(ID),
-                "spec_version": "2.1",
-                "objects": [],
-            }
-        stix_bundle_array[ID]["objects"].extend(stix_bundle["objects"])
-    # Now we are done with all the observed-data objects in one bundle per attack pattern, we finally appent only once the header
-    for STIX_ATTACK_PATTERN in STIX_ATTACK_PATTERNS:
-        ID= int(STIX_ATTACK_PATTERN["id"])
-        PATTERN,LONGID =get_pattern(STIX_ATTACK_PATTERN)
-        if ID  in  stix_bundle_array:
-            stix_bundle_array[ID]["objects"].extend(STIX_ATTACK_PATTERN["objects"])
-            #for obj in stix_bundle_array[ID]["objects"]:
-            #    if obj["type"] == "relationship":
-            #        obj["object_refs"].append(LONGID)
-            #        break 
-            #if validate_stix_bundle(stix_bundle_array[ID]):
-            client.hset(REDIS_BUNDLEVISKEY,f"{ID}:{LONGID}", json.dumps(sanitize_bundle(stix_bundle_array[ID])))
-
-    return stix_bundle_array
-
-
 def get_hash(tetragon_log):
     for log in tetragon_log:
         tetragon_log = json.loads(log.decode('utf-8'))
