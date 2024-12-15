@@ -51,17 +51,23 @@ def wipesafe():
 
 
 
+@app.route('/convert_single_to_stix', methods=['GET'])
+async def convert_single_to_stix():
+    tetragon_log= request.args.get('log').json()
+    stix = transform_tetragon_to_stix(tetragon_log)
+    return stix, 200
+
+
 @app.route('/convert_to_stix', methods=['GET'])
-def convert_to_stix():
-    offset = int(request.args.get('i', 30)) 
-    # Read Tetragon logs from Redis #yes, this is not a secure way to query a DB, please fix
-    tetragon_logs = client.lrange(REDIS_KEY, -offset, -1)
-    #extract the hash from each log
-    bundle = transform_tetragon_to_stix(tetragon_logs)
-    #print(bundle)
+async def convert_to_stix():
+    start = int(request.args.get('start', 30)) #TODO test if negative values work
+    stop = int(request.args.get('stop', 0))
+    REDIS_KEY = request.args.get('r', 'tetra')
+    tetragon_logs = client.lrange(REDIS_KEY, -start, stop)
+    transform_tetragon_to_stix(tetragon_logs)
 
 
-    #now as a second step we bundle the bundles
+    #bundle = transform_tetragon_to_stix(tetragon_logs)
     individual_bundles = client.hgetall(REDIS_BUNDLEKEY)
     deduplicate_bundles(individual_bundles)
     #trees = group_bundles(individual_bundles)
