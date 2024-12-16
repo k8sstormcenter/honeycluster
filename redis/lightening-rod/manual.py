@@ -58,6 +58,11 @@ def convert_single_to_stix():
     stix = transform_single_tetragon_to_stix(tetragon_log)
     return stix, 200
 
+@app.route('/bundle_for_viz', methods=['GET'])
+def bundle_for_viz():
+    individual_bundles = client.hgetall(REDIS_BUNDLEVISKEY)
+    deduplicate_bundles(individual_bundles)
+    return jsonify({"message": "STIX bundeling ready for visualization"}), 200
 
 @app.route('/convert_to_stix', methods=['GET'])
 async def convert_to_stix():
@@ -66,9 +71,6 @@ async def convert_to_stix():
     REDIS_KEY = request.args.get('r', 'tetra')
     tetragon_logs = client.lrange(REDIS_KEY, -start, stop)
     transform_tetragon_to_stix(tetragon_logs)
-
-
-    #bundle = transform_tetragon_to_stix(tetragon_logs)
     individual_bundles = client.hgetall(REDIS_BUNDLEKEY)
     deduplicate_bundles(individual_bundles)
     #trees = group_bundles(individual_bundles)
