@@ -6,6 +6,7 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 .EXPORT_ALL_VARIABLES:
 
 calibrate: calibration-traces calibration-attack
+lightening: lightening-attack
 
 # wipe all the stuff accumulated in REDIS ... just in case its nonsense... just saying :) 
 wipe:  remove-calibration-attack remove-calibration-traces 
