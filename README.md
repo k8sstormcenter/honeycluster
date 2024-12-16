@@ -21,9 +21,9 @@ Welcome to the K8sStormCenter HoneyCluster repository. Here you will find everyt
   - [Getting started](#getting-started)
     - [1. Create a Kubernetes Cluster](#1-create-a-kubernetes-cluster)
     - [2. Set up the HoneyCluster](#2-set-up-the-honeycluster)
-    - [2.  Baselining](#2--baselining)
-    - [3.  Lightening](#3--lightening)
-    - [4. Create STIX observables](#4-create-stix-observables)
+    - [3.  Baselining](#3--baselining)
+    - [4.  Lightening](#4--lightening)
+    - [5. Create STIX observables](#5-create-stix-observables)
     - [5. Teardown](#5-teardown)
   - [Tailoring the instrumentation to your needs](#tailoring-the-instrumentation-to-your-needs)
     - [Tracing Policies](#tracing-policies)
@@ -157,14 +157,30 @@ WIP: For the `Kubehound-inspired Calibration`, there will soon be a fixed set of
 >[!IMPORTANT]
 > Do NOT edit the id (integer) of the new pattern, otherwise you ll overwriting god knows what in that table. :) 
 
-### 2.  Baselining
+### 3.  Baselining
 At this point, you ll likey want to mark all your current logs as `benign`, this will reduce the noise considerably.
 If you want to be sure that your `HoneyCluster` has reached equilibrium, check the rate at which logs are appended to the `redis`DB "table"=`tetra` . On `kind`, the rate will go to zero after the all services are booted up.
 
 
-You achieve this, by pressing the `Mark all logs as BENIGN` button in the UI.
+You achieve this, first put on all traces, then load all your current logs into a temporary table:
+```
+make --makefile=Makefile_calibrate_kubehound calibration-traces
+http://localhost:3000/reload-tetra
+kubectl port-forward -n storm lightening-rod 8000:8000
+chmod +x lightening-rod/testpost.sh
+./lightening-rod/testpost.sh
+```
 
-### 3.  Lightening
+and once all the preps are done: press the `Mark all logs as BENIGN` button in the UI.
+
+At this point (if you inspect `redis`), you have 4 tables: 
+`tetra` = list of all logs (vector-sink)
+`raw_logs` = temporary list to stage logs for processing
+`benign_logs` = hashtable for md5-hashes of bengin logs
+`tetra_pattern` = hashtable for json STIX 2.1 attack-patterns
+
+
+### 4.  Lightening
 Attack yourself with the calibration attacks in the namespace `lightening` to trigger the tripwires (else running the analysis over the `Active Patterns` is not going to turn up any `matched STIX-bundles`)
 ```
 make --makefile=Makefile_calibrate_kubehound calibrate
@@ -180,9 +196,9 @@ Now, in your `redis` DB, the table `tetra` will have accumulated a few thousand 
 <img width="1426" alt="Screenshot 2024-12-02 at 12 24 46" src="https://github.com/user-attachments/assets/b1b064f4-55ec-4cb2-9370-5f5fb3d104e2">
 
 
-TODO: write more FROM HERE
+Now, back in the UI, press `Select all logs for processing` 
 
-### 4. Create STIX observables
+### 5. Create STIX observables
 
 With the HoneyCluster set up and the baseline behaviour filtered out, and the calibration being sucessful (i.e. your traces, patterns, filters and other `yaml` files are edited to your satisfaction), we can now attack the cluster with ever more real scenarios.
 

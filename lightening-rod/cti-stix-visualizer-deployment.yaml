@@ -30,6 +30,8 @@ spec:
           value: "tetrastix"
         - name: MONGODB_URI
           value: "mongodb://mongo-mongodb.honey.svc.cluster.local:27017"
+        - name: LIGHTENINGROD
+          value: "http://lightening-rod.storm.svc.cluster.local:8000"
   #  securityContext:  # TODO add sec defaults, its running as nonroot and needs no caps
   #    runAsUser: 1000
   #    runAsGroup: 1000
