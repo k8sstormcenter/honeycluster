@@ -150,8 +150,11 @@ kubectl port-forward service/stix-visualizer -n redpanda 80:3000
 ```
 
 After port-forwarding, you can access the UI [http://localhost:30000](http://localhost:30000), edit your `Patterns` and `activate Patterns` to be used by the `lightening-rod` (a microservice that matches patterns and converts logs to a standard STIX 2.1 format)
-If you click on `Add Pattern`, it ll give you the minimal example of one to fill out: 
-<img width="627" alt="Screenshot 2024-12-16 at 20 16 32" src="https://github.com/user-attachments/assets/f3dbcf20-73e7-4f5a-9d7f-ace4b78bc6a9" />
+WIP: For the `Kubehound-inspired Calibration`, there will soon be a fixed set of patterns for `kind`. But you can add/modify: e.g. if you click on `Add Pattern`, it'll give you the minimal example of one to fill out:
+
+<img width="500" alt="Screenshot 2024-12-16 at 20 16 32" src="https://github.com/user-attachments/assets/f3dbcf20-73e7-4f5a-9d7f-ace4b78bc6a9" />
+>[!IMPORTANT]
+> Do NOT edit the id (integer) of the new pattern, otherwise you ll overwriting god knows what in that table. :) 
 
 ### 2.  Baselining
 At this point, you ll likey want to mark all your current logs as `benign`, this will reduce the noise considerably.
