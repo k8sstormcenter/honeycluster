@@ -362,6 +362,8 @@ customConfig:
         - "**/gke-managed*/**"
         - "**/cert-manager_cert-manager*/**"
         - "**/vector*/**"
+        - "**/storm*/**"
+        - "**/honey*/**"
         - "**/*Error getting SSL certificate*"
         - "**/kube-system_image-package-extractor*/**"
   sinks:
