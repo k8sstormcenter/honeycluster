@@ -153,6 +153,7 @@ After port-forwarding, you can access the UI [http://localhost:30000](http://loc
 WIP: For the `Kubehound-inspired Calibration`, there will soon be a fixed set of patterns for `kind`. But you can add/modify: e.g. if you click on `Add Pattern`, it'll give you the minimal example of one to fill out:
 
 <img width="500" alt="Screenshot 2024-12-16 at 20 16 32" src="https://github.com/user-attachments/assets/f3dbcf20-73e7-4f5a-9d7f-ace4b78bc6a9" />
+
 >[!IMPORTANT]
 > Do NOT edit the id (integer) of the new pattern, otherwise you ll overwriting god knows what in that table. :) 
 
