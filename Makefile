@@ -61,8 +61,8 @@ stixviz:
 	
 .PHONY: lighteningrod
 lighteningrod:
-	-kubectl apply -f redis/lighteningrod/deployment.yaml	&& kubectl create configmap check-script -n storm --from-file=test/check.sh
-
+	-kubectl apply -f redis/lightening-rod/deployment.yaml	
+	
 .PHONY: tracee
 tracee:
 	-$(HELM) repo add aqua https://aquasecurity.github.io/helm-charts/

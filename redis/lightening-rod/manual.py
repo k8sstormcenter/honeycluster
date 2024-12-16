@@ -4,6 +4,7 @@ import os
 from datetime import datetime, timezone
 from flask import Flask, request, jsonify
 import redis
+import asyncio
 from stix2matcher.matcher import match
 from stix2 import Bundle, Process, Indicator, Relationship
 from stix2patterns.v21 import pattern
@@ -51,17 +52,25 @@ def wipesafe():
 
 
 
+@app.route('/convert_single_to_stix', methods=['GET'])
+def convert_single_to_stix():
+    tetragon_log= request.args.get('log')
+    stix = transform_single_tetragon_to_stix(tetragon_log)
+    return stix, 200
+
+@app.route('/bundle_for_viz', methods=['GET'])
+def bundle_for_viz():
+    individual_bundles = client.hgetall(REDIS_BUNDLEVISKEY)
+    deduplicate_bundles(individual_bundles)
+    return jsonify({"message": "STIX bundeling ready for visualization"}), 200
+
 @app.route('/convert_to_stix', methods=['GET'])
-def convert_to_stix():
-    offset = int(request.args.get('i', 30)) 
-    # Read Tetragon logs from Redis #yes, this is not a secure way to query a DB, please fix
-    tetragon_logs = client.lrange(REDIS_KEY, -offset, -1)
-    #extract the hash from each log
-    bundle = transform_tetragon_to_stix(tetragon_logs)
-    #print(bundle)
-
-
-    #now as a second step we bundle the bundles
+async def convert_to_stix():
+    start = int(request.args.get('start', 30)) #TODO test if negative values work
+    stop = int(request.args.get('stop', 0))
+    REDIS_KEY = request.args.get('r', 'tetra')
+    tetragon_logs = client.lrange(REDIS_KEY, -start, stop)
+    transform_tetragon_to_stix(tetragon_logs)
     individual_bundles = client.hgetall(REDIS_BUNDLEKEY)
     deduplicate_bundles(individual_bundles)
     #trees = group_bundles(individual_bundles)
@@ -299,12 +308,62 @@ def matches(pattern, bundle, stix_version=STIX_VERSION):
         print(f"Error matching pattern {pattern} to bundle {bundle}: {e}")
         raise
 
+#TODO Paralallize this function
+def transform_single_tetragon_to_stix(log):
+    stix_objects = []
+    STIX_ATTACK_PATTERNS = get_attack_patterns()
+    tetragon_log = json.loads(log)
+    print(tetragon_log)
+    UNIQUE = tetragon_log.get("md5_hash")
+    stix_objects = []
+    stix_bundle = {
+        "type": "bundle",
+        "id": generate_stix_id("bundle"),
+        "spec_version": "2.1",
+        "name" : "",
+        "objects": [],
+    }
+    if "process_exec" in tetragon_log:
+        stix_objects = transform_process_to_stix(tetragon_log["process_exec"])
+
+    elif "process_kprobe" in tetragon_log:
+        stix_objects = transform_process_to_stix(tetragon_log["process_kprobe"])
+    # Now we have each individual logs in STIX observable format
+    # we test if it matches any known indicator
+    # if yes, then we append it to the bundle accordingly
+    for STIX_ATTACK_PATTERN in STIX_ATTACK_PATTERNS:
+        try:
+            stix_bundle["objects"].extend(stix_objects)
+            PATTERN,ID =get_pattern(STIX_ATTACK_PATTERN)
+            IDD= STIX_ATTACK_PATTERN["id"]
+            stix_bundle["name"] = ID
+            if matches(PATTERN, stix_bundle):
+        #       #for each pattern we check if an observable matches and write all matches to redis after appending the STIX_PATTERN ID to the observed-data.object_refs list
+                #redis_key = f"{REDIS_OUTKEY}:{ID}:{UNIQUE}"
+                print(f"Writing to Redis key: {REDIS_BUNDLEKEY}")
+                indicator_relationship = create_relationship(
+                        stix_bundle["id"], ID, "indicates"  # Assuming "indicates" relationship
+                    )
+                stix_bundle["objects"].append(indicator_relationship)
+                for obj in stix_bundle["objects"]:
+                    if obj["type"] == "observed-data":
+                        obj["object_refs"].append(ID)
+                        break 
+
+                stix_bundle["objects"].extend(STIX_ATTACK_PATTERN["objects"])
+                client.hset(REDIS_BUNDLEKEY,f"{IDD}:{UNIQUE}", json.dumps(sanitize_bundle(stix_bundle)))
+        except Exception as e:
+            print(f"Error extending bundle in tranform_tetragon_to_stix: {e}")
+
+    return stix_bundle
+
+
 def transform_tetragon_to_stix(tetragon_log):
     stix_objects = []
     STIX_ATTACK_PATTERNS = get_attack_patterns()
     if not tetragon_log:
         return []
-   
+
     for log in tetragon_log:
         tetragon_log = json.loads(log.decode('utf-8'))  # Decode bytes to string
         UNIQUE = tetragon_log.get("md5_hash")
@@ -322,9 +381,6 @@ def transform_tetragon_to_stix(tetragon_log):
 
         elif "process_kprobe" in tetragon_log:
             stix_objects = transform_process_to_stix(tetragon_log["process_kprobe"])
-        # Now we have each individual logs in STIX observable format
-        # we test if it matches any known indicator
-        # if yes, then we append it to the bundle accordingly
         for STIX_ATTACK_PATTERN in STIX_ATTACK_PATTERNS:
             try:
                 stix_bundle["objects"].extend(stix_objects)
@@ -346,11 +402,6 @@ def transform_tetragon_to_stix(tetragon_log):
 
                     stix_bundle["objects"].extend(STIX_ATTACK_PATTERN["objects"])
                     client.hset(REDIS_BUNDLEKEY,f"{IDD}:{UNIQUE}", json.dumps(sanitize_bundle(stix_bundle)))
-                    #if validate_stix_bundle(stix_bundle):
-                    #   client.rpush(redis_key, json.dumps(sanitize_bundle(stix_bundle)))
-                    #now we write the bundle to redis for the visualization to the viskey
-                    #   client.hset(REDIS_VISKEY,f"{ID}:{UNIQUE}", json.dumps(sanitize_bundle(stix_bundle)))
-                    #print(f"Writing to Redis key: {REDIS_VISKEY}")
             except Exception as e:
                 print(f"Error extending bundle in tranform_tetragon_to_stix: {e}")
 

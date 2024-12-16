@@ -4,7 +4,7 @@
 > I'm currently rewriting about 90% of the underlying stack, so expect quite some breaking changes until end of 2024. I'm aiming at a stablilization in January '25
 > The focus of the rewrite is to give it an achievable UX and a lightweight footprint
 
-Welcome to the K8sStormCenter HoneyCluster repository. Here you will find everything you need to set up your own HoneyCluster, a Kubernetes cluster that is instrumented with bait and tripwires to collect data on the attacks carried out against it and the ways in which it is targeted. WIP: With our complimentary [cti-stix-visualizater](https://github.com/k8sstormcenter/cti-stix-visualization) , you can then use this data to visualize, understand and detect these attacks.
+Welcome to the K8sStormCenter HoneyCluster repository. Here you will find everything you need to set up your own HoneyCluster, a Kubernetes cluster that is instrumented with bait and tripwires to collect data on the attacks carried out against it and the ways in which it is targeted. WIP: With our complimentary [visualizer](https://github.com/k8sstormcenter/cti-stix-visualization) , you can then use this data to visualize, understand and detect these attacks.
 
 
 
@@ -16,13 +16,14 @@ Welcome to the K8sStormCenter HoneyCluster repository. Here you will find everyt
     - [Creating a HoneyCluster](#creating-a-honeycluster)
     - [The four fold path to threat intelligence](#the-four-fold-path-to-threat-intelligence)
     - [Threat Model](#threat-model)
-      - [Generate a full Threat Tree using OSS tool such as Kubehound](#generate-a-full-threat-tree-using-oss-tool-such-as-kubehound)
+      - [Generate a full Threat Tree using OSS tools such as Kubehound](#generate-a-full-threat-tree-using-oss-tools-such-as-kubehound)
     - [Attack Model](#attack-model)
   - [Getting started](#getting-started)
     - [1. Create a Kubernetes Cluster](#1-create-a-kubernetes-cluster)
     - [2. Set up the HoneyCluster](#2-set-up-the-honeycluster)
-    - [3. Baseline Redaction  (DEPRECATED)](#3-baseline-redaction--deprecated)
-    - [4. Attack and observe](#4-attack-and-observe)
+    - [2.  Baselining](#2--baselining)
+    - [3.  Lightening](#3--lightening)
+    - [4. Create STIX observables](#4-create-stix-observables)
     - [5. Teardown](#5-teardown)
   - [Tailoring the instrumentation to your needs](#tailoring-the-instrumentation-to-your-needs)
     - [Tracing Policies](#tracing-policies)
@@ -43,19 +44,18 @@ You start with your "normal" cluster, where you wish to
 - simply observe how your cluster will be attacked by interpreting the anomalous signals
 
 However, you don't want to expose your cluster to real threats. That's where the HoneyCluster comes in. A HoneyCluster is a cluster that looks like a normal cluster, but is instrumented with tripwires and bait to collect data on the attacks carried out against it. Because the HoneyCluster looks like a real cluster, the collected data is representative of the attacks that would be carried out against a real cluster and therefore can give us insights into the behaviour of attackers and the ways in which they target our clusters.
+You decide, how much of your production scope you ll clone into this "HoneyCluster". We recommend, using the same IaC you already have and put it into a throw-away tenant(Azure)/project(GCP). I d recommend additionally, not using any IAM/IdP or other identiies or key material that has scopes beyond this tenant. Especially if you want to see critical kind of attacks... 
+Please note, that you are solely responsible for the risk of lateral-movements/pivots, if you deploy the HoneyCluster in shared-<anything> configuration.
+
+WIP: I ll add GCP terraform templates including all IAM to work standalone, as a reference.
 
 
 ### Creating a HoneyCluster
 
 <img width="1083" alt="Screenshot 2024-04-26 at 22 32 32" src="https://github.com/k8sstormcenter/honeycluster/assets/70207455/f574e663-fb7b-4c43-af6f-b3544b8b63a6">
 
-To set up a HoneyCluster, you start by creating a copy of your "normal" cluster. This copy has the same services as the real cluster, but without its data and with some additional instrumentation to collect data on the attacks carried out against it. This data is then used to create a baseline of normal behaviour, which is used to filter out benign signals. The remaining signals are then used to detect and understand the attacks carried out against the cluster.
+To set up a HoneyCluster, you start by creating a copy of your "normal" cluster. This copy has the same services as the real cluster, but without its sensitive data and with some additional instrumentation to collect data on the attacks carried out against it. This data is then used to create a baseline of normal behaviour, which is used to filter out benign signals. The remaining signals are then used to detect and understand the attacks carried out against the cluster.
 
-If working locally on `kind`, you might wanna start with 
-```bash
-make cluster-up
-```
-[We are currently testing this on kind 1.31.2]
 
 
 ### The four fold path to threat intelligence
@@ -89,10 +89,13 @@ flowchart TD
     D --> EE[ServiceAccount \n creates Pod]
 ```
 
-#### Generate a full Threat Tree using OSS tool such as Kubehound
+WIP: replace with more generic 
+
+#### Generate a full Threat Tree using OSS tools such as Kubehound
 One of the critical aspects of modelling threats is having a good threat model to start with. 
 This is why we looked at the cloud-native OSS space and are collecting the best tools and combining them
-to generate a good starting point. In this branch, we work with `Kubehound`.
+to generate a good starting point. 
+We thank the Kubehound maintainers for a lot of inspiration!
 
 ### Attack Model
 
@@ -108,7 +111,7 @@ You can use this for multiple purposes:
 
 ## Getting started
 
-You want to deploy your own HoneyCluster? Then you have come to the right place! In a few simple steps, we'll show you everything you need to get started with setting up your own HoneyCluster. We'll guide you through the setup of a local Kubernetes cluster, the installation of the necessary instrumentation and the collection of the baseline behaviour. Once you have set up your HoneyCluster, you can start experimenting with different attacks and observe the signals generated by them.
+You want to deploy your own HoneyCluster? We'll guide you through the setup of a local Kubernetes (`kind`) cluster, the installation of the necessary instrumentation and the collection of the baseline behaviour. Once you have set up your HoneyCluster, you can start experimenting with a standardized attack-suite, writing patterns, analysing logs, calibrating a baseline and observing the final signals. 
 
 
 ### 1. Create a Kubernetes Cluster
@@ -121,7 +124,7 @@ In order to set up your own HoneyCluster, you first need a Kubernetes cluster on
 ```bash
 make cluster-up
 ```
-> !NOTE
+
 
 
 ### 2. Set up the HoneyCluster
@@ -139,65 +142,47 @@ The `honey-up` target installs all the necessary components to collect eBPF trac
 
 While we provide you with a set of default traces and log forwarding configurations, you can adjust them to your needs in the [traces](traces/) and [vector/values.yaml](vector/values.yaml) files respectively. Find out more about it in the [Tailoring the instrumentation to your needs](#tailoring-the-instrumentation-to-your-needs) section.
 
-While in `Calibration Mode` , you ll likely want to run your python scripts over your logs to check if the logs (in `Redis`) are being picked up by your `Patterns`. Currently, I m running the python scripts under `./redis/log-notebook/manual.py` in a devcontainer against the `redis` running on `k8s/kind` , while the `cti-stix-visualizer` runs next to `redis`.
+While in `Calibration Mode` , you ll likely want to work with a small batch of logs to get the coarse filters in place:
 
 ```bash
 kubectl port-forward service/redis-headless -n redpanda 6379:6379
 kubectl port-forward service/stix-visualizer -n redpanda 80:3000
 ```
 
+After port-forwarding, you can access the UI [http://localhost:30000](http://localhost:30000), edit your `Patterns` and `activate Patterns` to be used by the `lightening-rod` (a microservice that matches patterns and converts logs to a standard STIX 2.1 format)
 
-After port-forwarding, (and running the python scripts)you can access the detected hash-entries in redis via the UI [http://localhost:30000](http://localhost:30000). WIP !!
+### 2.  Baselining
+At this point, you ll likey want to mark all your current logs as `benign`, this will reduce the noise considerably.
+If you want to be sure that your `HoneyCluster` has reached equilibrium, check the rate at which logs are appended to the `redis`DB "table"=`tetra` . On `kind`, the rate will go to zero after the all services are booted up.
 
-Attack yourself with the calibration attacks 1-by-1 or as you like (please un/comment in the Makefile respectively)
+
+You achieve this, by pressing the `Mark all logs as BENIGN` button in the UI.
+
+### 3.  Lightening
+Attack yourself with the calibration attacks in the namespace `lightening` to trigger the tripwires (else running the analysis over the `Active Patterns` is not going to turn up any `matched STIX-bundles`)
 ```
 make --makefile=Makefile_calibrate_kubehound calibrate
 ```
+Give it a minute or two until those attacks that will succeed have succeeded (pull their images or booted up etc), then you should remove the `lightening` again (else you ll have duplicate logs that contain no new insights)
 
-Then, you need to create your `STIX-bundles` , WIP currently manually
 ```
-cd redis/lightening-rod
-poetry install
-poetry run python manual.py
+make --makefile=Makefile_calibrate_kubehound wipe
 ```
 
-You can then look at the Visualisation (WIP, it has hiccups, feel free to suggest improvements):
+Now, in your `redis` DB, the table `tetra` will have accumulated a few thousand logs. 
 
 <img width="1426" alt="Screenshot 2024-12-02 at 12 24 46" src="https://github.com/user-attachments/assets/b1b064f4-55ec-4cb2-9370-5f5fb3d104e2">
 
 
+TODO: write more FROM HERE
 
+### 4. Create STIX observables
 
-### 3. Baseline Redaction  (DEPRECATED)
+With the HoneyCluster set up and the baseline behaviour filtered out, and the calibration being sucessful (i.e. your traces, patterns, filters and other `yaml` files are edited to your satisfaction), we can now attack the cluster with ever more real scenarios.
 
-WIP: during the redpanda-deprecation, we now have simple dedup inside vector, where the hashing is done (previsously inside redpanda-wasm-transform), however, inserting the known hashes into seperate hash-tables is currently turned off, until the visualisation features are finished.
-You can manually implement it yourself, by letting vector write all hashes to a redis table until your `baseline recording` is done, and then implementing in your analysis scripts to ignore all those hashes.
+It is recommended to test the quality of your `threat-observability` by running some simple attacks that - unlike the calibration suite- are not 100% pre-configured.
 
-OLD TEXT:
-
-After the successful HoneyCluster setup, it starts collecting all data on the cluster. The idea is that at this point, all traffic is benign and therefore we can use this data to create a baseline of what non-malicous behaviour looks like. We can then use this baseline to filter out what we are not interested in, leaving us with the good stuff - the signal.
-
-<img width="1119" alt="Signal" src="https://github.com/k8sstormcenter/honeycluster/assets/70207455/3931d5b2-9f07-4ebb-8bd6-82675f0c6313">
-
-Once you believe that all baseline behaviour has been captured, you can cut off the baseline collection and start the signal generation using the following make target:
-
-```bash
-make honey-signal
-```
-
-Check out the [signal](http://localhost:30000/topics/signal) topic in the Redpanda dashboard to see the generated signal. This topic should now only contain activity that is not part of the baseline behaviour.
-
-If you still find some reoccuring benign traffic in the signal, you can add the corresponding keys to the `baseline` set in Redis to exclude them from the signal:
-
-```bash
-kubectl exec -n redpanda svc/redis-headless -- redis-cli SADD baseline "<key>"
-```
-
-
-### 4. Attack and observe
-
-With the HoneyCluster set up and the baseline behaviour filtered out, you can now perform some previously unseen actions on the cluster and observe the signals generated by them.
-
+This repo provides some examples/ideas YMMV:
 In the attack makefile, we provide you with a simple simple bait to deploy and attack execute on the cluster. The bait consists of an ssh server with weak credentials, giving an attacker root access on the pod from which more damage can be done because of misconfigured RBAC. To deploy the bait: 
 
 ```bash
@@ -229,6 +214,8 @@ flowchart TD
 
 Close the SSH connection, and run the full attack which will again make an SSH connection to our vulnerable server, run a malicious script which will create a HostPath type PersistentVolume, allowing a pod to access `/var/log` on the host (inspired by [this blog post](https://jackleadford.github.io/containers/2020/03/06/pvpost.html)), using the [Python Kubernetes client library](https://github.com/kubernetes-client/python). Note that you could modify the hostPath in the Python script to go directly for the data on the host that you want to compromise, however, in order to increase the number of attack steps in our scenario (and hence the number of indicators that we can look for), let's imagine that we are not able to create arbitrary hostPaths. In this scenario, perhaps a `hostPath` type `PersistentVolume` is allowed for `/var/log` so that a Pod can monitor other Pod's logs.
 
+
+WIP: TODO: check if below commands are still supported
 ```bash
 make --makefile=calibrate_kubehound calibrate
 make --makefile=Makefile_attack attack
