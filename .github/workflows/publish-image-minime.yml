@@ -1,9 +1,7 @@
 name: Build and push lecture5 image
-on:
-  push:
-    branches:
-      - main 
-  pull_request:
+
+
+
 
 env:
   REGISTRY: ghcr.io
