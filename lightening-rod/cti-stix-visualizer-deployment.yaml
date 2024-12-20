@@ -15,7 +15,8 @@ spec:
     spec:
       containers:
       - name: stix-visualizer
-        image: ghcr.io/k8sstormcenter/cti-stix-visualizer:0.0.2
+        #image: ghcr.io/k8sstormcenter/cti-stix-visualizer:0.0.2
+        image: entlein/cti-stix-visualizer:0.0.2
         imagePullPolicy: Always
         ports:
         - containerPort: 3000
@@ -23,7 +24,7 @@ spec:
         - name: PORT
           value: "3000"
         - name: REDIS_HOST
-          value: "redis-headless.storm.svc.cluster.local"
+          value: "redis-master.storm.svc.cluster.local"
         - name: REDIS_PORT
           value: "6379"
         - name: REDIS_KEY_PREFIX
@@ -31,14 +32,15 @@ spec:
         - name: MONGODB_URI
           value: "mongodb://mongo-mongodb.honey.svc.cluster.local:27017"
         - name: LIGHTENINGROD
-          value: "http://lightening-rod.storm.svc.cluster.local:8000"
-  #  securityContext:  # TODO add sec defaults, its running as nonroot and needs no caps
-  #    runAsUser: 1000
-  #    runAsGroup: 1000
-  #    fsGroup: 1000
-  #    fsGroupChangePolicy: OnRootMismatch
-  #    seccompProfile:
-  #      type: RuntimeDefault
+          value: "lightening-rod.storm.svc.cluster.local:8000"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 3
+
+
 
 
 ---
