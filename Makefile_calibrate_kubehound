@@ -5,20 +5,12 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 
 .EXPORT_ALL_VARIABLES:
 
-
 calibrate: calibration-traces calibration-attack
+lightening: lightening-attack
 
 # wipe all the stuff accumulated in REDIS ... just in case its nonsense... just saying :) 
 wipe:  remove-calibration-attack remove-calibration-traces 
 
-
-# Target to flush Redis database #Doesnt work since that features is blocked in most containers
-# TODO: think if you really want a full wipe
-redis-wipe:
-	@echo "Flushing Redis database..."
-	@REDIS_POD=$$(kubectl get pods -n redpanda -l app.kubernetes.io/name=redis -o jsonpath="{.items[0].metadata.name}");\
-	kubectl exec -n redpanda $$REDIS_POD -- redis-cli FLUSHALL
-	kubectl exec -n redpanda redis-master-0 -- redis-cli FLUSHALL
 
 .PHONY:
 calibration-traces: 

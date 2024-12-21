@@ -474,17 +474,5 @@ def main():
     STIX representation in json format to stdout"""
 
 
-    # Read Tetragon logs from Redis
-    #tetragon_logs = client.lrange(REDIS_KEY, -50, -1)
-    #extract the hash from each log
-    #bundle = transform_tetragon_to_stix(tetragon_logs)
-
-    #now as a second step we bundle the bundles
-    #individual_bundles = client.hgetall(REDIS_BUNDLEKEY)
-    #trees = group_bundles(individual_bundles)
-
-
-
-
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8000)
