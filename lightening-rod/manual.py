@@ -58,6 +58,13 @@ def convert_single_to_stix():
     stix = transform_single_tetragon_to_stix(tetragon_log)
     return stix, 200
 
+@app.route('/convert_list_to_stix', methods=['GET'])
+def convert_list_to_stix():
+    queue= request.args.get('queue')
+    tetragon_logs = client.lrange(queue, 0, -1)
+    transform_tetragon_to_stix(tetragon_logs)
+    return jsonify({"message": "List been converted to STIX"}), 200
+
 @app.route('/bundle_for_viz', methods=['GET'])
 def bundle_for_viz():
     individual_bundles = client.hgetall(REDIS_BUNDLEVISKEY)
@@ -439,6 +446,7 @@ def deduplicate_bundles(individual_bundles):
     stix_bundle_array = {} 
     for key, value in individual_bundles.items():
         stix_bundle = json.loads(value)
+        print(f"Processing bundle {key}: {stix_bundle}")
         ID = int(key.decode('utf-8').split(":")[0])
         if ID not in  stix_bundle_array:
             stix_bundle_array[ID] = {
@@ -452,7 +460,7 @@ def deduplicate_bundles(individual_bundles):
             # we extend those objects that we have NOT already seen
             for obj in stix_bundle["objects"]:
                 if compare_stix_objects(obj, stix_bundle_array[ID]["objects"]):
-                    #print(f"Object already exists in bundle {ID}: {obj}")
+                    print(f"Object already exists in bundle {ID}: {obj}")
                     continue
                 else:
                     stix_bundle_array[ID]["objects"].append(obj)
@@ -472,18 +480,6 @@ def get_hash(tetragon_log):
 def main():
     """Parse a tetragon log in json format from a file and print its
     STIX representation in json format to stdout"""
-
-
-    # Read Tetragon logs from Redis
-    #tetragon_logs = client.lrange(REDIS_KEY, -50, -1)
-    #extract the hash from each log
-    #bundle = transform_tetragon_to_stix(tetragon_logs)
-
-    #now as a second step we bundle the bundles
-    #individual_bundles = client.hgetall(REDIS_BUNDLEKEY)
-    #trees = group_bundles(individual_bundles)
-
-
 
 
 if __name__ == "__main__":

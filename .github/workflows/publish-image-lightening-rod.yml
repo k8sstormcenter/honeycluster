@@ -4,7 +4,7 @@ on:
     branches:
       - master 
   pull_request:
-  workflow_dispatch:
+
 
 
 env:
@@ -44,7 +44,7 @@ jobs:
 
       - name: Build an image from Dockerfile
         run: |
-          cd redis/lightening-rod
+          cd lightening-rod
           docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:0.0.1  .
 
       - name: Install Trivy

@@ -23,14 +23,15 @@ honey-down: traces-off  wipe
 
 .PHONY: wipe
 wipe: 
-	-$(HELM) uninstall tracee -n tracee
-	- kubectl delete namespace tracee
-	- kubectl delete -f test/cti-stix-visualizer.yaml
+	-$(HELM) uninstall tracee -n honey
+	- kubectl delete -f lightening-rod/cti-stix-visualizer.yaml
+	- kubectl delete -f lightening-rod/deployment.yaml
 	-$(HELM) uninstall mongo -n mongo
-	-$(HELM) uninstall honey -n vector
+	-$(HELM) uninstall vector -n honey
 	- kubectl delete namespace honey
 	-$(HELM) uninstall -n storm redis
 	- kubectl delete namespace storm
+	- kubectl delete namespace lightening
 	-$(HELM) uninstall tetragon -n kube-system
 
 
@@ -57,64 +58,45 @@ k8spin:
 
 .PHONY: stixviz
 stixviz:
-	-kubectl apply -f test/cti-stix-visualizer.yaml 
+	-kubectl apply -f lightening-rod/cti-stix-visualizer-deployment.yaml 
 	
 .PHONY: lighteningrod
 lighteningrod:
-	-kubectl apply -f redis/lightening-rod/deployment.yaml	
+	-kubectl apply -f lightening-rod/deployment.yaml	
 	
 .PHONY: tracee
 tracee:
 	-$(HELM) repo add aqua https://aquasecurity.github.io/helm-charts/
 	-$(HELM) repo update
-	-$(HELM) upgrade --install tracee aqua/tracee --namespace tracee --create-namespace
+	-$(HELM) upgrade --install tracee aqua/tracee --namespace honey --create-namespace
 
 .PHONY: mongo	
 mongo:
 	-$(HELM) repo add bitnami https://charts.bitnami.com/bitnami
 	-$(HELM) repo update
-	-$(HELM) upgrade --install mongo bitnami/mongodb --namespace honey --create-namespace --values mongo/values.yaml
-
-## curretly candidate #1 for the network observability 
-.PHONY: pixie
-pixie:
-	px deploy kubernetes
-
-## kshark is useful if youre running in a high-stakes environment and you want pcaps
-.PHONY: kshark
-kshark:
-	-$(HELM) repo add kubeshark https://helm.kubeshark.co
-	-$(HELM) repo update
-	-$(HELM) upgrade --install kubeshark kubeshark/kubeshark --create-namespace --namespace kubeshark --values kubeshark/values.yaml
-	# kubectl port-forward service/kubeshark-front 8899:80
-
+	-$(HELM) upgrade --install mongo bitnami/mongodb --namespace honey --create-namespace --values honeystack/mongo/values.yaml
 
 
 .PHONY: redis
 redis:
 	-$(HELM) repo add bitnami https://charts.bitnami.com/bitnami
 	-$(HELM) repo update
-	$(HELM) upgrade --install redis bitnami/redis -n storm --create-namespace --values redis/values.yaml
+	$(HELM) upgrade --install redis bitnami/redis -n storm --create-namespace --values lightening-rod/redis/values.yaml
 
 
-
-	
-##@ Tetragon
 .PHONY: tetragon
 tetragon: helm check-context
 	-$(HELM) repo add cilium https://helm.cilium.io
 	-$(HELM) repo update
-	-$(HELM) upgrade --install tetragon cilium/tetragon -n honey --create-namespace --values tetragon/values.yaml
+	-$(HELM) upgrade --install tetragon cilium/tetragon -n honey --create-namespace --values honeystack/tetragon/values.yaml
 	-kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=tetragon -n honey --timeout=5m 
-
 
 
 .PHONY: vector
 vector: helm 
 	-$(HELM) repo add vector https://helm.vector.dev
-	-$(HELM) upgrade --install vector vector/vector --namespace honey --create-namespace --values vector/gkevalues.yaml
+	-$(HELM) upgrade --install vector vector/vector --namespace honey --create-namespace --values honeystack/vector/gkevalues.yaml
 	-kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=vector  -n honey --timeout=5m 
-
 
 .PHONY: traces
 traces: 
@@ -141,7 +123,23 @@ traces-off:
 	-kubectl delete -f traces/6detect-symlinkat.yaml
 	-kubectl delete -f traces/7detect-sensitivefile-access.yaml
 	-kubectl delete -f traces/8detect-tcp.yaml
+	-kubectl delete -f traces/9managed-identitytokenaccess.yaml
+	-kubectl delete -f traces/10network-metadata.yaml
 
+
+## Experiments
+## curretly candidate #1 for the network observability 
+.PHONY: pixie
+pixie:
+	px deploy kubernetes
+
+## kshark is useful if youre running in a high-stakes environment and you want pcaps
+.PHONY: kshark
+kshark:
+	-$(HELM) repo add kubeshark https://helm.kubeshark.co
+	-$(HELM) repo update
+	-$(HELM) upgrade --install kubeshark kubeshark/kubeshark --create-namespace --namespace honey --values honeystack/kubeshark/values.yaml
+	# kubectl port-forward service/kubeshark-front 8899:80
 
 
 ##@ Tools

@@ -1,0 +1,14 @@
+
+architecture: standalone
+auth:
+  ## @param auth.enabled Enable password authentication
+  ##
+  enabled: false
+
+resources:
+  requests:
+    cpu: 2
+    memory: 512Mi
+  limits:
+    cpu: 3
+    memory: 1024Mi
