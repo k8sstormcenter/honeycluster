@@ -446,6 +446,7 @@ def deduplicate_bundles(individual_bundles):
     stix_bundle_array = {} 
     for key, value in individual_bundles.items():
         stix_bundle = json.loads(value)
+        print(f"Processing bundle {key}: {stix_bundle}")
         ID = int(key.decode('utf-8').split(":")[0])
         if ID not in  stix_bundle_array:
             stix_bundle_array[ID] = {
@@ -459,7 +460,7 @@ def deduplicate_bundles(individual_bundles):
             # we extend those objects that we have NOT already seen
             for obj in stix_bundle["objects"]:
                 if compare_stix_objects(obj, stix_bundle_array[ID]["objects"]):
-                    #print(f"Object already exists in bundle {ID}: {obj}")
+                    print(f"Object already exists in bundle {ID}: {obj}")
                     continue
                 else:
                     stix_bundle_array[ID]["objects"].append(obj)
