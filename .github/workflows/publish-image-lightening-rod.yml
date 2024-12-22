@@ -44,7 +44,7 @@ jobs:
 
       - name: Build an image from Dockerfile
         run: |
-          cd lightening-rod/redis
+          cd lightening-rod
           docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:0.0.1  .
 
       - name: Install Trivy
