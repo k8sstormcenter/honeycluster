@@ -32,7 +32,7 @@ spec:
         - name: MONGODB_URI
           value: "mongodb://mongo-mongodb.honey.svc.cluster.local:27017"
         - name: LIGHTENINGROD
-          value: "lightening-rod.storm.svc.cluster.local:8000"
+          value: "http://lighteningrod.storm.svc.cluster.local:8000"
         readinessProbe:
           httpGet:
             path: /health
