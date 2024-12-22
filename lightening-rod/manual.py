@@ -63,7 +63,7 @@ def convert_list_to_stix():
     queue= request.args.get('queue')
     tetragon_logs = client.lrange(queue, 0, -1)
     transform_tetragon_to_stix(tetragon_logs)
-    return jsonify({"List been converted to STIX"}), 200
+    return jsonify({"message": "List been converted to STIX"}), 200
 
 @app.route('/bundle_for_viz', methods=['GET'])
 def bundle_for_viz():
