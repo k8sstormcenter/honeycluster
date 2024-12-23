@@ -43,14 +43,12 @@ client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
 @app.route('/wipesafe', methods=['GET'])
 def wipesafe():
     try:
-        keys_to_delete = [REDIS_BUNDLEKEY, REDIS_VISKEY, REDIS_BUNDLEVISKEY] # Target specific keys
+        keys_to_delete = [REDIS_BUNDLEKEY, REDIS_VISKEY, REDIS_BUNDLEVISKEY] 
         for key in keys_to_delete:
-            client.delete(key)  # Use DELETE for individual keys
+            client.delete(key)  
         return jsonify({"message": "Specified Redis keys deleted successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
 
 @app.route('/convert_single_to_stix', methods=['GET'])
 def convert_single_to_stix():
@@ -67,7 +65,7 @@ def convert_list_to_stix():
 
 @app.route('/bundle_for_viz', methods=['GET'])
 def bundle_for_viz():
-    individual_bundles = client.hgetall(REDIS_BUNDLEVISKEY)
+    individual_bundles = client.hgetall(REDIS_BUNDLEKEY)
     deduplicate_bundles(individual_bundles)
     return jsonify({"message": "STIX bundeling ready for visualization"}), 200
 
