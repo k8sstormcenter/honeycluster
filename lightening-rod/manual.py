@@ -43,14 +43,12 @@ client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
 @app.route('/wipesafe', methods=['GET'])
 def wipesafe():
     try:
-        keys_to_delete = [REDIS_BUNDLEKEY, REDIS_VISKEY, REDIS_BUNDLEVISKEY] # Target specific keys
+        keys_to_delete = [REDIS_BUNDLEKEY, REDIS_VISKEY, REDIS_BUNDLEVISKEY] 
         for key in keys_to_delete:
-            client.delete(key)  # Use DELETE for individual keys
+            client.delete(key)  
         return jsonify({"message": "Specified Redis keys deleted successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
 
 @app.route('/convert_single_to_stix', methods=['GET'])
 def convert_single_to_stix():
@@ -67,7 +65,7 @@ def convert_list_to_stix():
 
 @app.route('/bundle_for_viz', methods=['GET'])
 def bundle_for_viz():
-    individual_bundles = client.hgetall(REDIS_BUNDLEVISKEY)
+    individual_bundles = client.hgetall(REDIS_BUNDLEKEY)
     deduplicate_bundles(individual_bundles)
     return jsonify({"message": "STIX bundeling ready for visualization"}), 200
 
@@ -438,15 +436,15 @@ def compare_stix_objects(obj, objects_array):
                 for key in other_obj
                 if key not in ["id", "created", "modified", "spec_version"]
             ):
-                return True  # Object already exists (ignoring ID)
-    return False  # Object not found
+                return True  
+    return False  
 
 
 def deduplicate_bundles(individual_bundles):
     stix_bundle_array = {} 
     for key, value in individual_bundles.items():
         stix_bundle = json.loads(value)
-        print(f"Processing bundle {key}: {stix_bundle}")
+        #print(f"Processing bundle {key}: {stix_bundle}")
         ID = int(key.decode('utf-8').split(":")[0])
         if ID not in  stix_bundle_array:
             stix_bundle_array[ID] = {
@@ -460,7 +458,7 @@ def deduplicate_bundles(individual_bundles):
             # we extend those objects that we have NOT already seen
             for obj in stix_bundle["objects"]:
                 if compare_stix_objects(obj, stix_bundle_array[ID]["objects"]):
-                    print(f"Object already exists in bundle {ID}: {obj}")
+                    #print(f"Object already exists in bundle {ID}: {obj}")
                     continue
                 else:
                     stix_bundle_array[ID]["objects"].append(obj)

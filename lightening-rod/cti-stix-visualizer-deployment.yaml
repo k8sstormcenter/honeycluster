@@ -28,7 +28,7 @@ spec:
         - name: REDIS_PORT
           value: "6379"
         - name: REDIS_KEY_PREFIX
-          value: "tetra_bundle"
+          value: "tetrastix"
         - name: MONGODB_URI
           value: "mongodb://mongo-mongodb.honey.svc.cluster.local:27017"
         - name: LIGHTENINGROD
