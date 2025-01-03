@@ -1,0 +1,5 @@
+FROM ubuntu:latest
+RUN apt-get update && apt-get install -y build-essential
+COPY setns_test.c .
+RUN gcc -o setns_test setns_test.c
+CMD ["./setns_test", "/proc/1/ns/net", "0"] 

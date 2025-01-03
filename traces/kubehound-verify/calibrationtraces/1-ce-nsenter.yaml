@@ -4,136 +4,26 @@ metadata:
   name: "detect-ce-nsenter"
 spec:
   kprobes:
-  - call: "sys_execve"
-    syscall: true
-    args:
-    - index: 0
-      type: "string"
-    # - index: 1   #those are pointers , so no use for logs 
-    #   type: "string"
-    # - index: 2
-    #   type: "string"
-    selectors:
-    - matchArgs:
-      - index: 0
-        operator: "Postfix"
-        values:
-        - "nsenter"
-    - matchActions:
-      - action: Post
-  - call: "sys_setuid"
-    syscall: true
-    args:
-    - index: 0
-      type: "int"
-    selectors:
-      - matchNamespaces:
-        - namespace: Pid
-          operator: NotIn
-          values:
-          - "host_ns"
-  - call: "sys_setgid"
-    syscall: true
-    args:
-    - index: 0
-      type: "int"
-    selectors:
-      - matchNamespaces:
-        - namespace: Pid
-          operator: NotIn
-          values:
-          - "host_ns"
-  - call: "sys_setreuid"
+  - call: "sys_setns"
     syscall: true
     args:
     - index: 0
       type: "int"
     - index: 1
-      type: "int"
-    selectors:
-      - matchNamespaces:
-        - namespace: Pid
-          operator: NotIn
-          values:
-          - "host_ns"
-  - call: "sys_setregid"
-    syscall: true
-    args:
-    - index: 0
-      type: "int"
-    - index: 1
-      type: "int"
-    selectors:
-      - matchNamespaces:
-        - namespace: Pid
-          operator: NotIn
-          values:
-          - "host_ns"
-  - call: "sys_setresuid"
-    syscall: true
-    args:
-    - index: 0
-      type: "int"
-    - index: 1
-      type: "int"
-    - index: 2
-      type: "int"
-    selectors:
-      - matchNamespaces:
-        - namespace: Pid
-          operator: NotIn
-          values:
-          - "host_ns"
-  - call: "sys_setresgid"
-    syscall: true
-    args:
-    - index: 0
-      type: "int"
-    - index: 1
-      type: "int"
-    - index: 2
-      type: "int"
-    selectors:
-      - matchNamespaces:
-        - namespace: Pid
-          operator: NotIn
-          values:
-          - "host_ns"
-  - call: "sys_setfsuid"
-    syscall: true
-    args:
-    - index: 0
-      type: "int"
-    selectors:
-      - matchNamespaces:
-        - namespace: Pid
-          operator: NotIn
-          values:
-          - "host_ns"
-  - call: "sys_setfsgid"
-    syscall: true
-    args:
-    - index: 0
-      type: "int"
-    selectors:
-      - matchNamespaces:
-        - namespace: Pid
-          operator: NotIn
-          values:
-          - "host_ns"
+      type: "int" # nstype
 
 
 
-  # - call: "sys_setns"
-  #   syscall: true
-  #   args:
-  #   - index: 0
-  #     type: "int" # File descriptor of the namespace to enter
-  #   selectors:
-  #   - matchArgs:
-  #     - index: 0
-  #       operator: "GT"
-  #       values:
-  #       - "2" # File descriptors 0-2 are stdin, stdout, stderr
-  #     matchActions:
-  #     - action: Post
+# #  The setns() system call allows the calling thread to move into
+#        different namespaces.  The fd argument is one of the following:
+
+#        •  a file descriptor referring to one of the magic links in a
+#           /proc/pid/ns/ directory (or a bind mount to such a link);
+
+#        •  a PID file descriptor (see pidfd_open(2)).
+
+#        The nstype argument is interpreted differently in each case.
+# On success, setns() returns 0.  On failure, -1 is returned and
+#        errno is set to indicate the error.
+# https://man7.org/linux/man-pages/man2/setns.2.html
+
