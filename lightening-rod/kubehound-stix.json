@@ -13,8 +13,8 @@
         "description": "Attempted Container Escape via NSENTER.",
         "external_references": [
           {
-            "source_name": "Kubehound",
-            "url": "https://TODO",
+            "source_name": "Mitre",
+            "url": "https://attack.mitre.org/techniques/T1611/",
             "description": "Usually a priviledged container can escape to the host using nsenter"
           }
         ]
@@ -22,9 +22,9 @@
       {
         "type": "indicator",
         "id": "indicator--kh-ce-nsenter",
-        "name": "Container Module Loading",
+        "name": "NSenter binary executed",
         "description": "Calibration test",
-        "pattern": "[process:command_line MATCHES '/usr/bin/nsenter -t 1']",
+        "pattern": "[process:command_line MATCHES '/usr/bin/nsenter -t 1' OR process:extensions.function_name MATCHES '__x64_sys_setns']",
         "pattern_type": "stix",
         "valid_from": "2024-01-01T00:00:00Z"
       },
@@ -141,7 +141,7 @@
       {
           "type": "indicator",
           "id": "indicator--kh-ce-net-mitm",
-          "name": "Modprobe from within Container",
+          "name": "Person in the middle attack",
           "description": "Detecting an attempt to tamper with iptables",
           "pattern": "[process:command_line MATCHES 'iptables -t nat -A PREROUTING' AND process:command_line MATCHES 'mitmdump']",
           "pattern_type": "stix",
@@ -157,7 +157,7 @@
   }
   ,{
     "type": "bundle",
-    "id": "6",
+    "id": "7",
     "name": "CE_VAR_LOG_SYMLINK",
     "version": "1.0.0",
     "spec_version": "2.1",
