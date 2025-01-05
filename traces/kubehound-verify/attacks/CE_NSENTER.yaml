@@ -15,5 +15,21 @@ spec:
       command: [ "/bin/sh", "-c" ]
       args: [ "nsenter -t 1 -a /bin/bash && while true; do sleep 300; done;" ]
 
+--- 
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kh-calibration-ce-11
+  labels:
+    app: kubehound-edge-test
+spec:
+  containers:
+    - name: kh-calibration-ce-11-pod
+      image: entlein/ce-nsenter-setns:0.0.1  
+      securityContext:
+        capabilities:
+          add: ["SYS_ADMIN"]
+
+
 
 

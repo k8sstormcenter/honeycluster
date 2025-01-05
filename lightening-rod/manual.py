@@ -230,6 +230,7 @@ def transform_process_to_stix(log):
 
     parent_image_name = parent.get("binary", "").split("/")[-1]
     process_image_name = process.get("binary", "").split("/")[-1]
+    file_arg_permissions = file_arg.get("permissions") if file_arg else None 
 
     parent_file_id = generate_stix_id("file") if parent_image_name else None
     process_file_id = generate_stix_id("file") if process_image_name else None
@@ -248,7 +249,7 @@ def transform_process_to_stix(log):
         )
 
     if file_arg:
-        stix_objects.append({"type": "file", "id": file_arg_id, "name": file_arg})
+        stix_objects.append({"type": "file", "id": file_arg_id, "name": file_arg, "extensions": {"permissions": file_arg_permissions}})
 
     parent_process_object = {
         "type": "process",
@@ -277,6 +278,8 @@ def transform_process_to_stix(log):
             "container_id": process.get("pod", {}).get("container", {}).get("id", ""),
             "pod_name": process.get("pod", {}).get("name", ""),
             "namespace": process.get("pod", {}).get("namespace", ""),
+            "kprobe_arguments": log.get("args", []),  
+            "function_name": log.get("function_name", "")
         },
     }
     stix_objects.append(process_object)
@@ -295,7 +298,9 @@ def transform_process_to_stix(log):
         "last_observed": current_time,
         "number_observed": 1,
         "object_refs": [process_object["id"], parent_process_object["id"]],
-        "extensions": {"node_info": {"node_name": log.get("node_name")}},
+        "extensions": {"node_info": {"node_name": log.get("node_name")},
+                        "kprobe_arguments": log.get("args", []),  
+                        "function_name": log.get("function_name", "")}
     }
 
 
@@ -343,11 +348,9 @@ def transform_single_tetragon_to_stix(log):
             IDD= STIX_ATTACK_PATTERN["id"]
             stix_bundle["name"] = ID
             if matches(PATTERN, stix_bundle):
-        #       #for each pattern we check if an observable matches and write all matches to redis after appending the STIX_PATTERN ID to the observed-data.object_refs list
-                #redis_key = f"{REDIS_OUTKEY}:{ID}:{UNIQUE}"
                 print(f"Writing to Redis key: {REDIS_BUNDLEKEY}")
                 indicator_relationship = create_relationship(
-                        stix_bundle["id"], ID, "indicates"  # Assuming "indicates" relationship
+                        stix_bundle["id"], ID, "indicates"  
                     )
                 stix_bundle["objects"].append(indicator_relationship)
                 for obj in stix_bundle["objects"]:
