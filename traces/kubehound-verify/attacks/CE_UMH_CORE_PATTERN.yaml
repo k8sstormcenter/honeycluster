@@ -1,4 +1,7 @@
 # CE_UMH_CORE_PATTERN edge
+# creates
+# root@umh-core-pod:~# cat /sysproc/core_pattern
+# |/var/lib/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/1009/fs/tmp/shell.sh
 apiVersion: v1
 kind: Pod
 metadata:
@@ -8,12 +11,13 @@ metadata:
 spec:
   containers:
     - name: umh-core-container
-      image: ubuntu
+      image: entlein/ce-umh-core-pattern:0.0.1
+      imagePullPolicy: Always
       volumeMounts:
       - mountPath: /sysproc
         name: nodeproc
-      command: [ "/bin/sh", "-c", "--" ]
-      args: [ "while true; do sleep 30; done;" ]
+      #command: [ "/bin/sh", "-c", "--" ]
+      #args: [ "echo '|/bin/sh' > /sysproc/core_pattern && while true; do sleep 300; done;" ]
       securityContext:
         runAsUser: 0
   volumes:
