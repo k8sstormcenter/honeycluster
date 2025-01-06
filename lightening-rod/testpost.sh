@@ -11,36 +11,35 @@ curl -X POST http://localhost:8000/add_attack_bundle \
   "spec_version": "2.1",
   "objects": [
     {
-      "type": "attack-pattern",
-      "id": "attack-pattern--kh-ce-nsenter",
-      "name": "CE_NSENTER",
-      "description": "Attempted Container Escape via NSENTER.",
-      "external_references": [
-        {
-          "source_name": "Kubehound",
-          "url": "https://TODO",
-          "description": "Usually a privileged container can escape to the host using nsenter"
-        }
-      ]
-    },
-    {
-      "type": "indicator",
-      "id": "indicator--kh-ce-nsenter",
-      "name": "Container Module Loading",
-      "description": "Calibration test",
-      "pattern": "[process:command_line MATCHES '/usr/bin/nsenter -t 1']",
-      "pattern_type": "stix",
-      "valid_from": "2024-01-01T00:00:00Z"
-    },
-    {
-      "type": "relationship",
-      "id": "relationship--kh-ce-nsenter",
-      "relationship_type": "indicates",
-      "source_ref": "indicator--kh-ce-nsenter",
-      "target_ref": "attack-pattern--kh-ce-nsenter"
-    }
-  ]
-}
+        "type": "attack-pattern",
+        "id": "attack-pattern--kh-ce-nsenter",
+        "name": "CE_NSENTER",
+        "description": "Attempted Container Escape via NSENTER.",
+        "external_references": [
+          {
+            "source_name": "Mitre",
+            "url": "https://attack.mitre.org/techniques/T1611/",
+            "description": "Usually a priviledged container can escape to the host using nsenter"
+          }
+        ]
+      },
+      {
+        "type": "indicator",
+        "id": "indicator--kh-ce-nsenter",
+        "name": "NSenter binary executed",
+        "description": "Calibration test",
+        "pattern": "[process:command_line MATCHES '/usr/bin/nsenter -t 1' OR process:extensions.function_name MATCHES '__x64_sys_setns']",
+        "pattern_type": "stix",
+        "valid_from": "2024-01-01T00:00:00Z"
+      },
+      {
+        "type": "relationship",
+        "id": "relationship--kh-ce-nsenter",
+        "relationship_type": "indicates",
+        "source_ref": "indicator--kh-ce-nsenter",
+        "target_ref": "attack-pattern--kh-ce-nsenter"
+      }
+    ]}
 EOF
 
 
@@ -152,7 +151,7 @@ EOF
   curl -X POST http://localhost:8000/add_attack_bundle \
 -H "Content-Type: application/json" \
 -d @- << 'EOF'
-  {
+{
     "type": "bundle",
     "id": "4",
     "name": "CE_NET_MITM",
@@ -168,7 +167,7 @@ EOF
       {
           "type": "indicator",
           "id": "indicator--kh-ce-net-mitm",
-          "name": "Modprobe from within Container",
+          "name": "Person in the middle attack",
           "description": "Detecting an attempt to tamper with iptables",
           "pattern": "[process:command_line MATCHES 'iptables -t nat -A PREROUTING' AND process:command_line MATCHES 'mitmdump']",
           "pattern_type": "stix",
@@ -187,7 +186,7 @@ EOF
 curl -X POST http://localhost:8000/add_attack_bundle \
 -H "Content-Type: application/json" \
 -d @- << 'EOF'
-  {
+{
     "type": "bundle",
     "id": "6",
     "name": "CE_VAR_LOG_SYMLINK",
@@ -218,7 +217,41 @@ curl -X POST http://localhost:8000/add_attack_bundle \
         }]
   }
 EOF
-
+curl -X POST http://localhost:8000/add_attack_bundle \
+-H "Content-Type: application/json" \
+-d @- << 'EOF'
+{
+    "type": "bundle",
+    "id": "7",
+    "name": "CE_UMH_CORE_PATTERN",
+    "version": "1.0.0",
+    "spec_version": "2.1",
+    "objects": [
+      {
+        "type": "attack-pattern",
+        "id": "attack-pattern--kh-ce-umh-core-pattern",
+        "name": "CE_UMH_CORE_PATTERN",
+        "description": "Exploiting the User Mode Helper Core Pattern."
+      },
+      {
+        "type": "indicator",
+        "id": "indicator--kh-ce-umh-core-pattern",
+        "name": "",
+        "description": "Detecting ",
+        "pattern": "[process:extensions.function_name MATCHES 'security_file_permission']",
+        "pattern_type": "stix",
+        "valid_from": "2024-01-01T00:00:00Z"
+      },
+      {
+        "type": "relationship",
+        "id": "relationship--kh-ce-umh-core-pattern",
+        "relationship_type": "indicates",
+        "source_ref": "indicator--kh-ce-umh-core-pattern",
+        "target_ref": "attack-pattern--kh-ce-umh-core-pattern"
+      }
+    ]
+  }
+EOF
 
 
 

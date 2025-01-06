@@ -219,22 +219,17 @@ def validate_stix_bundle(bundle):
 def transform_process_to_stix(log):
     parent = log.get("parent", {})
     process = log.get("process", {})
-    file_arg = next(
-        (
-            arg.get("file_arg", {}).get("path")
-            for arg in log.get("args", [])
-            if "file_arg" in arg
-        ),
-        None,
-    )
+    file_args = [] 
+    for arg in log.get("args", []):
+        file_args.append(arg)
 
     parent_image_name = parent.get("binary", "").split("/")[-1]
     process_image_name = process.get("binary", "").split("/")[-1]
-    file_arg_permissions = file_arg.get("permissions") if file_arg else None 
+    
 
     parent_file_id = generate_stix_id("file") if parent_image_name else None
     process_file_id = generate_stix_id("file") if process_image_name else None
-    file_arg_id = generate_stix_id("file") if file_arg else None
+    file_arg_id = generate_stix_id("file") if file_args else None
 
     stix_objects = []
 
@@ -248,8 +243,8 @@ def transform_process_to_stix(log):
             {"type": "file", "id": process_file_id, "name": process_image_name}
         )
 
-    if file_arg:
-        stix_objects.append({"type": "file", "id": file_arg_id, "name": file_arg, "extensions": {"permissions": file_arg_permissions}})
+    if file_args:
+        stix_objects.append({"type": "file", "id": file_arg_id, "name": file_args[0], "extensions": file_args})
 
     parent_process_object = {
         "type": "process",
