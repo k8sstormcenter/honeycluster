@@ -1,33 +1,36 @@
 apiVersion: cilium.io/v1alpha1
 kind: TracingPolicy
 metadata:
-  name: "detect-usermode-helper-creation" #TODO
+  name: "detect-ce-umh-core-pattern"
 spec:
   kprobes:
-  - call: "sys_write"
-    syscall: true
+  - call: "security_file_permission"
+    syscall: false
+    return: true
     args:
+    - index: 0
+      type: "file" # (struct file *) used for getting the path
     - index: 1
-      type: "probe"
-      config:
-        bufFilter: true # Enable buffer filtering for argument 1 (the write buffer)
+      type: "int" # 0x04 is MAY_READ, 0x02 is MAY_WRITE
+    returnArg:  # Return: Return 0 if the hook is successful and permission is granted.
+      index: 0
+      type: "int"
+    returnArgAction: "Post"
     selectors:
-    - matchArgs:
+    - matchArgs:      
       - index: 0
+        operator: "Prefix"
+        values:
+         - "/proc/sys/kernel" # Do NOT use this on the host_ns, it crashes tetragon...
+         - "/sysproc" #TODO: this is what the user defines as local mountpoint for the /proc fs , need solution to make this dynamic
+      - index: 1
         operator: "Equal"
         values:
-        - "4" # File descriptor 4 is typically stdout, but we're interested in writes to files
-      matchBinaries:
-      - operator: "NotIn"
-        values:
-        - "/usr/bin/bash" # Add other common shells to reduce false positives
-        - "/bin/bash"
-        - "/bin/sh"
-        - "/bin/zsh"
-      matchPath:
-      - operator: "In"
-        values:
-        - "/proc/sys/kernel/core_pattern" # Monitor writes to core_pattern
-        - "/etc/ld.so.preload" # Monitor writes to ld.so.preload (for library preloading)
-      matchActions:
-      - action: Post
+        - "2"
+        - "4"
+        - "6"
+      matchNamespaces:
+        - namespace: "Pid"
+          operator: "NotIn"
+          values:
+          - "host_ns"

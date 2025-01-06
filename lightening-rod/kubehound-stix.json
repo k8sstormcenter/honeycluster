@@ -157,7 +157,7 @@
   }
   ,{
     "type": "bundle",
-    "id": "7",
+    "id": "6",
     "name": "CE_VAR_LOG_SYMLINK",
     "version": "1.0.0",
     "spec_version": "2.1",
@@ -184,6 +184,37 @@
           "source_ref": "indicator--kh-ce-var-log-symlink",
           "target_ref": "attack-pattern--kh-ce-var-log-symlink"
         }]
+  },
+  {
+    "type": "bundle",
+    "id": "7",
+    "name": "CE_UMH_CORE_PATTERN",
+    "version": "1.0.0",
+    "spec_version": "2.1",
+    "objects": [
+      {
+        "type": "attack-pattern",
+        "id": "attack-pattern--kh-ce-umh-core-pattern",
+        "name": "CE_UMH_CORE_PATTERN",
+        "description": "Exploiting the User Mode Helper Core Pattern."
+      },
+      {
+        "type": "indicator",
+        "id": "indicator--kh-ce-umh-core-pattern",
+        "name": "",
+        "description": "Detecting ",
+        "pattern": "[process:extensions.function_name MATCHES 'security_file_permission']",
+        "pattern_type": "stix",
+        "valid_from": "2024-01-01T00:00:00Z"
+      },
+      {
+        "type": "relationship",
+        "id": "relationship--kh-ce-umh-core-pattern",
+        "relationship_type": "indicates",
+        "source_ref": "indicator--kh-ce-umh-core-pattern",
+        "target_ref": "attack-pattern--kh-ce-umh-core-pattern"
+      }
+    ]
   }
 ]
 

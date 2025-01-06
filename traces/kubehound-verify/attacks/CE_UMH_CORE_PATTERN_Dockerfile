@@ -1,0 +1,6 @@
+FROM ubuntu:latest
+RUN apt-get update && apt-get install -y build-essential netcat-traditional gcc
+COPY CE_UMH_CORE_PATTERN.c /tmp/crash.c
+COPY CE_UMH_CORE_PATTERN.sh .
+RUN gcc -o crash /tmp/crash.c && chmod +x CE_UMH_CORE_PATTERN.sh
+CMD ["./CE_UMH_CORE_PATTERN.sh"] 
