@@ -24,7 +24,7 @@ honey-down: traces-off  wipe
 .PHONY: wipe
 wipe: 
 	-$(HELM) uninstall tracee -n honey
-	- kubectl delete -f lightening-rod/cti-stix-visualizer.yaml
+	- kubectl delete -f lightening-rod/cti-stix-visualizer-deployment.yaml 
 	- kubectl delete -f lightening-rod/deployment.yaml
 	-$(HELM) uninstall mongo -n mongo
 	-$(HELM) uninstall vector -n honey

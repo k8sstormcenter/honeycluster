@@ -12,7 +12,7 @@ spec:
       type: "file" # (struct file *) used for getting the path
     - index: 1
       type: "int" # 0x04 is MAY_READ, 0x02 is MAY_WRITE
-    returnArg:
+    returnArg:  # Return: Return 0 if the hook is successful and permission is granted.
       index: 0
       type: "int"
     returnArgAction: "Post"
@@ -21,155 +21,16 @@ spec:
       - index: 0
         operator: "Prefix"
         values:
-         - "/proc"
-         - "/sysproc"
+         - "/proc/sys/kernel" # Do NOT use this on the host_ns, it crashes tetragon...
+         - "/sysproc" #TODO: this is what the user defines as local mountpoint for the /proc fs , need solution to make this dynamic
       - index: 1
         operator: "Equal"
         values:
-        - "2" # MAY_WRITE
-        - "4" # MAY_READ
-        - "6" # MAY_READ | MAY_WRITE
-      matchBinaries:
-      - operator: "NotIn"
-        values:
-        - "/usr/bin/rancher"
-        - "/usr/bin/dumb-init"
-        - "/nginx-ingress-controller"
-        - "/usr/bin/nginx"
-
-
-# apiVersion: cilium.io/v1alpha1
-# kind: TracingPolicy
-# metadata:
-#   name: "detect-ce-nsenter"
-# spec:
-#   kprobes:
-#   - call: "sys_execve"
-#     syscall: true
-#     args:
-#     - index: 0
-#       type: "string"
-#     selectors:
-#     - matchArgs:
-#       - index: 0
-#         operator: "Postfix"
-#         values:
-#         - "nsenter"
-#     - matchActions:
-#       - action: Post
-#   - call: "sys_setuid"
-#     syscall: true
-#     args:
-#     - index: 0
-#       type: "int"
-#     selectors:
-#       - matchNamespaces:
-#         - namespace: Pid
-#           operator: NotIn
-#           values:
-#           - "host_ns"
-#   - call: "sys_setgid"
-#     syscall: true
-#     args:
-#     - index: 0
-#       type: "int"
-#     selectors:
-#       - matchNamespaces:
-#         - namespace: Pid
-#           operator: NotIn
-#           values:
-#           - "host_ns"
-#   - call: "sys_setreuid"
-#     syscall: true
-#     args:
-#     - index: 0
-#       type: "int"
-#     - index: 1
-#       type: "int"
-#     selectors:
-#       - matchNamespaces:
-#         - namespace: Pid
-#           operator: NotIn
-#           values:
-#           - "host_ns"
-#   - call: "sys_setregid"
-#     syscall: true
-#     args:
-#     - index: 0
-#       type: "int"
-#     - index: 1
-#       type: "int"
-#     selectors:
-#       - matchNamespaces:
-#         - namespace: Pid
-#           operator: NotIn
-#           values:
-#           - "host_ns"
-#   - call: "sys_setresuid"
-#     syscall: true
-#     args:
-#     - index: 0
-#       type: "int"
-#     - index: 1
-#       type: "int"
-#     - index: 2
-#       type: "int"
-#     selectors:
-#       - matchNamespaces:
-#         - namespace: Pid
-#           operator: NotIn
-#           values:
-#           - "host_ns"
-#   - call: "sys_setresgid"
-#     syscall: true
-#     args:
-#     - index: 0
-#       type: "int"
-#     - index: 1
-#       type: "int"
-#     - index: 2
-#       type: "int"
-#     selectors:
-#       - matchNamespaces:
-#         - namespace: Pid
-#           operator: NotIn
-#           values:
-#           - "host_ns"
-#   - call: "sys_setfsuid"
-#     syscall: true
-#     args:
-#     - index: 0
-#       type: "int"
-#     selectors:
-#       - matchNamespaces:
-#         - namespace: Pid
-#           operator: NotIn
-#           values:
-#           - "host_ns"
-#   - call: "sys_setfsgid"
-#     syscall: true
-#     args:
-#     - index: 0
-#       type: "int"
-#     selectors:
-#       - matchNamespaces:
-#         - namespace: Pid
-#           operator: NotIn
-#           values:
-#           - "host_ns"
-
-
-
-#   # - call: "sys_setns"
-#   #   syscall: true
-#   #   args:
-#   #   - index: 0
-#   #     type: "int" # File descriptor of the namespace to enter
-#   #   selectors:
-#   #   - matchArgs:
-#   #     - index: 0
-#   #       operator: "GT"
-#   #       values:
-#   #       - "2" # File descriptors 0-2 are stdin, stdout, stderr
-#   #     matchActions:
-#   #     - action: Post
+        - "2"
+        - "4"
+        - "6"
+      matchNamespaces:
+        - namespace: "Pid"
+          operator: "NotIn"
+          values:
+          - "host_ns"
