@@ -34,3 +34,5 @@ spec:
           operator: "NotIn"
           values:
           - "host_ns"
+
+#TODO: catch the rev shell and detect the tcp connection for a smoking gun of this attack example
