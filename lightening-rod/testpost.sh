@@ -260,3 +260,39 @@ curl -X POST http://localhost:8000/add_attack_bundle \
 -d @- << 'EOF'
 {"type":"bundle","id":"8","name":"EXPLOIT_CONTAINERD_SOCK","version":"1.0.0","spec_version":"2.1","objects":[{"type":"attack-pattern","id":"attack-pattern--kh-exploit-containerd-sock","name":"EXPLOIT_CONTAINERD_SOCK","description":"Exploiting the CR socket mounted (readonly) into the container."},{"type":"indicator","id":"indicator--kh-exploit-containerd-sock","name":"","description":"Detecting a socket connection by crictl","pattern":"[process:extensions.function_name MATCHES 'sys_connect' AND process:command_line MATCHES 'crictl' AND process.extensions.kprobe_arguments[1].state MATCHES '110' ]","pattern_type":"stix","valid_from":"2024-01-01T00:00:00Z"},{"type":"relationship","id":"relationship--exploit-containerd-sock","relationship_type":"indicates","source_ref":"indicator--kh-exploit-containerd-sock","target_ref":"attack-pattern--kh-exploit-containerd-sock"}]}
 EOF
+
+curl -X POST http://localhost:8000/add_attack_bundle \
+-H "Content-Type: application/json" \
+-d @- << 'EOF'
+{
+    "type": "bundle",
+    "id": "9",
+    "name": "EXPLOIT_HOST_READ",
+    "version": "1.0.0",
+    "spec_version": "2.1",
+    "objects": [
+      {
+        "type": "attack-pattern",
+        "id": "attack-pattern--kh-exploit-host-read",
+        "name": "EXPLOIT_HOST_READ",
+        "description": "Exfiltration of a process memory dump."
+      },
+      {
+        "type": "indicator",
+        "id": "indicator--kh-exploit-host-read",
+        "name": "",
+        "description": "Detecting procdump()",
+        "pattern": "[process:extensions.function_name MATCHES 'openat' AND process:command_line MATCHES 'dd']",
+        "pattern_type": "stix",
+        "valid_from": "2024-01-01T00:00:00Z"
+      },
+      {
+        "type": "relationship",
+        "id": "relationship--kh-exploit-host-read",
+        "relationship_type": "indicates",
+        "source_ref": "indicator--kh-exploit-host-read",
+        "target_ref": "attack-pattern--kh-exploit-host-read"
+      }
+    ]
+  }
+EOF
