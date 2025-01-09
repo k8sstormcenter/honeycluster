@@ -318,7 +318,7 @@ curl -X POST http://localhost:8000/add_attack_bundle \
         "id": "indicator--kh-exploit-host-read-traverse",
         "name": "Host Path Traversal Access to k8s Tokens",
         "description": "Detecting a write to the host filesystem",
-        "pattern": "[process:extensions.function_name MATCHES 'openat'  AND process.extensions.kprobe_arguments[0].string_arg MATCHES '/hostpods/.*/volumes/kubernetes.io~projected/kube-api-access-.*/token']",
+        "pattern": "[process:extensions.function_name MATCHES 'openat'  AND process:extensions.kprobe_arguments.string_arg LIKE '%kubernetes.io~projected%token%' ]",
         "pattern_type": "stix",
         "valid_from": "2024-01-01T00:00:00Z"
       },

@@ -213,6 +213,15 @@ def validate_stix_bundle(bundle):
     return True
 
 
+def flatten_kprobe_args(args):
+    flattened_args = {}
+    for item in args:
+        if isinstance(item, list):
+            flattened_args.update(flatten_kprobe_args(item))  # Recursive call for nested lists
+        elif isinstance(item, dict):
+            flattened_args.update(item)  # Merge dictionaries directly
+        # No 'else' clause needed as simple values aren't handled in this flat version
+    return flattened_args
 
 
 
@@ -273,7 +282,7 @@ def transform_process_to_stix(log):
             "container_id": process.get("pod", {}).get("container", {}).get("id", ""),
             "pod_name": process.get("pod", {}).get("name", ""),
             "namespace": process.get("pod", {}).get("namespace", ""),
-            "kprobe_arguments": log.get("args", []),  
+            "kprobe_arguments": flatten_kprobe_args(log.get("args", [])), 
             "function_name": log.get("function_name", "")
         },
     }
@@ -293,9 +302,10 @@ def transform_process_to_stix(log):
         "last_observed": current_time,
         "number_observed": 1,
         "object_refs": [process_object["id"], parent_process_object["id"]],
-        "extensions": {"node_info": {"node_name": log.get("node_name")},
-                        "kprobe_arguments": log.get("args", []),  
-                        "function_name": log.get("function_name", "")}
+        #"extensions": {"node_info": {"node_name": log.get("node_name")}#,
+                        #"kprobe_arguments": log.get("args", []),  
+                       # "function_name": log.get("function_name", "")
+                        #}
     }
 
 
