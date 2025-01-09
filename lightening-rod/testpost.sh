@@ -296,3 +296,39 @@ curl -X POST http://localhost:8000/add_attack_bundle \
     ]
   }
 EOF
+
+curl -X POST http://localhost:8000/add_attack_bundle \
+-H "Content-Type: application/json" \
+-d @- << 'EOF'
+{
+    "type": "bundle",
+    "id": "10",
+    "name": "EXPLOIT_HOST_READ_TRAVERSE",
+    "version": "1.0.0",
+    "spec_version": "2.1",
+    "objects": [
+      {
+        "type": "attack-pattern",
+        "id": "attack-pattern--kh-exploit-host-read-traverse",
+        "name": "EXPLOIT_HOST_READ_TRAVERSE",
+        "description": "Host Path Traversal Access to k8s Tokens"
+      },
+      {
+        "type": "indicator",
+        "id": "indicator--kh-exploit-host-read-traverse",
+        "name": "Host Path Traversal Access to k8s Tokens",
+        "description": "Detecting a write to the host filesystem",
+        "pattern": "[process:extensions.function_name MATCHES 'openat'  AND process.extensions.kprobe_arguments[0].string_arg MATCHES '/hostpods/.*/volumes/kubernetes.io~projected/kube-api-access-.*/token']",
+        "pattern_type": "stix",
+        "valid_from": "2024-01-01T00:00:00Z"
+      },
+      {
+        "type": "relationship",
+        "id": "relationship--kh-exploit-host-read-traverse",
+        "relationship_type": "indicates",
+        "source_ref": "indicator--kh-exploit-host-read-traverse",
+        "target_ref": "attack-pattern--kh-exploit-host-read-traverse"
+      }
+    ]
+  }
+EOF
