@@ -20,9 +20,10 @@ calibration-traces:
 	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-ce-net-mitm.yaml
 	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-ce-var-log-symlink.yaml
 	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-ce-umh-core-pattern.yaml
-	kubectl apply -f traces/kubehound-verify/calibrationtraces/1-exploit-containerd-sock.yaml
+	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-exploit-containerd-sock.yaml
 	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-exploit-host-read.yaml
-	kubectl apply -f traces/kubehound-verify/calibrationtraces/1-exploit-host-read-traverse.yaml
+	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-exploit-host-read-traverse.yaml
+	kubectl apply -f traces/kubehound-verify/calibrationtraces/1-exploit-host-write.yaml
 
 
 
@@ -36,9 +37,12 @@ calibration-attack:
 	#-kubectl apply -f traces/kubehound-verify/attacks/CE_NET_MITM.yaml
 	#-kubectl apply -f traces/kubehound-verify/attacks/CE_VAR_LOG_SYMLINK.yaml
 	#-kubectl apply -f traces/kubehound-verify/attacks/CE_UMH_CORE_PATTERN.yaml
-	-kubectl apply -f traces/kubehound-verify/attacks/EXPLOIT_CONTAINERD_SOCK.yaml
+	#-kubectl apply -f traces/kubehound-verify/attacks/EXPLOIT_CONTAINERD_SOCK.yaml
 	#-kubectl apply -f traces/kubehound-verify/attacks/EXPLOIT_HOST_READ.yaml
-	-kubectl apply -f traces/kubehound-verify/attacks/EXPLOIT_HOST_READ_TRAVERSE.yaml
+	#-kubectl apply -f traces/kubehound-verify/attacks/EXPLOIT_HOST_READ_TRAVERSE.yaml
+	-kubectl apply -f traces/kubehound-verify/attacks/EXPLOIT_HOST_WRITE.yaml
+
+
 
 
 .PHONY: remove-calibration-attack	
@@ -51,9 +55,11 @@ remove-calibration-attack:
 	#-kubectl delete -f traces/kubehound-verify/attacks/CE_NET_MITM.yaml
 	#-kubectl delete -f traces/kubehound-verify/attacks/CE_VAR_LOG_SYMLINK.yaml
 	#-kubectl delete -f traces/kubehound-verify/attacks/CE_UMH_CORE_PATTERN.yaml
-	-kubectl delete -f traces/kubehound-verify/attacks/EXPLOIT_CONTAINERD_SOCK.yaml
+	#-kubectl delete -f traces/kubehound-verify/attacks/EXPLOIT_CONTAINERD_SOCK.yaml
 	#-kubectl delete -f traces/kubehound-verify/attacks/EXPLOIT_HOST_READ.yaml
-	-kubectl delete -f traces/kubehound-verify/attacks/EXPLOIT_HOST_READ_TRAVERSE.yaml
+	#-kubectl delete -f traces/kubehound-verify/attacks/EXPLOIT_HOST_READ_TRAVERSE.yaml
+	-kubectl delete -f traces/kubehound-verify/attacks/EXPLOIT_HOST_WRITE.yaml
+
 
 
 
@@ -68,6 +74,7 @@ remove-calibration-traces:
 	#-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-ce-net-mitm.yaml
 	#-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-ce-var-log-symlink.yaml
 	#-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-ce-umh-core-pattern.yaml
-	-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-exploit-containerd-sock.yaml
+	#-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-exploit-containerd-sock.yaml
 	#-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-exploit-host-read.yaml
-	-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-exploit-host-read-traverse.yaml
+	#-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-exploit-host-read-traverse.yaml
+	-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-exploit-host-write.yaml

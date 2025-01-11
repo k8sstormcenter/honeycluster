@@ -327,37 +327,38 @@ curl -X POST http://localhost:8000/add_attack_bundle \
   }
 EOF
 
+
 curl -X POST http://localhost:8000/add_attack_bundle \
 -H "Content-Type: application/json" \
 -d @- << 'EOF'
 {
     "type": "bundle",
-    "id": "10",
-    "name": "EXPLOIT_HOST_READ_TRAVERSE",
+    "id": "11",
+    "name": "EXPLOIT_HOST_WRITE",
     "version": "1.0.0",
     "spec_version": "2.1",
     "objects": [
       {
         "type": "attack-pattern",
-        "id": "attack-pattern--kh-exploit-host-read-traverse",
-        "name": "EXPLOIT_HOST_READ_TRAVERSE",
-        "description": "Host Path Traversal Access to k8s Tokens"
+        "id": "attack-pattern--kh-exploit-host-write",
+        "name": "EXPLOIT_HOST_WRITE",
+        "description": "Host Write to modify /etc/cron.d"
       },
       {
         "type": "indicator",
-        "id": "indicator--kh-exploit-host-read-traverse",
-        "name": "Host Path Traversal Access to k8s Tokens",
-        "description": "Detecting a write to the host filesystem",
-        "pattern": "[process:extensions.function_name MATCHES 'openat'  AND process:extensions.kprobe_arguments.string_arg LIKE '%kubernetes.io~projected%token%' ]",
+        "id": "indicator--kh-exploit-host-write",
+        "name": "Host Write to modify /etc/cron.d",
+        "description": "Detecting a opening the crontab on host filesystem",
+        "pattern": "[process:extensions.function_name MATCHES 'openat'  AND process:extensions.kprobe_arguments.string_arg MATCHES '/etc/cron.d/breakout' ]",
         "pattern_type": "stix",
         "valid_from": "2024-01-01T00:00:00Z"
       },
       {
         "type": "relationship",
-        "id": "relationship--kh-exploit-host-read-traverse",
+        "id": "relationship--kh-exploit-host-write",
         "relationship_type": "indicates",
-        "source_ref": "indicator--kh-exploit-host-read-traverse",
-        "target_ref": "attack-pattern--kh-exploit-host-read-traverse"
+        "source_ref": "indicator--kh-exploit-host-write",
+        "target_ref": "attack-pattern--kh-exploit-host-write"
       }
     ]
   }

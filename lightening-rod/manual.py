@@ -404,6 +404,8 @@ def transform_tetragon_to_stix(tetragon_log):
 
     return stix_bundle
 
+#TODO: implement a slice that follows process exec ids
+
 
 def compare_stix_objects(obj, objects_array):
     """Compares a STIX object to an array of STIX objects, ignoring the 'id' field.
