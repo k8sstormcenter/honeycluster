@@ -10,7 +10,7 @@ spec:
     - name: kh-calibration-mod-load-pod
       image: centos:latest
       securityContext:
-        privileged: true
+        privileged: true # TODO: implenent an OR, since you either need priv OR caps
         capabilities:
           add: ["SYS_MODULE"]
       command: [ "/bin/sh", "-c" ]
@@ -18,3 +18,20 @@ spec:
 
 
 #https://www.baeldung.com/linux/docker-container-kernel-modules
+
+# apiVersion: v1
+# kind: Pod
+# metadata:
+#   name: kh-calibration-mod-load
+#   labels:
+#     app: kubehound-edge-test
+# spec:
+#   containers:
+#     - name: kh-calibration-mod-load-pod
+#       image: centos:latest
+#       securityContext:
+#         privileged: true # TODO: implenent an OR, since you either need priv OR caps
+#         capabilities:
+#           add: ["SYS_MODULE"]
+#       command: [ "/bin/sh", "-c" ]
+#       args: ["lsmod && modprobe dummy && sleep 300"] 
