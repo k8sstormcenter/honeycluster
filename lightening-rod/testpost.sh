@@ -348,7 +348,7 @@ curl -X POST http://localhost:8000/add_attack_bundle \
         "type": "indicator",
         "id": "indicator--kh-exploit-host-write",
         "name": "Host Write to modify /etc/cron.d",
-        "description": "Detecting a opening the crontab on host filesystem",
+        "description": "Detecting a opening the crontab on host filesystem", #TODO:this isnt what the kprobe tracks, get sys_write or security_file_permission to work instead
         "pattern": "[process:extensions.function_name MATCHES 'openat'  AND process:extensions.kprobe_arguments.string_arg MATCHES '/etc/cron.d/breakout' ]",
         "pattern_type": "stix",
         "valid_from": "2024-01-01T00:00:00Z"
