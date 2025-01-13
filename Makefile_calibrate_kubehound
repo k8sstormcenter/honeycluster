@@ -23,7 +23,8 @@ calibration-traces:
 	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-exploit-containerd-sock.yaml
 	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-exploit-host-read.yaml
 	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-exploit-host-read-traverse.yaml
-	kubectl apply -f traces/kubehound-verify/calibrationtraces/1-exploit-host-write.yaml
+	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-exploit-host-write.yaml
+	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-
 
 
 
@@ -40,7 +41,8 @@ calibration-attack:
 	#-kubectl apply -f traces/kubehound-verify/attacks/EXPLOIT_CONTAINERD_SOCK.yaml
 	#-kubectl apply -f traces/kubehound-verify/attacks/EXPLOIT_HOST_READ.yaml
 	#-kubectl apply -f traces/kubehound-verify/attacks/EXPLOIT_HOST_READ_TRAVERSE.yaml
-	-kubectl apply -f traces/kubehound-verify/attacks/EXPLOIT_HOST_WRITE.yaml
+	#-kubectl apply -f traces/kubehound-verify/attacks/EXPLOIT_HOST_WRITE.yaml
+	-kubectl apply -f traces/kubehound-verify/attacks/IDENTITY_ASSUME.yaml
 
 
 
@@ -58,7 +60,8 @@ remove-calibration-attack:
 	#-kubectl delete -f traces/kubehound-verify/attacks/EXPLOIT_CONTAINERD_SOCK.yaml
 	#-kubectl delete -f traces/kubehound-verify/attacks/EXPLOIT_HOST_READ.yaml
 	#-kubectl delete -f traces/kubehound-verify/attacks/EXPLOIT_HOST_READ_TRAVERSE.yaml
-	-kubectl delete -f traces/kubehound-verify/attacks/EXPLOIT_HOST_WRITE.yaml
+	#-kubectl delete -f traces/kubehound-verify/attacks/EXPLOIT_HOST_WRITE.yaml
+	-kubectl delete -f traces/kubehound-verify/attacks/IDENTITY_ASSUME.yaml
 
 
 
@@ -77,4 +80,5 @@ remove-calibration-traces:
 	#-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-exploit-containerd-sock.yaml
 	#-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-exploit-host-read.yaml
 	#-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-exploit-host-read-traverse.yaml
-	-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-exploit-host-write.yaml
+	#-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-exploit-host-write.yaml
+	
