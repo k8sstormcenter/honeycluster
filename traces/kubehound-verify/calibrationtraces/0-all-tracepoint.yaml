@@ -1,0 +1,48 @@
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy
+metadata:
+  name: "list-syscalls"
+spec:
+  lists:
+  - name: "syscalls"
+    type: "syscalls"
+    values:
+    - "sys_dup"
+    - "sys_dup2"
+    - "sys_open"
+    - "sys_openat"
+    - "sys_read"
+    - "sys_write"
+    - "sys_close"
+    - "sys_fork"
+    - "sys_clone"
+    - "sys_socket"
+    - "sys_connect"
+    - "sys_bind"
+    - "sys_listen"
+    - "sys_accept"
+    - "sys_sendto"
+    - "sys_recvfrom" 
+    - "sys_access"
+    - "sys_chmod"
+    - "sys_chown"
+    - "sys_mkdir"
+    - "sys_rmdir"
+    - "sys_link"
+    - "sys_unlink"
+    - "sys_rename"
+    - "sys_chdir"
+    - "sys_getcwd"
+    - "sys_mount"
+    - "sys_chroot"
+    - "sys_ptrace"
+    - "sys_symlink"
+    - "sys_readlink"
+    - "sys_lstat"
+    - "sys_stat"
+    - "sys_fstat"
+    - "sys_fsync"
+    - "sys_fdatasync"
+  kprobes:
+  - call: "list:syscalls"
+
