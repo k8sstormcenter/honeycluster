@@ -27,7 +27,6 @@ calibration-traces:
 	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-
 
 
-
 .PHONY: calibration-attack
 calibration-attack: 
 	@echo "Attacking"
@@ -42,9 +41,8 @@ calibration-attack:
 	#-kubectl apply -f traces/kubehound-verify/attacks/EXPLOIT_HOST_READ.yaml
 	#-kubectl apply -f traces/kubehound-verify/attacks/EXPLOIT_HOST_READ_TRAVERSE.yaml
 	#-kubectl apply -f traces/kubehound-verify/attacks/EXPLOIT_HOST_WRITE.yaml
-	-kubectl apply -f traces/kubehound-verify/attacks/IDENTITY_ASSUME.yaml
-
-
+	#-kubectl apply -f traces/kubehound-verify/attacks/IDENTITY_ASSUME.yaml
+	-kubectl apply -f traces/kubehound-verify/attacks/IDENTITY_IMPERSONATE.yaml
 
 
 .PHONY: remove-calibration-attack	
@@ -61,10 +59,8 @@ remove-calibration-attack:
 	#-kubectl delete -f traces/kubehound-verify/attacks/EXPLOIT_HOST_READ.yaml
 	#-kubectl delete -f traces/kubehound-verify/attacks/EXPLOIT_HOST_READ_TRAVERSE.yaml
 	#-kubectl delete -f traces/kubehound-verify/attacks/EXPLOIT_HOST_WRITE.yaml
-	-kubectl delete -f traces/kubehound-verify/attacks/IDENTITY_ASSUME.yaml
-
-
-
+	#-kubectl delete -f traces/kubehound-verify/attacks/IDENTITY_ASSUME.yaml
+	-kubectl delete -f traces/kubehound-verify/attacks/IDENTITY_IMPERSONATE.yaml
 
 
 .PHONY: remove-calibration-traces		
