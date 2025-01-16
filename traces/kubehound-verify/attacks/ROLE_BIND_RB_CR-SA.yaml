@@ -15,20 +15,7 @@ rules:
   - apiGroups: ["rbac.authorization.k8s.io"]
     resources: ["clusterroles"]
     verbs: ["bind"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: pod-bind-role-rb-cr-crb-cr-fail
-  namespace: default
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: rolebind-rb-cr-crb-cr-fail
-subjects:
-  - kind: ServiceAccount
-    name: rolebind-sa-rb-cr-crb-cr-fail
-    namespace: default
+
 ---
 apiVersion: v1
 kind: Pod
@@ -40,9 +27,14 @@ spec:
   serviceAccountName: rolebind-sa-rb-cr-crb-cr-fail
   containers:
     - name: rolebind-pod-rb-cr-crb-cr-fail
-      image: ubuntu
-      command: [ "/bin/sh", "-c", "--" ]
-      args: [ "while true; do sleep 30; done;" ]
+      image: entlein/identity-impersonate:0.0.1
+      imagePullPolicy: Always
+      command: ["/bin/bash", "-c"]
+      args:
+      - >  
+        KUBE_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token);
+        curl -sSk -H "Authorization: Bearer $KUBE_TOKEN" -X POST -H "Content-Type: application/json" https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/apis/rbac.authorization.k8s.io/v1/namespaces/default/rolebindings -d '{"kind": "RoleBinding", "apiVersion": "rbac.authorization.k8s.io/v1", "metadata": {"name": "rolebind-rb-rb-cr-crb-cr-fail", "namespace": "default"}, "roleRef": {"apiGroup": "rbac.authorization.k8s.io", "kind": "ClusterRole", "name": "rolebind-rb-cr-crb-cr-fail"}, "subjects": [{"kind": "ServiceAccount", "name": "rolebind-sa-rb-cr-crb-cr-fail", "namespace": "default"}]}' ;  sleep infinity
+
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -53,7 +45,7 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: rolebind-rb-cr-rb-cr
+  name: rolebind-cr-rb-cr-rb-cr
 rules:
   - apiGroups: ["rbac.authorization.k8s.io"]
     resources: ["rolebindings"]
@@ -61,20 +53,7 @@ rules:
   - apiGroups: ["rbac.authorization.k8s.io"]
     resources: ["clusterroles"]
     verbs: ["bind"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: pod-bind-role-rb-cr-rb-cr
-  namespace: default
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: rolebind-rb-cr-rb-cr
-subjects:
-  - kind: ServiceAccount
-    name: rolebind-sa-rb-cr-rb-cr
-    namespace: default
+
 ---
 apiVersion: v1
 kind: Pod
@@ -86,9 +65,14 @@ spec:
   serviceAccountName: rolebind-sa-rb-cr-rb-cr
   containers:
     - name: rolebind-pod-rb-cr-rb-cr
-      image: ubuntu
-      command: [ "/bin/sh", "-c", "--" ]
-      args: [ "while true; do sleep 30; done;" ]
+      image: entlein/identity-impersonate:0.0.1
+      imagePullPolicy: Always
+      command: ["/bin/bash", "-c"]
+      args:
+      - >  
+        KUBE_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token);
+        curl -sSk -H "Authorization: Bearer $KUBE_TOKEN" -X POST -H "Content-Type: application/json" https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/apis/rbac.authorization.k8s.io/v1/namespaces/default/rolebindings -d '{"kind": "RoleBinding", "apiVersion": "rbac.authorization.k8s.io/v1", "metadata": {"name": "rolebind-rb-cr-rb-cr", "namespace": "default"}, "roleRef": {"apiGroup": "rbac.authorization.k8s.io", "kind": "ClusterRole", "name": "rolebind-cr-rb-cr-rb-cr"}, "subjects": {"kind": "ServiceAccount", "name": "rolebind-sa-rb-cr-rb-cr", "namespace": "default"}}' ;  sleep infinity
+
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -99,7 +83,7 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: rolebind-rb-cr-rb-r
+  name: rolebind-cr-rb-cr-rb-r
 rules:
   - apiGroups: ["rbac.authorization.k8s.io"]
     resources: ["rolebindings"]
@@ -107,20 +91,7 @@ rules:
   - apiGroups: ["rbac.authorization.k8s.io"]
     resources: ["roles"]
     verbs: ["bind"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: pod-bind-role-rb-cr-rb-r
-  namespace: default
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: rolebind-rb-cr-rb-r
-subjects:
-  - kind: ServiceAccount
-    name: rolebind-sa-rb-cr-rb-r
-    namespace: default
+
 ---
 apiVersion: v1
 kind: Pod
@@ -132,6 +103,11 @@ spec:
   serviceAccountName: rolebind-sa-rb-cr-rb-r
   containers:
     - name: rolebind-pod-rb-cr-rb-r
-      image: ubuntu
-      command: [ "/bin/sh", "-c", "--" ]
-      args: [ "while true; do sleep 30; done;" ]
+      image: entlein/identity-impersonate:0.0.1
+      imagePullPolicy: Always
+      command: ["/bin/bash", "-c"]
+      args:
+      - >  
+        KUBE_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token);
+        curl -sSk -H "Authorization: Bearer $KUBE_TOKEN" -X POST -H "Content-Type: application/json" https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/apis/rbac.authorization.k8s.io/v1/namespaces/default/rolebindings -d '{"kind":"RoleBinding","apiVersion":"rbac.authorization.k8s.io/v1","metadata":{"name":"rolebind-rb-cr-rb-r","namespace":"default"},"roleRef":{"apiGroup":"rbac.authorization.k8s.io","kind":"ClusterRole","name":"rolebind-cr-rb-cr-rb-r"},"subjects":[{"kind":"ServiceAccount","name":"rolebind-sa-rb-cr-rb-r","namespace":"default"}]}' ;  sleep infinity
+
