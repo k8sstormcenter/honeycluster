@@ -43,7 +43,8 @@ calibration-attack:
 	#-kubectl apply -f traces/kubehound-verify/attacks/EXPLOIT_HOST_WRITE.yaml
 	#-kubectl apply -f traces/kubehound-verify/attacks/IDENTITY_ASSUME.yaml
 	#-kubectl apply -f traces/kubehound-verify/attacks/IDENTITY_IMPERSONATE.yaml
-	-kubectl apply -f traces/kubehound-verify/attacks/ROLE_BIND_RB_CR-SA.yaml
+	#-kubectl apply -f traces/kubehound-verify/attacks/ROLE_BIND_RB_CR-SA.yaml
+	-kubectl apply -f traces/kubehound-verify/attacks/ROLE_BIND_CRB_CR.yaml
 
 
 .PHONY: remove-calibration-attack	
@@ -62,7 +63,8 @@ remove-calibration-attack:
 	#-kubectl delete -f traces/kubehound-verify/attacks/EXPLOIT_HOST_WRITE.yaml
 	#-kubectl delete -f traces/kubehound-verify/attacks/IDENTITY_ASSUME.yaml
 	#-kubectl delete -f traces/kubehound-verify/attacks/IDENTITY_IMPERSONATE.yaml
-	-kubectl delete -f traces/kubehound-verify/attacks/ROLE_BIND_RB_CR-SA.yaml
+	#-kubectl delete -f traces/kubehound-verify/attacks/ROLE_BIND_RB_CR-SA.yaml
+	-kubectl delete -f traces/kubehound-verify/attacks/ROLE_BIND_CRB_CR.yaml
 
 
 .PHONY: remove-calibration-traces		
