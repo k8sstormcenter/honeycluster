@@ -126,6 +126,19 @@ traces-off:
 	-kubectl delete -f traces/9managed-identitytokenaccess.yaml
 	-kubectl delete -f traces/10network-metadata.yaml
 
+# Calling the other makefile
+.PHONY: lightening
+lightening:
+	-$(MAKE) --makefile=Makefile_calibrate_kubehound calibration-traces
+	-kubectl apply -f traces/kubehound-verify/attacks/CE_MODULE_LOAD.yaml
+	-kubectl apply -f attacks/lightening/deployment.yaml
+	-kubectl create configmap check-script -n storm --from-file=attacks/lightening/check.sh
+
+.PHONY: lightening-off
+lightening-off:
+	-kubectl delete -f traces/kubehound-verify/attacks/CE_MODULE_LOAD.yaml
+	-kubectl delete configmap check-script -n storm
+	-kubectl delete -f attacks/lightening/deployment.yaml
 
 ## Experiments
 ## curretly candidate #1 for the network observability 

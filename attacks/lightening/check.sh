@@ -26,11 +26,25 @@ check_command_in_pod() {
     fi
 }
 
+debug_command_in_pod() {
+    local namespace=$1
+    local pod=$2
+    local command=$4
+    local im=$3
+
+    if kubectl debug -n $namespace -it $pod --image=$im -- $command &> /dev/null; 
+    then
+        echo "Vulnerable: Command '$command' can be executed via image $im in pod $pod in namespace $namespace"
+    else
+        echo "Secure: Command '$command' cannot be executed via image $im in pod $pod in namespace $namespace"
+    fi
+}
 # Get all namespaces
 namespaces=$(kubectl get namespaces -o jsonpath='{.items[*].metadata.name}')
 
 # Iterate over all namespaces
-for ns in $namespaces; do
+#for ns in $namespaces; do
+for ns in default; do
     echo "Processing namespace: $ns"
 
     # Get all pods in the namespace
@@ -39,9 +53,22 @@ for ns in $namespaces; do
     # Check for various vulnerabilities
     for pod in $pods; do
         echo "Processing pod: $pod"
+        manifest=$(kubectl get pod $pod -n $ns -o json)
 
-        # CE_MODULE_LOAD: Check if the user can load kernel modules
-        check_command_in_pod $ns $pod "modprobe dummy"
+
+        # CE_MODULE_LOAD: Check if the user can load kernel modules -> better to check in /lib/modules
+        check_command_in_pod $ns $pod "lsmod | awk 'NR==2{print \$1}' | xargs -I {} modprobe {}"
+        debug_command_in_pod $ns $pod "entlein/lightening:0.0.2" "lsmod && modprobe $(lsmod | awk 'NR==2{print $1}')"
+        if echo $manifest | jq '.spec.containers[].securityContext | select(.privileged == true or (.capabilities.add[] == "SYS_MODULE"))' > /dev/null; then
+            echo "Checking CE_MODULE_LOAD for pod: $pod"
+            debug_command_in_pod $ns $pod "entlein/lightening:0.0.2"  "capsh --decode=$(cat /proc/self/status | grep CapEff | awk '{print $2}' )| grep cap_sys_module"
+            if [ $? -eq 0 ]; then
+                echo "Pod $pod in namespace $ns has cap_sys_module capability"
+            else
+                echo "Pod $pod in namespace $ns does not have cap_sys_module capability"
+            fi
+        fi
+
 
         # CE_NSENTER: Check if the user can use nsenter to enter namespaces
         check_command_in_pod $ns $pod "nsenter --help"

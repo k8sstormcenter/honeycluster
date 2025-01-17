@@ -58,7 +58,7 @@ spec:
       serviceAccountName: lightening  # Use the appropriate service account
       containers:
       - name: lightening
-        image: entlein/lightening:0.0.1
+        image: entlein/lightening:0.0.2
         imagePullPolicy: Always
         volumeMounts:
         - name: check-script-volume
