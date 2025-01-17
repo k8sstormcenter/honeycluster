@@ -1,41 +1,27 @@
-# SHARE_PS_NAMESPACE edge
-# There's 2 pods here so we can also test we don't mix both pods shared NS together.
 apiVersion: v1
 kind: Pod
 metadata:
-  name: sharedps-pod1
+  name: shared-process-namespace-pod
   labels:
     app: kubehound-edge-test
 spec:
-  shareProcessNamespace: true
+  shareProcessNamespace: true 
   containers:
-    - name: sharedps-pod1-a
-      image: ubuntu
-      command: [ "/bin/sh", "-c", "--" ]
-      args: [ "while true; do sleep 30; done;" ]
-    - name: sharedps-pod1-b
-      image: ubuntu
-      command: [ "/bin/sh", "-c", "--" ]
-      args: [ "while true; do sleep 30; done;" ]
-    - name: sharedps-pod1-c
-      image: ubuntu
-      command: [ "/bin/sh", "-c", "--" ]
-      args: [ "while true; do sleep 30; done;" ]
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: sharedps-pod2
-  labels:
-    app: kubehound-edge-test
-spec:
-  shareProcessNamespace: true
-  containers:
-    - name: sharedps-pod2-a
-      image: ubuntu
-      command: [ "/bin/sh", "-c", "--" ]
-      args: [ "while true; do sleep 30; done;" ]
-    - name: sharedps-pod2-b
-      image: ubuntu
-      command: [ "/bin/sh", "-c", "--" ]
-      args: [ "while true; do sleep 30; done;" ]
+  - name: nginx-container
+    image: nginx:latest 
+  - name: shell-container
+    image: busybox:latest
+    imagePullPolicy: Always
+    securityContext:
+      capabilities:
+        add:
+        - SYS_PTRACE 
+    stdin: true
+    tty: true
+    command: ["/bin/sh", "-c"]
+    args:
+      - | 
+        NGINX_PID=$(pgrep nginx| head -n 1);  
+        head "/proc/$NGINX_PID/root/etc/nginx/nginx.conf";  
+        sleep infinity 
+
