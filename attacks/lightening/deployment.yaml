@@ -16,7 +16,7 @@ metadata:
   name: lightening-cluster-role
 rules:
 - apiGroups: [""]
-  resources: ["pods", "namespaces", "secrets", "serviceaccounts", "persistentvolumeclaims", "persistentvolumes"]
+  resources: ["nodes","pods", "namespaces", "secrets", "serviceaccounts", "persistentvolumeclaims", "persistentvolumes"]
   verbs: ["get", "list", "create", "patch", "delete", "impersonate"]
 - apiGroups: ["rbac.authorization.k8s.io"]
   resources: ["roles", "rolebindings", "clusterroles", "clusterrolebindings"]

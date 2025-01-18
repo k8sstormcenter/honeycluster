@@ -39,6 +39,35 @@ debug_command_in_pod() {
         echo "Secure: Command '$command' cannot be executed via image $im in pod $pod in namespace $namespace"
     fi
 }
+
+check_capabilities_outside_pod() {
+    output_file="all_container_caps.txt"
+    temp_dir="/tmp/cap-checker-output"
+    mkdir -p $temp_dir
+    > $output_file
+    nodes=$(kubectl get nodes -o jsonpath='{.items[*].metadata.name}')
+
+    for node in $nodes; do
+        echo "Collecting capabilities from node: $node"
+    
+        #now we exec into the daeomonset pod on this node and check the capabilities of all containers
+        pod=$(kubectl get pods -l app=cap-checker -o jsonpath="{.items[?(@.spec.nodeName=='$node')].metadata.name}")
+        kubectl exec -n storm $pod -- /bin/sh -c "
+            for pid in \$(ls /proc | grep -E '^[0-9]+$'); do
+                cap_eff=\$(capsh --decode=\$(cat /proc/\$pid/status | grep CapEff | awk '{print \$2}'))
+                if [ -n \"\$cap_eff\" ]; then
+                    binary=\$(readlink -f /proc/\$pid/exe)
+                    cmdlines=\$(cat /proc/\$pid/cmdline)
+                    echo \"Binary: \$binary, \"Cmdline: \$cmdlines, PID: \$pid, CapEff: \$cap_eff \"
+                fi
+            done
+        " > $temp_dir/container_caps_$node.txt
+
+        # Append the content to the final output file
+        cat $temp_dir/container_caps_$node.txt >> $output_file
+    done
+    cat $output_file | grep -v containerd-shim-runc-v2 |grep -v containerd| grep -v systemd| grep -v pause | grep -v kubelet  | grep -v kube-apiserver | grep -v kube-controller-manager | grep -v kube-scheduler | grep -v kube-proxy | grep -v etcd | grep -v kindnetd | grep -v coredns | grep -v local-path-provisioner 
+}
 # Get all namespaces
 namespaces=$(kubectl get namespaces -o jsonpath='{.items[*].metadata.name}')
 
@@ -55,13 +84,18 @@ for ns in default; do
         echo "Processing pod: $pod"
         manifest=$(kubectl get pod $pod -n $ns -o json)
 
+        # Collect all caps from all containers in all nodes into a file
+        check_capabilities_outside_pod
+        # CE_MODULE_LOAD: Check if its possible to load kernel modules 
+        # TODO: first check the conditions and for CAPS: list all caps found and check if SYS_MODULE is there
+        # Then: try to actually load the modules found in lsmod or under /lib/modules
 
-        # CE_MODULE_LOAD: Check if the user can load kernel modules -> better to check in /lib/modules
         check_command_in_pod $ns $pod "lsmod | awk 'NR==2{print \$1}' | xargs -I {} modprobe {}"
         debug_command_in_pod $ns $pod "entlein/lightening:0.0.2" "lsmod && modprobe $(lsmod | awk 'NR==2{print $1}')"
+
         if echo $manifest | jq '.spec.containers[].securityContext | select(.privileged == true or (.capabilities.add[] == "SYS_MODULE"))' > /dev/null; then
-            echo "Checking CE_MODULE_LOAD for pod: $pod"
-            debug_command_in_pod $ns $pod "entlein/lightening:0.0.2"  "capsh --decode=$(cat /proc/self/status | grep CapEff | awk '{print $2}' )| grep cap_sys_module"
+            # get the binary in the container 
+            #binary = echo $manifest | jq '.spec.containers[].command[0]' 
             if [ $? -eq 0 ]; then
                 echo "Pod $pod in namespace $ns has cap_sys_module capability"
             else
@@ -149,3 +183,6 @@ for ns in default; do
 done
 
 echo "Vulnerability checks completed."
+
+
+#docker run --rm --network host aquasec/kube-hunter --cidr 172.18.0.2
