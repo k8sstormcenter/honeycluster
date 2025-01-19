@@ -32,13 +32,25 @@ debug_command_in_pod() {
     local command=$4
     local im=$3
 
-    if kubectl debug -n $namespace -it $pod --image=$im -- $command &> /dev/null; 
-    then
-        echo "Vulnerable: Command '$command' can be executed via image $im in pod $pod in namespace $namespace"
+    kubectl debug --profile=general -n $namespace -it $pod --image=$im -- /bin/bash -c "$command"; # 2>&1 /dev/null; 
+    # then
+    #     echo "Vulnerable: Command '$command' can be executed via image $im in pod $pod in namespace $namespace"
+    # else
+    #     echo "Secure: Command '$command' cannot be executed via image $im in pod $pod in namespace $namespace"
+    # fi
+    error_output=$(kubectl debug --profile=general -n $namespace -it $pod --image=$im -- /bin/bash -c "$command && echo SUCCESS" 2>&1 /dev/null )
+    echo $error_output
+    if [[ "$error_output" == *"SUCCESS"* ]]; then  
+        echo "Vulnerable: $command succeeded in pod $pod in namespace $namespace"
+        return 1 
     else
-        echo "Secure: Command '$command' cannot be executed via image $im in pod $pod in namespace $namespace"
+        echo "Secure: $command failed in pod $pod in namespace $namespace"
+        return 0 
     fi
+
+
 }
+
 
 check_capabilities_outside_pod() {
     output_file="all_container_caps.txt"
@@ -51,14 +63,14 @@ check_capabilities_outside_pod() {
         echo "Collecting capabilities from node: $node"
     
         #now we exec into the daeomonset pod on this node and check the capabilities of all containers
-        pod=$(kubectl get pods -l app=cap-checker -o jsonpath="{.items[?(@.spec.nodeName=='$node')].metadata.name}")
-        kubectl exec -n storm $pod -- /bin/sh -c "
+        p=$(kubectl get pods -l app=cap-checker -o jsonpath="{.items[?(@.spec.nodeName=='$node')].metadata.name}")
+        kubectl exec -n storm $p -- /bin/sh -c "
             for pid in \$(ls /proc | grep -E '^[0-9]+$'); do
                 cap_eff=\$(capsh --decode=\$(cat /proc/\$pid/status | grep CapEff | awk '{print \$2}'))
                 if [ -n \"\$cap_eff\" ]; then
                     binary=\$(readlink -f /proc/\$pid/exe)
                     cmdlines=\$(cat /proc/\$pid/cmdline)
-                    echo \"Binary: \$binary, \"Cmdline: \$cmdlines, PID: \$pid, CapEff: \$cap_eff \"
+                    echo \"Binary: \$binary, Cmdline: \$cmdlines, PID: \$pid, CapEff: \$cap_eff \"
                 fi
             done
         " > $temp_dir/container_caps_$node.txt
@@ -66,12 +78,12 @@ check_capabilities_outside_pod() {
         # Append the content to the final output file
         cat $temp_dir/container_caps_$node.txt >> $output_file
     done
-    cat $output_file | grep -v containerd-shim-runc-v2 |grep -v containerd| grep -v systemd| grep -v pause | grep -v kubelet  | grep -v kube-apiserver | grep -v kube-controller-manager | grep -v kube-scheduler | grep -v kube-proxy | grep -v etcd | grep -v kindnetd | grep -v coredns | grep -v local-path-provisioner 
+    cat $output_file | grep -v awk | grep -v kubectl | grep -v containerd-shim-runc-v2 |grep -v containerd| grep -v systemd| grep -v pause | grep -v kubelet  | grep -v kube-apiserver | grep -v kube-controller-manager | grep -v kube-scheduler | grep -v kube-proxy | grep -v etcd | grep -v kindnetd | grep -v coredns | grep -v local-path-provisioner 
 }
 # Get all namespaces
 namespaces=$(kubectl get namespaces -o jsonpath='{.items[*].metadata.name}')
 
-# Iterate over all namespaces
+# Iterate over all namespaces # DEBUG ONLY IN DEFAULT
 #for ns in $namespaces; do
 for ns in default; do
     echo "Processing namespace: $ns"
@@ -90,8 +102,8 @@ for ns in default; do
         # TODO: first check the conditions and for CAPS: list all caps found and check if SYS_MODULE is there
         # Then: try to actually load the modules found in lsmod or under /lib/modules
 
-        check_command_in_pod $ns $pod "lsmod | awk 'NR==2{print \$1}' | xargs -I {} modprobe {}"
-        debug_command_in_pod $ns $pod "entlein/lightening:0.0.2" "lsmod && modprobe $(lsmod | awk 'NR==2{print $1}')"
+        #check_command_in_pod $ns $pod "lsmod | awk 'NR==2{print \$1}' | xargs -I {} modprobe {}"
+        debug_command_in_pod $ns $pod "entlein/lightening:0.0.2" "modprobe $(lsmod | awk 'NR==2{print $1}')"
 
         if echo $manifest | jq '.spec.containers[].securityContext | select(.privileged == true or (.capabilities.add[] == "SYS_MODULE"))' > /dev/null; then
             # get the binary in the container 
@@ -105,22 +117,21 @@ for ns in default; do
 
 
         # CE_NSENTER: Check if the user can use nsenter to enter namespaces
-        check_command_in_pod $ns $pod "nsenter --help"
+        debug_command_in_pod $ns $pod "entlein/lightening:0.0.2" "nsenter -t 1 -a /bin/bash  -c 'lsns ; exit'"
 
         # CE_PRIV_MOUNT: Check if the user can mount filesystems
-        check_command_in_pod $ns $pod "mount"
+        debug_command_in_pod $ns $pod "entlein/lightening:0.0.2" "mount -t proc proc /proc "
 
         # CE_SYS_PTRACE: Check if the user can use ptrace
-        check_command_in_pod $ns $pod "strace -p 1"
+        debug_command_in_pod $ns $pod "entlein/lightening:0.0.2" "strace -ff ls " #-p \$(pgrep containerd | head -n 1)  "
 
         # CE_UMH_CORE_PATTERN: Check if the user can modify core pattern
-        check_command_in_pod $ns $pod "sysctl -w kernel.core_pattern=/tmp/core"
+        check_command_in_pod $ns $pod "sysctl -w kernel.core_pattern=/tmp/core "
 
         # CE_VAR_LOG_SYMLINK: Check if the user can create symlinks in /var/log
-        check_command_in_pod $ns $pod "ln -s / /host/var/log/root_link"
+        check_command_in_pod $ns $pod "ln -s / /host/var/log/root_link "
 
         # CONTAINER_ATTACH: Check if the user can attach to containers
-        check_permission "attach" "pods" $ns
 
         # IDENTITY_IMPERSONATE: Check if the user can impersonate other users
         check_permission "impersonate" "users" $ns
