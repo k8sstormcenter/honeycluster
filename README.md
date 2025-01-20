@@ -1,4 +1,4 @@
-# K8sStormCenter HoneyCluster
+# K8sStormCenter: Honey Storm and Lightening
 
 > [!NOTE]
 > I'm currently rewriting about 90% of the underlying stack, so expect quite some breaking changes until end of 2024. I'm aiming at a stablilization in January '25
