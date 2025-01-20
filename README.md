@@ -5,7 +5,7 @@
 > The focus of the rewrite is to give it an achievable UX and a lightweight footprint
 > Update Jan 25: the architecture is now stable, however there will still be breaking changes in individual features. (Mongo is not used yet)
 
-Welcome to the K8sStormCenter HoneyCluster repository. Here you will find everything you need to set up your own HoneyCluster, a Kubernetes cluster that is instrumented with bait and tripwires to collect data on the attacks carried out against it and the ways in which it is targeted. With our complimentary [lightening-rod](https://github.com/k8sstormcenter/cti-stix-visualization) , you can then use this data to visualize, understand and detect these attacks. You can also use the `lightening`-feature to attack yourself, the output can be used to create a threat-model-starting point or to scan your setup.
+Welcome to the K8sStormCenter HoneyCluster repository. Here you will find everything you need to set up your own HoneyCluster, a Kubernetes cluster that is instrumented with bait and tripwires to collect data on the attacks carried out against it and the ways in which it is targeted. With our complimentary [lightening-rod](https://github.com/k8sstormcenter/cti-stix-visualization) , you can then use this data to visualize, understand and detect these attacks. You can also use the `lightening`-feature to attack yourself to create a threat-model-starting point or to generally scan your setup.
 
 
 
