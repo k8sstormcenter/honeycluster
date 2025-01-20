@@ -13,7 +13,6 @@ check_permission() {
     fi
 }
 
-# Function to check if a command can be executed in a pod
 check_command_in_pod() {
     local namespace=$1
     local pod=$2
@@ -32,12 +31,7 @@ debug_command_in_pod() {
     local command=$4
     local im=$3
 
-    kubectl debug --profile=general -n $namespace -it $pod --image=$im -- /bin/bash -c "$command"; # 2>&1 /dev/null; 
-    # then
-    #     echo "Vulnerable: Command '$command' can be executed via image $im in pod $pod in namespace $namespace"
-    # else
-    #     echo "Secure: Command '$command' cannot be executed via image $im in pod $pod in namespace $namespace"
-    # fi
+    kubectl debug --profile=general -n $namespace -it $pod --image=$im -- /bin/bash -c "$command"; 
     error_output=$(kubectl debug --profile=general -n $namespace -it $pod --image=$im -- /bin/bash -c "$command && echo SUCCESS" 2>&1 /dev/null )
     echo $error_output
     if [[ "$error_output" == *"SUCCESS"* ]]; then  
@@ -56,7 +50,7 @@ debug_command_in_pod() {
 
 }
 
-
+#TODO: exclude this process from the checks
 check_capabilities_outside_pod() {
     output_file="all_container_caps.txt"
     temp_dir="/tmp/cap-checker-output"
@@ -117,7 +111,7 @@ attack_dictionary["CE_SYS_PTRACE"]="strace -ff ls"
 # attack_dictionary["VOLUME_DISCOVER"]='kubectl auth can-i list persistentvolumes -n $ns && echo SUCCESS'
 
 
-# Iterate over all namespaces # DEBUG ONLY IN DEFAULT
+# Iterate over all namespaces # WHILE IN DEVELOPMENT, I WILL ONLY CHECK THE DEFAULT NAMESPACE
 #for ns in $namespaces; do
 for ns in default; do
     echo "Processing namespace: $ns"
@@ -130,14 +124,11 @@ for ns in default; do
         echo "Processing pod: $pod"
         manifest=$(kubectl get pod $pod -n $ns -o json)
 
-        # Collect all caps from all containers in all nodes into a file
+        # Collect all caps from all containers in all nodes into a file TODO: pretty print and put into a DB
         check_capabilities_outside_pod
         # CE_MODULE_LOAD: Check if its possible to load kernel modules 
-        # TODO: first check the conditions and for CAPS: list all caps found and check if SYS_MODULE is there
         # Then: try to actually load the modules found in lsmod or under /lib/modules
 
-        #check_command_in_pod $ns $pod "lsmod | awk 'NR==2{print \$1}' | xargs -I {} modprobe {}"
-       # debug_command_in_pod $ns $pod "entlein/lightening:0.0.2" "modprobe $(lsmod | awk 'NR==2{print $1}')"
         attack_name="CE_MODULE_LOAD"  
         command="${attack_dictionary[$attack_name]}"
         if [[ -n "$command" ]]; then  
@@ -156,25 +147,36 @@ for ns in default; do
         # CE_NSENTER: Check if the user can use nsenter to escape the contianer
         attack_name="CE_NSENTER"  
         command="${attack_dictionary[$attack_name]}"
-        second_command="mount -t proc proc /proc " #THIS IS JUST A SKETCH TODO: implement in proper language
+        second_command="${attack_dictionary[CE_PRIV_MOUNT]}"  #THIS IS JUST A SKETCH TODO: implement in proper language
         if [[ -n "$command" ]]; then  
-            debug_command_in_pod "$ns" "$pod" "entlein/lightening:0.0.2" "$command" "$second_command"
+            debug_command_in_pod "$ns" "$pod" "entlein/lightening:0.0.2" "$command" "$second_command" #TODO: make it spawn inside the same shell!!! THAT MAKES MORE SENSE
         fi
-        #debug_command_in_pod $ns $pod "entlein/lightening:0.0.2" "nsenter -t 1 -a /bin/bash  -c 'lsns ; exit'"
 
         # CE_PRIV_MOUNT: Check if the user can mount filesystems
-        debug_command_in_pod $ns $pod "entlein/lightening:0.0.2" "mount -t proc proc /proc "
+        attack_name="CE_PRIV_MOUNT"  
+        command="${attack_dictionary[$attack_name]}"
+        second_command="${attack_dictionary[CE_NSENTER]}" 
+        if [[ -n "$command" ]]; then  
+            debug_command_in_pod "$ns" "$pod" "entlein/lightening:0.0.2" "$command" "$second_command" 
+        fi
+
 
         # CE_SYS_PTRACE: Check if the user can use ptrace
-        debug_command_in_pod $ns $pod "entlein/lightening:0.0.2" "strace -ff ls " 
+        #debug_command_in_pod $ns $pod "entlein/lightening:0.0.2" "strace -ff ls " 
+        attack_name="CE_SYS_PTRACE"  
+        command="${attack_dictionary[$attack_name]}"
+        #second_command="${attack_dictionary[CE_NSENTER]}" 
+        if [[ -n "$command" ]]; then  
+            debug_command_in_pod "$ns" "$pod" "entlein/lightening:0.0.2" "$command" 
+        fi
 
         # CE_UMH_CORE_PATTERN: Check if the user can modify core pattern
         check_command_in_pod $ns $pod "sysctl -w kernel.core_pattern=/tmp/core "
 
         # CE_VAR_LOG_SYMLINK: Check if the user can create symlinks in /var/log
-        check_command_in_pod $ns $pod "ln -s / /host/var/log/root_link "
+        check_command_in_pod $ns $pod "ln -s / /var/log/root_link "
 
-        # CONTAINER_ATTACH: Check if the user can attach to containers
+        # CONTAINER_ATTACH: 
 
         # IDENTITY_IMPERSONATE: Check if the user can impersonate other users
         check_permission "impersonate" "users" $ns
@@ -189,13 +191,13 @@ for ns in default; do
         check_command_in_pod $ns $pod "ls /run/containerd/containerd.sock"
 
         # EXPLOIT_HOST_READ: Check if the user can read host files
-        check_command_in_pod $ns $pod "cat /host/etc/passwd"
+        #check_command_in_pod $ns $pod "cat /host/etc/passwd"
 
         # EXPLOIT_HOST_TRAVERSE: Check if the user can traverse host directories
-        check_command_in_pod $ns $pod "ls /host"
+        #check_command_in_pod $ns $pod "ls /host"
 
         # EXPLOIT_HOST_WRITE: Check if the user can write to host files
-        check_command_in_pod $ns $pod "echo 'test' > /host/tmp/testfile"
+        #check_command_in_pod $ns $pod "echo 'test' > /host/tmp/testfile"
 
         # IDENTITY_ASSUME: Check if the user can assume other identities
         check_permission "impersonate" "serviceaccounts" $ns
@@ -217,10 +219,10 @@ for ns in default; do
         check_permission "create" "clusterrolebindings" $ns
 
         # SHARE_PS_NAMESPACE: Check if the user can share process namespace
-        check_command_in_pod $ns $pod "ps aux"
+        #check_command_in_pod $ns $pod "ps aux"
 
         # TOKEN_BRUTEFORCE: Check if the user can brute force tokens
-        check_command_in_pod $ns $pod "curl -X POST -d 'token=...' http://kubernetes.default.svc"
+        #check_command_in_pod $ns $pod "curl -X POST -d 'token=...' http://kubernetes.default.svc"
 
         # TOKEN_LIST: Check if the user can list tokens
         check_permission "list" "secrets" $ns
