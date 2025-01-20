@@ -6,6 +6,11 @@
 > Update Jan 25: the architecture is now stable, however there will still be breaking changes in individual features. (Mongo is not used yet)
 
 Welcome to the K8sStormCenter HoneyCluster repository. Here you will find everything you need to set up your own HoneyCluster, a Kubernetes cluster that is instrumented with bait and tripwires to collect data on the attacks carried out against it and the ways in which it is targeted. With our complimentary [lightening-rod](https://github.com/k8sstormcenter/cti-stix-visualization) , you can then use this data to visualize, understand and detect these attacks. You can also use the `lightening`-feature to attack yourself to create a threat-model-starting point or to generally scan your setup.
+The `storm` feature is the collection of CTI from many `honeyclusters` into a open shared threat-intel collection (using STIX 2.1), this is currently waiting for the other 3 features to become stable.
+
+If you are interested in the `storm` 🌩️ research, please let me know.
+
+If you d like to motivate me and make me smile: consider leaving a star ⭐
 
 
 
