@@ -13,8 +13,8 @@ wipe:  remove-calibration-attack remove-calibration-traces
 .PHONY:
 calibration-traces: 
 	@echo "Calibrating traces"
-	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-ce-nsenter.yaml
-	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-ce-priv-mount.yaml
+	kubectl apply -f traces/kubehound-verify/calibrationtraces/1-ce-nsenter.yaml
+	kubectl apply -f traces/kubehound-verify/calibrationtraces/1-ce-priv-mount.yaml
 	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-ce-sys-ptrace.yaml
 	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-ce-module-load.yaml
 	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-ce-net-mitm.yaml
@@ -25,7 +25,7 @@ calibration-traces:
 	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-exploit-host-read-traverse.yaml
 	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-exploit-host-write.yaml
 	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-share-ps-namespace.yaml
-	kubectl apply -f traces/kubehound-verify/calibrationtraces/1-pod-create.yaml
+	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-pod-create.yaml
 
 
 .PHONY: calibration-attack
@@ -48,7 +48,7 @@ calibration-attack:
 	#-kubectl apply -f traces/kubehound-verify/attacks/ROLE_BIND_CRB_CR.yaml
 	#-kubectl apply -f traces/kubehound-verify/attacks/ROLE_BIND_RB_R-SA.yaml
 	#-kubectl apply -f traces/kubehound-verify/attacks/SHARE_PS_NAMESPACE.yaml
-	-kubectl apply -f traces/kubehound-verify/attacks/POD_CREATE.yaml
+	#-kubectl apply -f traces/kubehound-verify/attacks/POD_CREATE.yaml
 
 
 .PHONY: remove-calibration-attack	
@@ -71,24 +71,24 @@ remove-calibration-attack:
 	#-kubectl delete -f traces/kubehound-verify/attacks/ROLE_BIND_CRB_CR.yaml
 	#-kubectl delete -f traces/kubehound-verify/attacks/ROLE_BIND_RB_R-SA.yaml
 	#-kubectl delete -f traces/kubehound-verify/attacks/SHARE_PS_NAMESPACE.yaml
-	-kubectl delete -f traces/kubehound-verify/attacks/POD_CREATE.yaml & kubectl delete pod kubehound-pod-create-pod
+	#-kubectl delete -f traces/kubehound-verify/attacks/POD_CREATE.yaml & kubectl delete pod kubehound-pod-create-pod
 
 
 
 .PHONY: remove-calibration-traces		
 remove-calibration-traces:
 	@echo "Rmoving calibration traces"
-	#-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-ce-nsenter.yaml
-	#-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-ce-priv-mount.yaml
-	#-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-ce-sys-ptrace.yaml
-	#-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-ce-module-load.yaml
-	#-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-ce-net-mitm.yaml
-	#-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-ce-var-log-symlink.yaml
-	#-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-ce-umh-core-pattern.yaml
-	#-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-exploit-containerd-sock.yaml
-	#-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-exploit-host-read.yaml
-	#-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-exploit-host-read-traverse.yaml
-	#-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-exploit-host-write.yaml
-	#-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-share-ps-namespace.yaml
+	-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-ce-nsenter.yaml
+	-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-ce-priv-mount.yaml
+	-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-ce-sys-ptrace.yaml
+	-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-ce-module-load.yaml
+	-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-ce-net-mitm.yaml
+	-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-ce-var-log-symlink.yaml
+	-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-ce-umh-core-pattern.yaml
+	-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-exploit-containerd-sock.yaml
+	-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-exploit-host-read.yaml
+	-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-exploit-host-read-traverse.yaml
+	-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-exploit-host-write.yaml
+	-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-share-ps-namespace.yaml
 	-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-pod-create.yaml
 	

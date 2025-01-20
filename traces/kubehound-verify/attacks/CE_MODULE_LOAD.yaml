@@ -10,11 +10,13 @@ spec:
     - name: kh-calibration-mod-load-pod
       image: centos:latest
       securityContext:
-        privileged: true # TODO: implenent an OR, since you either need priv OR caps
+        #privileged: true # TODO: implenent an OR, since you either need priv OR caps
         capabilities:
           add: ["SYS_MODULE"]
-      command: [ "/bin/sh", "-c" ]
-      args: ["lsmod && modprobe dummy && sleep 300"] 
+      command: [ "/bin/bash", "-c" , "--"]
+      args: ["lsmod | awk 'NR==2{print $1}' | xargs -I {} modprobe {} & sleep 3000"] 
+
+      #ls -1 /lib/modules/*/kernel/drivers/* | xargs -n1 basename | sort -u | shuf 
 
 
 #https://www.baeldung.com/linux/docker-container-kernel-modules
