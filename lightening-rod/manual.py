@@ -22,8 +22,8 @@ REDIS_KEY = os.getenv('REDIS_KEY', 'tetra')
 REDIS_OUTKEY = os.getenv('REDIS_OUTKEY', 'tetrasingle')
 REDIS_VISKEY = os.getenv('REDIS_VISKEY', 'tetrastix2')
 REDIS_BUNDLEKEY = os.getenv('REDIS_BUNDLEKEY', 'tetra_bundle')
-#REDIS_BUNDLEVISKEY = os.getenv('REDIS_BUNDLEVISKEY', 'tetrastix') #implement in UI
-REDIS_FOLLOWVISKEY = os.getenv('REDIS_FOLLOWVISKEY', 'tetrastix')
+REDIS_BUNDLEVISKEY = os.getenv('REDIS_BUNDLEVISKEY', 'tetrastix') #implement in UI
+REDIS_FOLLOWVISKEY = os.getenv('REDIS_FOLLOWVISKEY', 'tetraproc')
 REDIS_PATTERNKEY = os.getenv('REDIS_PATTERNKEY', 'tetra_pattern')
 PROCESS_EXT_KEY = "process-ext"
 OBSERVED_DATA_EXT_KEY = "observed-data-ext"
@@ -197,13 +197,12 @@ def create_process_stix_id(exec_id):
 
 def flatten_kprobe_args(args):
     flattened_args = {}
-    for i, item in enumerate(args):  # Use enumerate to get index
+    for i, item in enumerate(args): 
         if isinstance(item, list):
-            flattened_args.update(flatten_kprobe_args(item))  # Handle nested lists recursively.
+            flattened_args.update(flatten_kprobe_args(item))  
         elif isinstance(item, dict):
             for k, v in item.items():
-                # Create unique keys for repeated argument types
-                new_key = f"{k}_{i}" if k in flattened_args else k  # Append index for repeated keys
+                new_key = f"{k}_{i}" if k in flattened_args else k  
                 flattened_args[new_key] = v
     return flattened_args
 
@@ -334,7 +333,7 @@ def transform_tetragon_to_stix(tetragon_log):
             stix_bundle["objects"].extend(stix_objects)  
 
             for ID, IDD, STIX_ATTACK_PATTERN in matching_patterns: 
-                print(f"Writing to Redis key: {REDIS_BUNDLEKEY}, matched pattern ID {IDD}") 
+                print(f"Writing to Redis key: {REDIS_BUNDLEKEY}, matched pattern IDD {IDD} for id {ID}") 
 
                 indicator_relationship = create_relationship(stix_bundle["id"], ID, "indicates")
                 stix_bundle["objects"].append(indicator_relationship)
@@ -345,7 +344,7 @@ def transform_tetragon_to_stix(tetragon_log):
 
                 stix_bundle["objects"].extend(STIX_ATTACK_PATTERN["objects"])
                 client.hset(REDIS_BUNDLEKEY,f"{IDD}:{UNIQUE}", json.dumps(sanitize_bundle(stix_bundle))) # Store unique bundles
-        
+            
     return stix_bundle
 
 
@@ -408,7 +407,7 @@ def transform_tetragon_to_stix_old(tetragon_log):
                             break 
 
                     stix_bundle["objects"].extend(STIX_ATTACK_PATTERN["objects"])
-                    client.hset(REDIS_BUNDLEKEY,f"{IDD}:{UNIQUE}", json.dumps(sanitize_bundle(stix_bundle)))
+                    client.hset(REDIS_BUNDLEKEY,f"{ID}:{UNIQUE}", json.dumps(sanitize_bundle(stix_bundle)))
             except Exception as e:
                 print(f"Error extending bundle in tranform_tetragon_to_stix: {e}")
     return stix_bundle
@@ -443,7 +442,7 @@ def compare_stix_objects(obj, objects_array):
     return False  
 
 
-def deduplicate_bundles_2(individual_bundles):
+def deduplicate_bundles(individual_bundles):
     stix_bundle_array = {} 
     for key, value in individual_bundles.items():
         stix_bundle = json.loads(value)
@@ -473,7 +472,7 @@ def deduplicate_bundles_2(individual_bundles):
 
 
 #def process_follow_bundles(individual_bundles):
-def deduplicate_bundles(individual_bundles):
+def deduplicate_bundles_2(individual_bundles):
     stix_bundle_array = {} 
     for key, value in individual_bundles.items():
         stix_bundle = json.loads(value)

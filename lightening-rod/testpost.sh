@@ -369,32 +369,66 @@ curl -X POST http://localhost:8000/add_attack_bundle \
 -d @- << 'EOF'
 {
   "type": "bundle",
-  "id": "1",
+  "id": "12",
   "name": "TREE",
+  "version": "1.0.0",
+  "spec_version": "2.1",
+"objects": [
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--containerescapeplusmount",
+      "name": "TREE",
+      "description": "nsenter followed by mount"
+    },
+    {
+      "type": "indicator",
+      "id": "indicator--containerescapeplusmount",
+      "name": "Container Escape followed by Mount /proc",
+      "description": "Detecting containerescapeplusmount",
+      "pattern": "[process:extensions.function_name MATCHES '__x64_sys_setns' OR process:extensions.function_name MATCHES '__x64_sys_mount']",      "pattern_type": "stix",
+      "valid_from": "2024-01-01T00:00:00Z"
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--containerescapeplusmount",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--containerescapeplusmount",
+      "target_ref": "attack-pattern--containerescapeplusmount"
+    }
+  ]
+}
+EOF
+
+curl -X POST http://localhost:8000/add_attack_bundle \
+-H "Content-Type: application/json" \
+-d @- << 'EOF'
+{
+  "type": "bundle",
+  "id": "13",
+  "name": "ESCAPEMOUNT",
   "version": "1.0.0",
   "spec_version": "2.1",
   "objects": [
     {
       "type": "attack-pattern",
-      "id": "attack-pattern--kh-ce-tree",
-      "name": "CE_TREE",
-      "description": "Successful Container Escape followed by mounting /proc",
+      "id": "attack-pattern--containerescapemount",
+      "name": "ESCAPEMOUNT",
+      "description": "nsenter followed by mount"
     },
     {
       "type": "indicator",
-      "id": "indicator--kh-ce-tree",
-      "name": "NSenter binary executed followed by Mount",
-      "description": "Calibration test",
-      "pattern": "[process:extensions.function_name MATCHES '__x64_sys_setns' OR process:extensions.kprobe_arguments.string_arg MATCHES '/proc']",
-      "pattern_type": "stix",
+      "id": "indicator--containerescapemount",
+      "name": "Container Escape followed by Mount /proc",
+      "description": "Detecting containerescapeplusmount",
+      "pattern": "[process:extensions.kprobe_arguments.int_arg_1 = 1073741824 OR process:extensions.function_name MATCHES '__x64_sys_mount']",      "pattern_type": "stix",
       "valid_from": "2024-01-01T00:00:00Z"
     },
     {
       "type": "relationship",
-      "id": "relationship--kh-ce-tree",
+      "id": "relationship--containerescapemount",
       "relationship_type": "indicates",
-      "source_ref": "indicator--kh-ce-tree",
-      "target_ref": "attack-pattern--kh-ce-tree"
+      "source_ref": "indicator--containerescapemount",
+      "target_ref": "attack-pattern--containerescapemount"
     }
   ]
 }
