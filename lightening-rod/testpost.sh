@@ -99,7 +99,7 @@ curl -X POST http://localhost:8000/add_attack_bundle \
         "id": "indicator--kh-ce-priv-mount",
         "name": "Mounting the /proc dir from Container",
         "description": "Detecting the mounting of the proc directory.",
-        "pattern": "[process:command_line MATCHES 'mount -t proc proc /proc']",
+        "pattern": "[process:extensions.function_name MATCHES '__x64_sys_mount']",
         "pattern_type": "stix",
         "valid_from": "2024-01-01T00:00:00Z"
       },
@@ -362,4 +362,40 @@ curl -X POST http://localhost:8000/add_attack_bundle \
       }
     ]
   }
+EOF
+
+curl -X POST http://localhost:8000/add_attack_bundle \
+-H "Content-Type: application/json" \
+-d @- << 'EOF'
+{
+  "type": "bundle",
+  "id": "1",
+  "name": "TREE",
+  "version": "1.0.0",
+  "spec_version": "2.1",
+  "objects": [
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--kh-ce-tree",
+      "name": "CE_TREE",
+      "description": "Successful Container Escape followed by mounting /proc",
+    },
+    {
+      "type": "indicator",
+      "id": "indicator--kh-ce-tree",
+      "name": "NSenter binary executed followed by Mount",
+      "description": "Calibration test",
+      "pattern": "[process:extensions.function_name MATCHES '__x64_sys_setns' OR process:extensions.kprobe_arguments.string_arg MATCHES '/proc']",
+      "pattern_type": "stix",
+      "valid_from": "2024-01-01T00:00:00Z"
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--kh-ce-tree",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--kh-ce-tree",
+      "target_ref": "attack-pattern--kh-ce-tree"
+    }
+  ]
+}
 EOF

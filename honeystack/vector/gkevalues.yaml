@@ -289,7 +289,7 @@ customConfig:
     create_key:
       type: remap
       inputs:
-        - modify # Add hash to rest of message
+        - modify # TODO: why is there no flatten function or loop function?
       source: | 
         .field1  = if exists(.process_exec.process.pod.container.id){ .process_exec.process.pod.container.id } else { if exists(.process_exit.process.pod.container.id) { .process_exit.process.pod.container.id } else { if exists(.process_kprobe.process.pod.container.id){ .process_kprobe.process.pod.container.id } else { "1" } } } 
         .field2  = if exists(.process_exec.process.binary)          { .process_exec.process.binary }           else { if exists(.process_exit.process.binary)           { .process_exit.process.binary }           else { if exists(.process_kprobe.process.binary)          { .process_kprobe.process.binary}            else { "1" } } }
@@ -297,9 +297,12 @@ customConfig:
         .field11 = if exists(.process_exec.parent.pod.container.id) { .process_exec.parent.pod.container.id }  else { if exists(.process_exit.parent.pod.container.id)  { .process_exit.parent.pod.container.id }  else { if exists(.process_kprobe.parent.pod.container.id) { .process_kprobe.parent.pod.container.id }  else { "1" } } }
         .field22 = if exists(.process_exec.parent.binary)           { .process_exec.parent.binary }            else { if exists(.process_exit.parent.binary)            { .process_exit.parent.binary }            else { if exists(.process_kprobe.parent.binary)           { .process_kprobe.parent.binary }            else { "1" } } }
         .field33 = if exists(.process_exec.parent.arguments)        { .process_exec.parent.arguments }         else { if exists(.process_exit.parent.arguments)         { .process_exit.parent.arguments }         else { if exists(.process_kprobe.parent.arguments)        { .process_kprobe.parent.arguments }         else { "1" } } }
-        .fieldk  = if exists(.process_kprobe.args) {flatten!(.process_kprobe.args)} else { "1" }
+        .fieldk1 = if exists(.process_kprobe.args) { if exists(.process_kprobe.args[0].file_arg.path) { .process_kprobe.args[0].file_arg.path } else { if exists(.process_kprobe.args[0].int_arg) {  .process_kprobe.args[0].int_arg } else { if exists(.process_kprobe.args[0].string_arg) { .process_kprobe.args[0].string_arg } else {  "1"  }  } } } else { "1" }
+        .fieldk2 = if exists(.process_kprobe.args) { if exists(.process_kprobe.args[0].file_arg.permission) { .process_kprobe.args[0].file_arg.permission } else { if exists(.process_kprobe.args[1].int_arg) { .process_kprobe.args[1].int_arg } else { if exists(.process_kprobe.args[1].string_arg) { .process_kprobe.args[1].string_arg } else { "1" } } } } else { "1" }
+        .fieldk21 = if exists(.process_kprobe.args) { if exists(.process_kprobe.args[1].sock_arg.state)     { .process_kprobe.args[1].sock_arg.state      } else { if exists(.process_kprobe.args[1].int_arg) { .process_kprobe.args[1].int_arg } else { if exists(.process_kprobe.args[1].string_arg) { .process_kprobe.args[1].string_arg } else { "1" } } } } else { "1" }
+        .fieldf  = if exists(.process_kprobe.function_name) { .process_kprobe.function_name } else { "1" }
         .pre     = if exists(.process_exec) { "exec" } else { if exists(.process_exit) { "exit" } else { if exists(.process_kprobe){ "kpro" }  else { "1" } } }
-        .key, err = to_string(.field1) + to_string(.field2) + to_string(.field3) + to_string(.field11) + to_string(.field22) + to_string(.field33) + to_string(.fieldk)
+        .key, err = to_string(.field1) + to_string(.field2) + to_string(.field3) + to_string(.field11) + to_string(.field22) + to_string(.field33) + to_string(.fieldf) + to_string(.fieldk1) + to_string(.fieldk2) + to_string(.fieldk21)
         .md5_hash = to_string(md5(.key))
         .dedup    = .md5_hash + to_string(.pre)
         
@@ -315,7 +318,10 @@ customConfig:
         del(.field11)
         del(.field22)
         del(.field33)
-        del(.fieldk)
+        del(.fieldf)
+        del(.fieldk1)
+        del(.fieldk2)
+        del(.fieldk21)
         del(.pre)
         del(.key)
 
@@ -372,8 +378,8 @@ customConfig:
     redislocal:
       type: redis
       inputs:
-        - dedupe 
-        #- remove-fields
+        #- dedupe 
+        - remove-fields
       endpoint: redis://redis-headless.storm.svc.cluster.local:6379
       key: "tetra {{ .message }}" # how to only insert uniques? HSETNX dataset <md5_hash> "<your_json_data>"
       encoding:

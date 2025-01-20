@@ -26,7 +26,7 @@ wipe:
 	-$(HELM) uninstall tracee -n honey
 	- kubectl delete -f lightening-rod/cti-stix-visualizer-deployment.yaml 
 	- kubectl delete -f lightening-rod/deployment.yaml
-	-$(HELM) uninstall mongo -n mongo
+	-$(HELM) uninstall mongo -n honey
 	-$(HELM) uninstall vector -n honey
 	- kubectl delete namespace honey
 	-$(HELM) uninstall -n storm redis
@@ -130,14 +130,14 @@ traces-off:
 .PHONY: lightening
 lightening:
 	-$(MAKE) --makefile=Makefile_calibrate_kubehound calibration-traces
-	-kubectl apply -f traces/kubehound-verify/attacks/CE_SYS_PTRACE.yaml
+	-kubectl apply -f traces/kubehound-verify/attacks/CE_NSENTER.yaml
 	-kubectl apply -f attacks/lightening/deployment.yaml
 	-kubectl apply -f attacks/lightening/cap-checker.yaml -n storm
 	-kubectl create configmap check-script -n storm --from-file=attacks/lightening/check.sh
 
 .PHONY: lightening-off
 lightening-off:
-	-kubectl delete -f traces/kubehound-verify/attacks/CE_SYS_PTRACE.yaml
+	-kubectl delete -f traces/kubehound-verify/attacks/CE_NSENTER.yaml
 	-kubectl delete configmap check-script -n storm
 	-kubectl delete -f attacks/lightening/cap-checker.yaml -n storm
 	-kubectl delete -f attacks/lightening/deployment.yaml

@@ -41,10 +41,15 @@ debug_command_in_pod() {
     error_output=$(kubectl debug --profile=general -n $namespace -it $pod --image=$im -- /bin/bash -c "$command && echo SUCCESS" 2>&1 /dev/null )
     echo $error_output
     if [[ "$error_output" == *"SUCCESS"* ]]; then  
-        echo "Vulnerable: $command succeeded in pod $pod in namespace $namespace"
+        echo "Vulnerable: Command: $command succeeded in pod $pod in namespace $namespace"
+        if [[ -n "$second_command" ]]; then
+            echo "Launching second attack: $second_command"
+            error_output=$(kubectl debug --profile=general -n $namespace -it $pod --image=$im -- /bin/bash -c "$second_command && echo SUCCESS" 2>&1 /dev/null )
+            echo $error_output
+        fi
         return 1 
     else
-        echo "Secure: $command failed in pod $pod in namespace $namespace"
+        echo "Secure: Command: $command failed in pod $pod in namespace $namespace"
         return 0 
     fi
 
@@ -83,6 +88,35 @@ check_capabilities_outside_pod() {
 # Get all namespaces
 namespaces=$(kubectl get namespaces -o jsonpath='{.items[*].metadata.name}')
 
+declare -A attack_dictionary
+
+attack_dictionary["CE_MODULE_LOAD"]="modprobe $(lsmod | awk 'NR==2{print $1}')"
+attack_dictionary["CE_NSENTER"]="nsenter -t 1 -a /bin/bash  -c 'lsns ; exit'"
+attack_dictionary["CE_PRIV_MOUNT"]="mount -t proc proc /proc"
+attack_dictionary["CE_SYS_PTRACE"]="strace -ff ls"
+# attack_dictionary["CE_UMH_CORE_PATTERN"]="sysctl -w kernel.core_pattern=/tmp/core && echo SUCCESS"
+# attack_dictionary["CE_VAR_LOG_SYMLINK"]="ln -s / /host/var/log/root_link && echo SUCCESS"
+# attack_dictionary["CONTAINER_ATTACH"]="kubectl attach $pod -n $ns -it && echo SUCCESS"  
+# attack_dictionary["IDENTITY_IMPERSONATE"]='kubectl auth can-i impersonate users -n $ns && echo SUCCESS'
+# attack_dictionary["POD_CREATE"]='kubectl auth can-i create pods -n $ns && echo SUCCESS'
+# attack_dictionary["POD_EXEC"]='kubectl auth can-i exec pods -n "$ns" && echo SUCCESS' 
+# attack_dictionary["EXPLOIT_CONTAINERD_SOCK"]="ls /run/containerd/containerd.sock && echo SUCCESS"
+# attack_dictionary["EXPLOIT_HOST_READ"]="cat /host/etc/passwd && echo SUCCESS"
+# attack_dictionary["EXPLOIT_HOST_TRAVERSE"]="ls /host && echo SUCCESS"
+# attack_dictionary["EXPLOIT_HOST_WRITE"]="echo 'test' > /host/tmp/testfile && echo SUCCESS"
+# attack_dictionary["IDENTITY_ASSUME"]='kubectl auth can-i impersonate serviceaccounts -n $ns && echo SUCCESS'
+# attack_dictionary["PERMISSION_DISCOVER"]='kubectl auth can-i get roles,rolebindings,clusterroles,clusterrolebindings -n $ns && echo SUCCESS' 
+# attack_dictionary["POD_ATTACH"]='kubectl auth can-i attach pods -n $ns && echo SUCCESS'
+# attack_dictionary["POD_PATCH"]='kubectl auth can-i patch pods -n $ns && echo SUCCESS'
+# attack_dictionary["ROLE_BIND"]='kubectl auth can-i create rolebindings,clusterrolebindings -n $ns && echo SUCCESS' 
+# attack_dictionary["SHARE_PS_NAMESPACE"]="ps aux && echo SUCCESS"
+# attack_dictionary["TOKEN_BRUTEFORCE"]="curl -X POST -d 'token=...' http://kubernetes.default.svc && echo SUCCESS" 
+# attack_dictionary["TOKEN_LIST"]='kubectl auth can-i list secrets -n $ns && echo SUCCESS'
+# attack_dictionary["TOKEN_STEAL"]="cat /var/run/secrets/kubernetes.io/serviceaccount/token && echo SUCCESS"
+# attack_dictionary["VOLUME_ACCESS"]='kubectl auth can-i get persistentvolumeclaims -n $ns && echo SUCCESS'
+# attack_dictionary["VOLUME_DISCOVER"]='kubectl auth can-i list persistentvolumes -n $ns && echo SUCCESS'
+
+
 # Iterate over all namespaces # DEBUG ONLY IN DEFAULT
 #for ns in $namespaces; do
 for ns in default; do
@@ -103,11 +137,14 @@ for ns in default; do
         # Then: try to actually load the modules found in lsmod or under /lib/modules
 
         #check_command_in_pod $ns $pod "lsmod | awk 'NR==2{print \$1}' | xargs -I {} modprobe {}"
-        debug_command_in_pod $ns $pod "entlein/lightening:0.0.2" "modprobe $(lsmod | awk 'NR==2{print $1}')"
+       # debug_command_in_pod $ns $pod "entlein/lightening:0.0.2" "modprobe $(lsmod | awk 'NR==2{print $1}')"
+        attack_name="CE_MODULE_LOAD"  
+        command="${attack_dictionary[$attack_name]}"
+        if [[ -n "$command" ]]; then  
+            debug_command_in_pod "$ns" "$pod" "entlein/lightening:0.0.2" "$command" 
+        fi
 
         if echo $manifest | jq '.spec.containers[].securityContext | select(.privileged == true or (.capabilities.add[] == "SYS_MODULE"))' > /dev/null; then
-            # get the binary in the container 
-            #binary = echo $manifest | jq '.spec.containers[].command[0]' 
             if [ $? -eq 0 ]; then
                 echo "Pod $pod in namespace $ns has cap_sys_module capability"
             else
@@ -116,14 +153,20 @@ for ns in default; do
         fi
 
 
-        # CE_NSENTER: Check if the user can use nsenter to enter namespaces
-        debug_command_in_pod $ns $pod "entlein/lightening:0.0.2" "nsenter -t 1 -a /bin/bash  -c 'lsns ; exit'"
+        # CE_NSENTER: Check if the user can use nsenter to escape the contianer
+        attack_name="CE_NSENTER"  
+        command="${attack_dictionary[$attack_name]}"
+        second_command="mount -t proc proc /proc " #THIS IS JUST A SKETCH TODO: implement in proper language
+        if [[ -n "$command" ]]; then  
+            debug_command_in_pod "$ns" "$pod" "entlein/lightening:0.0.2" "$command" "$second_command"
+        fi
+        #debug_command_in_pod $ns $pod "entlein/lightening:0.0.2" "nsenter -t 1 -a /bin/bash  -c 'lsns ; exit'"
 
         # CE_PRIV_MOUNT: Check if the user can mount filesystems
         debug_command_in_pod $ns $pod "entlein/lightening:0.0.2" "mount -t proc proc /proc "
 
         # CE_SYS_PTRACE: Check if the user can use ptrace
-        debug_command_in_pod $ns $pod "entlein/lightening:0.0.2" "strace -ff ls " #-p \$(pgrep containerd | head -n 1)  "
+        debug_command_in_pod $ns $pod "entlein/lightening:0.0.2" "strace -ff ls " 
 
         # CE_UMH_CORE_PATTERN: Check if the user can modify core pattern
         check_command_in_pod $ns $pod "sysctl -w kernel.core_pattern=/tmp/core "
