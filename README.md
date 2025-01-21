@@ -146,22 +146,23 @@ make honey-up
 
 The `honey-up` target installs all the necessary components to collect eBPF traces, application logs and soon audit logs. It is important that the cluster is not yet exposed to an active threat at this point because after the installation we collect the baseline behaviour of the cluster to filter out benign signals.
 
-While we provide you with a set of default traces and log forwarding configurations, you can adjust them to your needs in the [traces](traces/) and [vector/values.yaml](vector/values.yaml) files respectively. Find out more about it in the [Tailoring the instrumentation to your needs](#tailoring-the-instrumentation-to-your-needs) section.
+While we provide you with a set of default traces and log forwarding configurations, you can adjust them to your needs in the [traces](traces/) and [honeystack/vector/values.yaml](honeystack/vector/gkevalues.yaml) files respectively. Find out more about it in the [Tailoring the instrumentation to your needs](#tailoring-the-instrumentation-to-your-needs) section.
 
 While in `Calibration Mode` , you ll likely want to work with a small batch of logs to get the coarse filters in place:
 
 ```bash
-kubectl port-forward service/redis-headless -n redpanda 6379:6379
-kubectl port-forward service/stix-visualizer -n redpanda 80:3000
+kubectl port-forward service/redis-headless -n storm 6379:6379
+kubectl port-forward service/stix-visualizer -n storm 80:3000
+kubectl port-forward service/lighteningrod -n storm 8000:8000
 ```
 
 After port-forwarding, you can access the UI [http://localhost:30000](http://localhost:30000), edit your `Patterns` and `activate Patterns` to be used by the `lightening-rod` (a microservice that matches patterns and converts logs to a standard STIX 2.1 format)
-WIP: For the `Kubehound-inspired Calibration`, there will soon be a fixed set of patterns for `kind`. But you can add/modify: e.g. if you click on `Add Pattern`, it'll give you the minimal example of one to fill out:
+WIP: For the `Kubehound-inspired Calibration`, there is a set of sample patterns [lightening-rod/testpost.sh](lightening-rod/testpost.sh). You should add/modify: e.g. if you click on `Add Pattern`, it'll give you the minimal example of one to fill out:
 
 <img width="500" alt="Screenshot 2024-12-16 at 20 16 32" src="https://github.com/user-attachments/assets/f3dbcf20-73e7-4f5a-9d7f-ace4b78bc6a9" />
 
 >[!IMPORTANT]
-> Do NOT edit the id (integer) of the new pattern, otherwise you ll overwriting god knows what in that table. :) 
+> Careful with id (integer) of the new pattern
 
 ### 3.  Baselining
 At this point, you ll likey want to mark all your current logs as `benign`, this will reduce the noise considerably.
@@ -187,14 +188,21 @@ At this point (if you inspect `redis`), you have 4 tables:
 
 
 ### 4.  Lightening
-Attack yourself with the calibration attacks in the namespace `lightening` to trigger the tripwires (else running the analysis over the `Active Patterns` is not going to turn up any `matched STIX-bundles`)
+>[!IMPORTANT]
+> Not all attacks are implemented, not all traces make sense, mostly still sketches
+>
+Attack yourself with the calibration attacks in the namespace `lightening` to trigger the tripwires (else running the analysis over the `Active Patterns` is not going to turn up any `matched STIX-bundles`). You can choose between `calibration` or `lightening` depending on 
 ```
 make --makefile=Makefile_calibrate_kubehound calibrate
+or
+make lightening
 ```
 Give it a minute or two until those attacks that will succeed have succeeded (pull their images or booted up etc), then you should remove the `lightening` again (else you ll have duplicate logs that contain no new insights)
 
 ```
 make --makefile=Makefile_calibrate_kubehound wipe
+or
+make lightening-off
 ```
 
 Now, in your `redis` DB, the table `tetra` will have accumulated a few thousand logs. 
