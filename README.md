@@ -12,6 +12,7 @@ If you are interested in the `storm` 🌩️ research, please let me know.
 
 If you d like to motivate me and make me smile: consider leaving a star ⭐
 
+![kubecon25_stormcenter_harbor](https://github.com/user-attachments/assets/262115d6-fbd4-475b-bbb4-4a4a0af84db1)
 
 
 ## Table of Contents
