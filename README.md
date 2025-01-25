@@ -161,6 +161,8 @@ After port-forwarding, you can access the UI [http://localhost:30000](http://loc
 WIP: For the `Kubehound-inspired Calibration`, there is a set of sample patterns [lightening-rod/testpost.sh](lightening-rod/testpost.sh). You should add/modify: e.g. if you click on `Add Pattern`, it'll give you the minimal example of one to fill out:
 
 <img width="500" alt="Screenshot 2024-12-16 at 20 16 32" src="https://github.com/user-attachments/assets/f3dbcf20-73e7-4f5a-9d7f-ace4b78bc6a9" />
+![LighteningSTIXViz_KubernetesStormcenter_downsampled](https://github.com/user-attachments/assets/55b2f311-3b98-4237-953c-f40fada18d52)
+
 
 >[!IMPORTANT]
 > Careful with id (integer) of the new pattern
@@ -232,7 +234,7 @@ Afterwards, you can simply try connecting to the ssh server first:
 make --makefile=Makefile_attack ssh-connect
 ```
 
-When prompted, the password is `root`. You should see the newly established ssh connection being picked up by the eBPF traces and appearing as an anomaly in the `signal` topic in the Redpanda console.
+When prompted, the password is `root`. You should see the newly established ssh connection being picked up by the eBPF traces.
 
 Now that you have gotten a feel of how unusual traffic is picked up by the HoneyCluster, you can try executing an actual attack. For that, we prepared an attack path made possible if an attacker can create `/var/log` hostPath Persistent Volumes on a cluster, inspired by [this blog post](https://jackleadford.github.io/containers/2020/03/06/pvpost.html), depicted in the following attack tree.
 
@@ -283,8 +285,9 @@ make wipe
 
 ## Tailoring the instrumentation to your needs
 
-This repository aims at giving you a framework to run experiments, simulations and to make threat-modelling concrete and actionable.
-This is why we are working on providing some example setups to understand what the various pieces do and how you can make them your own.
+This repository gives you a framework to run experiments, simulations and to make threat-modelling concrete and actionable.
+The "Stormcenter" contains a blue (`honey` and `lightening-rod`) and a red (`lightening` and `storm`) half: blue is all about bait, observability, detection and response while red is about having a clear entry-point for anyone to use their red-tooling and measure the damage or attack-efficiency. 
+In the end, I m interested in understanding how humans behave in cyber-systems - on either side.
 
 
 ### Tracing Policies
