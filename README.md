@@ -160,7 +160,7 @@ kubectl port-forward service/lighteningrod -n storm 8000:8000
 After port-forwarding, you can access the UI [http://localhost:30000](http://localhost:30000), edit your `Patterns` and `activate Patterns` to be used by the `lightening-rod` (a microservice that matches patterns and converts logs to a standard STIX 2.1 format)
 WIP: For the `Kubehound-inspired Calibration`, there is a set of sample patterns [lightening-rod/testpost.sh](lightening-rod/testpost.sh). You should add/modify: e.g. if you click on `Add Pattern`, it'll give you the minimal example of one to fill out:
 
-<img width="500" alt="Screenshot 2024-12-16 at 20 16 32" src="https://github.com/user-attachments/assets/f3dbcf20-73e7-4f5a-9d7f-ace4b78bc6a9" />
+
 ![LighteningSTIXViz_KubernetesStormcenter_downsampled](https://github.com/user-attachments/assets/55b2f311-3b98-4237-953c-f40fada18d52)
 
 
