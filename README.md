@@ -190,7 +190,7 @@ At this point (if you inspect `redis`), you have 4 tables:
 
 ### 4.  Lightening
 >[!IMPORTANT]
-> Not all attacks are implemented, not all traces make sense, mostly still sketches
+> Not all attacks are implemented, not all traces make sense ATM, this is a great contribution opportunity
 >
 Attack yourself with the calibration attacks in the namespace `lightening` to trigger the tripwires (else running the analysis over the `Active Patterns` is not going to turn up any `matched STIX-bundles`). You can choose between `calibration` or `lightening` depending on 
 ```
