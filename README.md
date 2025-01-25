@@ -164,8 +164,6 @@ WIP: For the `Kubehound-inspired Calibration`, there is a set of sample patterns
 ![LighteningSTIXViz_KubernetesStormcenter_downsampled](https://github.com/user-attachments/assets/55b2f311-3b98-4237-953c-f40fada18d52)
 
 
->[!IMPORTANT]
-> Careful with id (integer) of the new pattern
 
 ### 3.  Baselining
 At this point, you ll likey want to mark all your current logs as `benign`, this will reduce the noise considerably.
