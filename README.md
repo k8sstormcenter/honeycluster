@@ -1,9 +1,8 @@
 # K8sStormCenter: Honey Storm and Lightening
 
 > [!NOTE]
-> I'm currently rewriting about 90% of the underlying stack, so expect quite some breaking changes until end of 2024. I'm aiming at a stablilization in January '25
-> The focus of the rewrite is to give it an achievable UX and a lightweight footprint
-> Update Jan 25: the architecture is now stable, however there will still be breaking changes in individual features. (There is no persistent DB yet, but you can add Mongo yourself 😅 )
+> I'm currently finishing the first total rewrite of the whole stack that had the goal of an achievable UX and a lightweight footprint.
+> Update Jan 25: the HL architecture is now stable (persistence is not implemented yet), however there will still be breaking changes in individual features. (such as adapting apis esp in `lighteningrod` and `stixviz`). I ll try to move most of that into implementation-details, though.
 
 Welcome to the K8sStormCenter HoneyCluster repository. Here you will find everything you need to set up your own HoneyCluster: a Kubernetes cluster that is instrumented with bait and tripwires to collect data on the attacks carried out against it. With our complimentary [lightening-rod](https://github.com/k8sstormcenter/cti-stix-visualization) , the `attack paths` can be visualized and are made `shareable` using STIX. You can also use the `lightening`-feature to attack yourself to create a threat-model-starting point or to generally scan your setup.
 The `storm` feature is the collection of CTI from many `HoneyClusters` into a open shared threat-intel collection, this is currently waiting for the other 3 features to become stable.
