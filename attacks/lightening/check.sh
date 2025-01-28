@@ -175,7 +175,7 @@ for ns in default; do
         command="${attack_dictionary[$attack_name]}"
         second_command="${attack_dictionary[CE_PRIV_MOUNT]}"  #THIS IS JUST A SKETCH TODO: implement in proper language
         if [[ -n "$command" ]]; then  
-            debug_command_in_pod "$ns" "$pod" "entlein/lightening:0.0.2" "$command" "$second_command" #TODO: make it spawn inside the same shell!!! THAT MAKES MORE SENSE
+            #debug_command_in_pod "$ns" "$pod" "entlein/lightening:0.0.2" "$command" "$second_command" #TODO: make it spawn inside the same shell!!! THAT MAKES MORE SENSE
             check_command_in_pod $ns $pod "$command && echo SUCCESS1 && $second_command  && echo SUCCESS2 "
         fi
 

@@ -28,7 +28,7 @@ curl -X POST http://localhost:8000/add_attack_bundle \
         "id": "indicator--kh-ce-nsenter",
         "name": "NSenter binary executed",
         "description": "Calibration test",
-        "pattern": "[process:extensions.function_name MATCHES '__x64_sys_setns' AND process:extensions.kprobe_arguments.int_arg = 128 ]",
+        "pattern": "[process:extensions.function_name MATCHES '__x64_sys_setns' AND process:extensions.kprobe_arguments.int_arg_1 = 1073741824 ]",
         "pattern_type": "stix",
         "valid_from": "2024-01-01T00:00:00Z"
       },
@@ -57,14 +57,14 @@ curl -X POST http://localhost:8000/add_attack_bundle \
       "type": "attack-pattern",
       "id": "attack-pattern--kh-ce-sys-ptrace",
       "name": "CE_SYS_PTRACE",
-      "description": "Attempted use of GDB"
+      "description": "Strace from inside a container."
     },
     {
         "type": "indicator",
         "id": "indicator--kh-ce-sys-ptrace",
         "name": "Ptrace System Call from Container",
         "description": "Detecting the attempted use of the 'ptrace' system call from within a container, which can be used to manipulate other processes. TODO: thats not true",
-        "pattern": "[process:command_line MATCHES '/usr/bin/gdb']",
+        "pattern": "[process:extensions.function_name MATCHES 'sys_ptrace']",
         "pattern_type": "stix",
         "valid_from": "2024-01-01T00:00:00Z"
       },
