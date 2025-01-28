@@ -31,7 +31,7 @@ calibration-traces:
 .PHONY: calibration-attack
 calibration-attack: 
 	@echo "Attacking"
-	-kubectl apply -f traces/kubehound-verify/attacks/CE_NSENTER.yaml #&& kubectl exec -n default kh-calibration-ce-1 -- nsenter -t 1 -a /bin/bash 
+	-kubectl apply -f traces/kubehound-verify/attacks/CE_NSENTER.yaml 
 	-kubectl apply -f traces/kubehound-verify/attacks/CE_PRIV_MOUNT.yaml
 	-kubectl apply -f traces/kubehound-verify/attacks/CE_SYS_PTRACE.yaml
 	-kubectl apply -f traces/kubehound-verify/attacks/CE_MODULE_LOAD.yaml

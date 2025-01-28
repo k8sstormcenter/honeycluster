@@ -17,11 +17,26 @@ check_command_in_pod() {
     local namespace=$1
     local pod=$2
     local command=$3
+    local podname=$(kubectl get pod $pod -n $namespace -o jsonpath='{.spec.containers[0].name}')
 
-    if kubectl exec -n $namespace $pod -- $command &> /dev/null; then
-        echo "Vulnerable: Command '$command' can be executed in pod $pod in namespace $namespace"
+    
+    error_output=$(kubectl exec -n "$namespace" -it "$pod" -c "$podname" -- /bin/bash -c "$command" 2>&1 /dev/null)
+    echo "$error_output"
+    error_output=$(kubectl exec -n "$namespace" -it "$pod" -c "$podname" --  "$command" 2>&1 /dev/null)
+    echo "$error_output"
+    if [[ "$error_output" == *"SUCCESS1"* ]]; then
+        echo "Vulnerable: Command chain: '$command' succeeded in pod $pod in namespace $namespace"
+        return 1
     else
-        echo "Secure: Command '$command' cannot be executed in pod $pod in namespace $namespace"
+        echo "Secure: Command chain: '$command' failed in pod $pod in namespace $namespace"
+        return 0
+    fi
+    if [[ "$error_output" == *"SUCCESS2"* ]]; then
+        echo "Vulnerable: Command chain: '$second_command' succeeded in pod $pod in namespace $namespace"
+        return 1
+    else
+        echo "Secure: Command chain: '$second_command' failed in pod $pod in namespace $namespace"
+        return 0
     fi
 }
 
@@ -156,6 +171,7 @@ for ns in default; do
         # Then: try to actually load the modules found in lsmod or under /lib/modules
 
         attack_name="CE_MODULE_LOAD"  
+        echo "Checking for $attack_name"
         command="${attack_dictionary[$attack_name]}"
         if [[ -n "$command" ]]; then  
             debug_command_in_pod "$ns" "$pod" "entlein/lightening:0.0.2" "$command" 
@@ -172,6 +188,7 @@ for ns in default; do
 
         # CE_NSENTER: Check if the user can use nsenter to escape the contianer
         attack_name="CE_NSENTER"  
+        echo "Checking for $attack_name"
         command="${attack_dictionary[$attack_name]}"
         second_command="${attack_dictionary[CE_PRIV_MOUNT]}"  #THIS IS JUST A SKETCH TODO: implement in proper language
         if [[ -n "$command" ]]; then  
@@ -182,20 +199,24 @@ for ns in default; do
         # CE_PRIV_MOUNT: Check if the user can mount filesystems
         # TODO: find out why the debug container in this case can do the nsenter but the above nsenter-debugger cannot
         attack_name="CE_PRIV_MOUNT"  
+        echo "Checking for $attack_name"
         command="${attack_dictionary[$attack_name]}"
         second_command="${attack_dictionary[CE_NSENTER]}" 
         if [[ -n "$command" ]]; then  
             debug_command_in_pod "$ns" "$pod" "entlein/lightening:0.0.2" "$command" "$second_command" 
+            check_command_in_pod $ns $pod "$command && echo SUCCESS1 && $second_command  && echo SUCCESS2 "
         fi
 
 
         # CE_SYS_PTRACE: Check if the user can use ptrace
         #debug_command_in_pod $ns $pod "entlein/lightening:0.0.2" "strace -ff ls " 
         attack_name="CE_SYS_PTRACE"  
+        echo "Checking for $attack_name"
         command="${attack_dictionary[$attack_name]}"
         #second_command="${attack_dictionary[CE_NSENTER]}" 
         if [[ -n "$command" ]]; then  
             debug_command_in_pod "$ns" "$pod" "entlein/lightening:0.0.2" "$command" 
+            check_command_in_pod $ns $pod "$command && echo SUCCESS1"
         fi
 
         # CE_UMH_CORE_PATTERN: Check if the user can modify core pattern

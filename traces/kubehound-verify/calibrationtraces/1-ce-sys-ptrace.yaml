@@ -23,5 +23,6 @@ spec:
         operator: "Postfix"
         values:
         - "gdb"
+        - "strace"
     - matchActions:
       - action: Post

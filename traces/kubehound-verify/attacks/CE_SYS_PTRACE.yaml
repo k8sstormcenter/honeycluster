@@ -3,16 +3,16 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: kh-calibration-ce-2
+  name: kh-calibration-ptrace
   labels:
     app: kubehound-edge-test
 spec:
   hostPID: true
   containers:
-    - name: kh-calibration-ce-2-pod
+    - name: kh-calibration-ptrace
       image: andyneff/hello-world-gdb
       command: [ "/bin/sh", "-c" ]
-      args: [ "gdb && while true; do sleep 30; done;" ]
+      args: [ "gdb && sleep infinity" ]
       securityContext:
         capabilities:
           add:
