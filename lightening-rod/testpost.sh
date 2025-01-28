@@ -28,7 +28,7 @@ curl -X POST http://localhost:8000/add_attack_bundle \
         "id": "indicator--kh-ce-nsenter",
         "name": "NSenter binary executed",
         "description": "Calibration test",
-        "pattern": "[process:command_line MATCHES '/usr/bin/nsenter -t 1' OR process:extensions.function_name MATCHES '__x64_sys_setns']",
+        "pattern": "[process:extensions.function_name MATCHES '__x64_sys_setns' AND process:extensions.kprobe_arguments.int_arg = 128 ]",
         "pattern_type": "stix",
         "valid_from": "2024-01-01T00:00:00Z"
       },
@@ -99,7 +99,7 @@ curl -X POST http://localhost:8000/add_attack_bundle \
         "id": "indicator--kh-ce-priv-mount",
         "name": "Mounting the /proc dir from Container",
         "description": "Detecting the mounting of the proc directory.",
-        "pattern": "[process:extensions.function_name MATCHES '__x64_sys_mount']",
+        "pattern": "[process:extensions.function_name MATCHES '__x64_sys_mount' AND process:extensions.kprobe_arguments.string_arg_1 MATCHES '/proc']",
         "pattern_type": "stix",
         "valid_from": "2024-01-01T00:00:00Z"
       },
@@ -134,7 +134,7 @@ curl -X POST http://localhost:8000/add_attack_bundle \
           "id": "indicator--kh-ce-module-load",
           "name": "Modprobe from within Container",
           "description": "Detecting an attempt to execute modprobe",
-          "pattern": "[process:command_line MATCHES 'modprobe']",
+          "pattern": "[process:command_line MATCHES 'modprobe' AND process:extensions.function_name MATCHES 'sys_init_module']",
           "pattern_type": "stix",
           "valid_from": "2024-01-01T00:00:00Z"
         },
@@ -364,7 +364,7 @@ curl -X POST http://localhost:8000/add_attack_bundle \
   }
 EOF
 
-curl -X POST http://localhost:8000/add_attack_bundle \
+#curl -X POST http://localhost:8000/add_attack_bundle \
 -H "Content-Type: application/json" \
 -d @- << 'EOF'
 {
@@ -399,7 +399,7 @@ curl -X POST http://localhost:8000/add_attack_bundle \
 }
 EOF
 
-curl -X POST http://localhost:8000/add_attack_bundle \
+#curl -X POST http://localhost:8000/add_attack_bundle \
 -H "Content-Type: application/json" \
 -d @- << 'EOF'
 {
