@@ -1,7 +1,7 @@
 # uploading your bundles for your patterns (while we dont have a UI)
 
 > [!NOTE]
-> there are some bugs with the `stix id = null`, that I m still debugging
+> This python module contains various "deduplicate_bundles" functions, this is most likely the first function you would change to get a different graph-slicing
 
 Identify on which IP your lighteningrod is being forwarded to and edit the script, then execute the upload
 
@@ -47,4 +47,4 @@ indicator--kh-ce-var-log-symlink
 indicator--kh-ce-priv-mount
 ```
 
-Now, (once the bug is found) you can use the visualizer to display your identified attack paths
+
