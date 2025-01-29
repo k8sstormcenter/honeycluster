@@ -3,7 +3,7 @@
 > [!NOTE]
 > This python module contains various "deduplicate_bundles" functions, this is most likely the first function you would change to get a different graph-slicing
 
-Identify on which IP your lighteningrod is being forwarded to and edit the script, then execute the upload
+Assuming  your lighteningrod is being forwarded to 8000 , you can execute the upload of a few default patterns
 
 ```bash
 chmod +x testpost.sh
