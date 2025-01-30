@@ -197,14 +197,14 @@ curl -X POST http://localhost:8000/add_attack_bundle \
         "type": "attack-pattern",
         "id": "attack-pattern--kh-ce-var-log-symlink",
         "name": "CE_VAR_LOG_SYMLINK",
-        "description": "Attempting to tamper with iptables and trying to run mitmdump."
+        "description": "Arbitrary file reads on the host from a node via an exposed /var/log mount.."
       },
       {
           "type": "indicator",
           "id": "indicator--kh-ce-var-log-symlink",
           "name": "Symlink to log dir",
-          "description": "Detecting an attempt to tamper with iptables",
-          "pattern": "[process:command_line MATCHES 'ln -s' AND process:command_line MATCHES '/var/log']",
+          "description": "Symbolic link to /var/log/root_link",
+          "pattern": "[process:command_line MATCHES 'ln -s' AND process:extensions.function_name MATCHES '__x64_sys_symlinkat' OR process:extensions.kprobe_arguments.string_arg_2 MATCHES 'var/log/root_link']",
           "pattern_type": "stix",
           "valid_from": "2024-01-01T00:00:00Z"
         },

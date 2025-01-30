@@ -119,10 +119,11 @@ attack_dictionary["CE_NSENTER"]="nsenter -t 1 -a /bin/bash  -c 'lsns ; mkdir -p 
 unattack_dictionary["CE_NSENTER"]="umount /tmps; rmdir /tmps"
 attack_dictionary["CE_PRIV_MOUNT"]="mount -t proc proc /proc"
 # do not unmount proc, it will crash a lot of stuff depending how exactly that succeeded -> DO NOT USE ON REAL CLUSTER
-attack_dictionary["CE_SYS_PTRACE"]="strace -ff ls"
+attack_dictionary["CE_SYS_PTRACE"]="strace -ff true"
 # does not have side effects
-attack_dictionary["CE_UMH_CORE_PATTERN"]="sysctl -w kernel.core_pattern=/tmp/core"
-# attack_dictionary["CE_VAR_LOG_SYMLINK"]="ln -s / /host/var/log/root_link && echo SUCCESS"
+attack_dictionary["CE_UMH_CORE_PATTERN"]="cat /proc/self/mounts && echo $(cat /proc/sys/kernel/core_pattern) > /proc/sys/kernel/core_pattern"
+attack_dictionary["CE_VAR_LOG_SYMLINK"]="ln -s / /host/var/log/root_link "
+unattack_dictionary["CE_VAR_LOG_SYMLINK"]="rm /host/var/log/root_link "
 # attack_dictionary["CONTAINER_ATTACH"]="kubectl attach $pod -n $ns -it && echo SUCCESS"  
 # attack_dictionary["IDENTITY_IMPERSONATE"]='kubectl auth can-i impersonate users -n $ns && echo SUCCESS'
 # attack_dictionary["POD_CREATE"]='kubectl auth can-i create pods -n $ns && echo SUCCESS'
@@ -185,12 +186,12 @@ for ns in default; do
         second_command="${attack_dictionary[CE_PRIV_MOUNT]}"  #THIS IS JUST A SKETCH TODO: implement in proper language
         if [[ -n "$command" ]]; then  
             #debug_command_in_pod "$ns" "$pod" "entlein/lightening:0.0.2" "$command" "$second_command" #TODO: make it spawn inside the same shell!!! THAT MAKES MORE SENSE
-            check_command_in_pod $ns $pod "$command && echo SUCCESS1 && $second_command  && echo SUCCESS2 "
+            check_command_in_pod $ns $pod "$command && echo SUCCESS1" # && $second_command  && echo SUCCESS2 "
         fi
 
         # CE_PRIV_MOUNT: Check if the user can mount filesystems
         # TODO: find out why the debug container in this case can do the nsenter but the above nsenter-debugger cannot
-        attack_name="CE_PRIV_MOUNT DEBUG"  
+        attack_name="CE_PRIV_MOUNT"  
         echo "Checking for $attack_name DEBUG"
         command="${attack_dictionary[$attack_name]}"
         second_command="${attack_dictionary[CE_NSENTER]}" 
@@ -207,21 +208,29 @@ for ns in default; do
 
 
         # CE_SYS_PTRACE: Check if the user can use ptrace
-        #debug_command_in_pod $ns $pod "entlein/lightening:0.0.2" "strace -ff ls " 
         attack_name="CE_SYS_PTRACE"  
         echo "Checking for $attack_name DEBUG"
         command="${attack_dictionary[$attack_name]}"
-        #second_command="${attack_dictionary[CE_NSENTER]}" 
         if [[ -n "$command" ]]; then  
             debug_command_in_pod "$ns" "$pod" "entlein/lightening:0.0.2" "$command" 
             check_command_in_pod $ns $pod "$command && echo SUCCESS1"
         fi
 
-        # CE_UMH_CORE_PATTERN: Check if the user can modify core pattern
-        check_command_in_pod $ns $pod "sysctl -w kernel.core_pattern=/tmp/core "
+        attack_name="CE_UMH_CORE_PATTERN"
+        echo "Checking for $attack_name"
+        command="${attack_dictionary[$attack_name]}"
+        if [[ -n "$command" ]]; then  
+            debug_command_in_pod "$ns" "$pod" "entlein/lightening:0.0.2" "$command" 
+            check_command_in_pod $ns $pod "$command && echo SUCCESS1"
+        fi
 
-        # CE_VAR_LOG_SYMLINK: Check if the user can create symlinks in /var/log
-        check_command_in_pod $ns $pod "ln -s / /var/log/root_link "
+        attack_name="CE_VAR_LOG_SYMLINK"
+        echo "Checking for $attack_name"
+        command="${attack_dictionary[$attack_name]}"
+        if [[ -n "$command" ]]; then  
+            debug_command_in_pod "$ns" "$pod" "entlein/lightening:0.0.2" "$command" 
+            check_command_in_pod $ns $pod "$command && echo SUCCESS1"
+        fi
 
         # CONTAINER_ATTACH: 
 
