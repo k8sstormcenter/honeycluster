@@ -64,7 +64,7 @@ curl -X POST http://localhost:8000/add_attack_bundle \
         "id": "indicator--kh-ce-sys-ptrace",
         "name": "Ptrace System Call from Container",
         "description": "Detecting the attempted use of the 'ptrace' system call from within a container, which can be used to manipulate other processes. TODO: thats not true",
-        "pattern": "[process:extensions.function_name MATCHES 'sys_ptrace']",
+        "pattern": "[(process:extensions.function_name MATCHES '__x64_sys_ptrace' AND process:command_line MATCHES '/usr/bin/strace') OR (process:extensions.function_name MATCHES '__x64_sys_execve' AND process:extensions.kprobe_arguments.string_arg MATCHES '/usr/bin/gdb')]",
         "pattern_type": "stix",
         "valid_from": "2024-01-01T00:00:00Z"
       },
