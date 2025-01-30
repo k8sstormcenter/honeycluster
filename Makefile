@@ -140,7 +140,7 @@ lightening-off:
 	-kubectl delete configmap check-script -n storm
 	-kubectl delete -f attacks/lightening/cap-checker.yaml -n storm
 	-kubectl delete -f attacks/lightening/deployment.yaml
-	#-$(MAKE) --makefile=Makefile_calibrate_kubehound remove-calibration-traces
+	-$(MAKE) --makefile=Makefile_calibrate_kubehound remove-calibration-traces
 	-$(MAKE) --makefile=Makefile_calibrate_kubehound  remove-calibration-attack
 	
 
