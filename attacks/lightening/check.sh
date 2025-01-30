@@ -46,6 +46,11 @@ debug_command_in_pod() {
     local image=$3
     local command=$4
     local second_command=$5
+    local serviceaccount=$(kubectl get pod $pod -n $namespace -o jsonpath='{.spec.serviceAccountName}')
+    echo "Service account: $serviceaccount"
+
+    #kubectl must use the service account of the lightening to launch the debug container
+    #but execute the command as the service account of the container
 
     full_command="$command"
     if [[ -n "$second_command" ]]; then
@@ -69,24 +74,6 @@ debug_command_in_pod() {
         echo "Secure: Command chain: '$second_command' failed in pod $pod in namespace $namespace"
         return 0
     fi
-    #TODO: this needs to be written as a proper function
-
-
-    # kubectl debug --profile=general -n $namespace -it $pod --image=$im -- /bin/bash -c "$command"; 
-    # error_output=$(kubectl debug --profile=general -n $namespace -it $pod --image=$im -- /bin/bash -c "$command && echo SUCCESS" 2>&1 /dev/null )
-    # echo $error_output
-    # if [[ "$error_output" == *"SUCCESS"* ]]; then  
-    #     echo "Vulnerable: Command: $command succeeded in pod $pod in namespace $namespace"
-    #     if [[ -n "$second_command" ]]; then
-    #         echo "Launching second attack: $second_command"
-    #         error_output=$(kubectl debug --profile=general -n $namespace -it $pod --image=$im -- /bin/bash -c "$second_command && echo SUCCESS" 2>&1 /dev/null )
-    #         echo $error_output
-    #     fi
-    #     return 1 
-    # else
-    #     echo "Secure: Command: $command failed in pod $pod in namespace $namespace"
-    #     return 0 
-    # fi
 
 
 }
@@ -199,11 +186,17 @@ for ns in default; do
         # CE_PRIV_MOUNT: Check if the user can mount filesystems
         # TODO: find out why the debug container in this case can do the nsenter but the above nsenter-debugger cannot
         attack_name="CE_PRIV_MOUNT"  
-        echo "Checking for $attack_name"
+        echo "Checking for $attack_name DEBUG"
         command="${attack_dictionary[$attack_name]}"
         second_command="${attack_dictionary[CE_NSENTER]}" 
         if [[ -n "$command" ]]; then  
             debug_command_in_pod "$ns" "$pod" "entlein/lightening:0.0.2" "$command" "$second_command" 
+        fi
+        attack_name="CE_PRIV_MOUNT"  
+        echo "Checking for $attack_name "
+        command="${attack_dictionary[$attack_name]}"
+        second_command="${attack_dictionary[CE_NSENTER]}" 
+        if [[ -n "$command" ]]; then  
             check_command_in_pod $ns $pod "$command && echo SUCCESS1 && $second_command  && echo SUCCESS2 "
         fi
 
