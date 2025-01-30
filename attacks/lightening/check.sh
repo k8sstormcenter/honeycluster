@@ -111,12 +111,17 @@ check_capabilities_outside_pod() {
 namespaces=$(kubectl get namespaces -o jsonpath='{.items[*].metadata.name}')
 
 declare -A attack_dictionary
+declare -A unattack_dictionary
 
 attack_dictionary["CE_MODULE_LOAD"]="modprobe $(lsmod | awk 'NR==2{print $1}')"
-attack_dictionary["CE_NSENTER"]="nsenter -t 1 -a /bin/bash  -c 'lsns ; exit'"
+unattack_dictionary["CE_MODULE_LOAD"]="modprobe -r $(lsmod | awk 'NR==2{print $1}')" #that could be unsafe, so do NOT use in PROD
+attack_dictionary["CE_NSENTER"]="nsenter -t 1 -a /bin/bash  -c 'lsns ; mkdir -p /tmps; mount -t tmpfs tmpfs /tmps;  exit'"
+unattack_dictionary["CE_NSENTER"]="umount /tmps; rmdir /tmps"
 attack_dictionary["CE_PRIV_MOUNT"]="mount -t proc proc /proc"
+# do not unmount proc, it will crash a lot of stuff depending how exactly that succeeded -> DO NOT USE ON REAL CLUSTER
 attack_dictionary["CE_SYS_PTRACE"]="strace -ff ls"
-# attack_dictionary["CE_UMH_CORE_PATTERN"]="sysctl -w kernel.core_pattern=/tmp/core && echo SUCCESS"
+# does not have side effects
+attack_dictionary["CE_UMH_CORE_PATTERN"]="sysctl -w kernel.core_pattern=/tmp/core"
 # attack_dictionary["CE_VAR_LOG_SYMLINK"]="ln -s / /host/var/log/root_link && echo SUCCESS"
 # attack_dictionary["CONTAINER_ATTACH"]="kubectl attach $pod -n $ns -it && echo SUCCESS"  
 # attack_dictionary["IDENTITY_IMPERSONATE"]='kubectl auth can-i impersonate users -n $ns && echo SUCCESS'
@@ -157,7 +162,7 @@ for ns in default; do
         # CE_MODULE_LOAD: Check if its possible to load kernel modules 
         # Then: try to actually load the modules found in lsmod or under /lib/modules
 
-        attack_name="CE_MODULE_LOAD"  
+        attack_name="CE_MODULE_LOAD DEBUG"  
         echo "Checking for $attack_name"
         command="${attack_dictionary[$attack_name]}"
         if [[ -n "$command" ]]; then  
@@ -185,7 +190,7 @@ for ns in default; do
 
         # CE_PRIV_MOUNT: Check if the user can mount filesystems
         # TODO: find out why the debug container in this case can do the nsenter but the above nsenter-debugger cannot
-        attack_name="CE_PRIV_MOUNT"  
+        attack_name="CE_PRIV_MOUNT DEBUG"  
         echo "Checking for $attack_name DEBUG"
         command="${attack_dictionary[$attack_name]}"
         second_command="${attack_dictionary[CE_NSENTER]}" 
@@ -204,7 +209,7 @@ for ns in default; do
         # CE_SYS_PTRACE: Check if the user can use ptrace
         #debug_command_in_pod $ns $pod "entlein/lightening:0.0.2" "strace -ff ls " 
         attack_name="CE_SYS_PTRACE"  
-        echo "Checking for $attack_name"
+        echo "Checking for $attack_name DEBUG"
         command="${attack_dictionary[$attack_name]}"
         #second_command="${attack_dictionary[CE_NSENTER]}" 
         if [[ -n "$command" ]]; then  
