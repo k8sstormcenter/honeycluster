@@ -15,24 +15,24 @@ calibration-traces:
 	@echo "Calibrating traces"
 	kubectl apply -f traces/kubehound-verify/calibrationtraces/1-ce-nsenter.yaml
 	kubectl apply -f traces/kubehound-verify/calibrationtraces/1-ce-priv-mount.yaml
-	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-ce-sys-ptrace.yaml
-	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-ce-module-load.yaml
-	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-ce-net-mitm.yaml
-	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-ce-var-log-symlink.yaml
-	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-ce-umh-core-pattern.yaml
-	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-exploit-containerd-sock.yaml
-	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-exploit-host-read.yaml
-	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-exploit-host-read-traverse.yaml
-	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-exploit-host-write.yaml
-	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-share-ps-namespace.yaml
-	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-pod-create.yaml
+	kubectl apply -f traces/kubehound-verify/calibrationtraces/1-ce-sys-ptrace.yaml
+	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-ce-module-load.yaml #TODO fix return type arguemnt 0
+	kubectl apply -f traces/kubehound-verify/calibrationtraces/1-ce-net-mitm.yaml
+	kubectl apply -f traces/kubehound-verify/calibrationtraces/1-ce-var-log-symlink.yaml
+	kubectl apply -f traces/kubehound-verify/calibrationtraces/1-ce-umh-core-pattern.yaml
+	kubectl apply -f traces/kubehound-verify/calibrationtraces/1-exploit-containerd-sock.yaml #TODO: it was complaiing about something
+	kubectl apply -f traces/kubehound-verify/calibrationtraces/1-exploit-host-read.yaml
+	kubectl apply -f traces/kubehound-verify/calibrationtraces/1-exploit-host-read-traverse.yaml
+	kubectl apply -f traces/kubehound-verify/calibrationtraces/1-exploit-host-write.yaml #TODO arguemtn 2 does not match spec type (int)\n 
+	kubectl apply -f traces/kubehound-verify/calibrationtraces/1-share-ps-namespace.yaml
+	kubectl apply -f traces/kubehound-verify/calibrationtraces/1-pod-create.yaml #TODO unexpected syscall spec return type size_t
 
 
 .PHONY: calibration-attack
 calibration-attack: 
 	@echo "Attacking"
-	#-kubectl apply -f traces/kubehound-verify/attacks/CE_NSENTER.yaml #&& kubectl exec -n default kh-calibration-ce-1 -- nsenter -t 1 -a /bin/bash 
-	#-kubectl apply -f traces/kubehound-verify/attacks/CE_PRIV_MOUNT.yaml
+	#-kubectl apply -f traces/kubehound-verify/attacks/CE_NSENTER.yaml 
+	-kubectl apply -f traces/kubehound-verify/attacks/CE_PRIV_MOUNT.yaml
 	#-kubectl apply -f traces/kubehound-verify/attacks/CE_SYS_PTRACE.yaml
 	#-kubectl apply -f traces/kubehound-verify/attacks/CE_MODULE_LOAD.yaml
 	#-kubectl apply -f traces/kubehound-verify/attacks/CE_NET_MITM.yaml
@@ -55,7 +55,7 @@ calibration-attack:
 remove-calibration-attack:
 	@echo "Removing calibration attack"
 	#-kubectl delete -f traces/kubehound-verify/attacks/CE_NSENTER.yaml
-	#-kubectl delete -f traces/kubehound-verify/attacks/CE_PRIV_MOUNT.yaml
+	-kubectl delete -f traces/kubehound-verify/attacks/CE_PRIV_MOUNT.yaml
 	#-kubectl delete -f traces/kubehound-verify/attacks/CE_SYS_PTRACE.yaml
 	#-kubectl delete -f traces/kubehound-verify/attacks/CE_MODULE_LOAD.yaml
 	#-kubectl delete -f traces/kubehound-verify/attacks/CE_NET_MITM.yaml

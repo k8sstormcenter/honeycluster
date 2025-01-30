@@ -54,10 +54,12 @@ spec:
         - name: check-script-volume
           mountPath: /config
         command: ["/bin/bash", "-c"]
-        args: ["cp /config/check.sh /tmp/check.sh && chmod +x /tmp/check.sh && /tmp/check.sh"]
+        args: ["cp /config/check.sh /tmp/check.sh && chmod +x /tmp/check.sh && /tmp/check.sh && sleep infinity"]
       volumes:
       - name: check-script-volume
         configMap:
           name: check-script
+
+
 
 # kubectl create configmap check-script -n storm --from-file=check.sh

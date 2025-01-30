@@ -28,7 +28,7 @@ curl -X POST http://localhost:8000/add_attack_bundle \
         "id": "indicator--kh-ce-nsenter",
         "name": "NSenter binary executed",
         "description": "Calibration test",
-        "pattern": "[process:command_line MATCHES '/usr/bin/nsenter -t 1' OR process:extensions.function_name MATCHES '__x64_sys_setns']",
+        "pattern": "[process:extensions.function_name MATCHES '__x64_sys_setns' AND process:extensions.kprobe_arguments.int_arg_1 = 1073741824 ]",
         "pattern_type": "stix",
         "valid_from": "2024-01-01T00:00:00Z"
       },
@@ -57,14 +57,14 @@ curl -X POST http://localhost:8000/add_attack_bundle \
       "type": "attack-pattern",
       "id": "attack-pattern--kh-ce-sys-ptrace",
       "name": "CE_SYS_PTRACE",
-      "description": "Attempted use of GDB"
+      "description": "Strace from inside a container."
     },
     {
         "type": "indicator",
         "id": "indicator--kh-ce-sys-ptrace",
         "name": "Ptrace System Call from Container",
         "description": "Detecting the attempted use of the 'ptrace' system call from within a container, which can be used to manipulate other processes. TODO: thats not true",
-        "pattern": "[process:command_line MATCHES '/usr/bin/gdb']",
+        "pattern": "[(process:extensions.function_name MATCHES '__x64_sys_ptrace' AND process:command_line MATCHES '/usr/bin/strace') OR (process:extensions.function_name MATCHES '__x64_sys_execve' AND process:extensions.kprobe_arguments.string_arg MATCHES '/usr/bin/gdb')]",
         "pattern_type": "stix",
         "valid_from": "2024-01-01T00:00:00Z"
       },
@@ -99,7 +99,7 @@ curl -X POST http://localhost:8000/add_attack_bundle \
         "id": "indicator--kh-ce-priv-mount",
         "name": "Mounting the /proc dir from Container",
         "description": "Detecting the mounting of the proc directory.",
-        "pattern": "[process:extensions.function_name MATCHES '__x64_sys_mount']",
+        "pattern": "[process:extensions.function_name MATCHES '__x64_sys_mount' AND process:extensions.kprobe_arguments.string_arg_1 MATCHES '/proc']",
         "pattern_type": "stix",
         "valid_from": "2024-01-01T00:00:00Z"
       },
@@ -134,7 +134,7 @@ curl -X POST http://localhost:8000/add_attack_bundle \
           "id": "indicator--kh-ce-module-load",
           "name": "Modprobe from within Container",
           "description": "Detecting an attempt to execute modprobe",
-          "pattern": "[process:command_line MATCHES 'modprobe']",
+          "pattern": "[process:command_line MATCHES 'modprobe' AND process:extensions.function_name MATCHES 'sys_init_module']",
           "pattern_type": "stix",
           "valid_from": "2024-01-01T00:00:00Z"
         },
@@ -197,14 +197,14 @@ curl -X POST http://localhost:8000/add_attack_bundle \
         "type": "attack-pattern",
         "id": "attack-pattern--kh-ce-var-log-symlink",
         "name": "CE_VAR_LOG_SYMLINK",
-        "description": "Attempting to tamper with iptables and trying to run mitmdump."
+        "description": "Arbitrary file reads on the host from a node via an exposed /var/log mount.."
       },
       {
           "type": "indicator",
           "id": "indicator--kh-ce-var-log-symlink",
           "name": "Symlink to log dir",
-          "description": "Detecting an attempt to tamper with iptables",
-          "pattern": "[process:command_line MATCHES 'ln -s' AND process:command_line MATCHES '/var/log']",
+          "description": "Symbolic link to /var/log/root_link",
+          "pattern": "[process:command_line MATCHES 'ln -s' AND process:extensions.function_name MATCHES '__x64_sys_symlinkat' OR process:extensions.kprobe_arguments.string_arg_2 MATCHES 'var/log/root_link']",
           "pattern_type": "stix",
           "valid_from": "2024-01-01T00:00:00Z"
         },
@@ -364,7 +364,7 @@ curl -X POST http://localhost:8000/add_attack_bundle \
   }
 EOF
 
-curl -X POST http://localhost:8000/add_attack_bundle \
+#curl -X POST http://localhost:8000/add_attack_bundle \
 -H "Content-Type: application/json" \
 -d @- << 'EOF'
 {
@@ -399,7 +399,7 @@ curl -X POST http://localhost:8000/add_attack_bundle \
 }
 EOF
 
-curl -X POST http://localhost:8000/add_attack_bundle \
+#curl -X POST http://localhost:8000/add_attack_bundle \
 -H "Content-Type: application/json" \
 -d @- << 'EOF'
 {

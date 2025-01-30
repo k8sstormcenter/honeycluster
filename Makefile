@@ -130,18 +130,18 @@ traces-off:
 .PHONY: lightening
 lightening:
 	-$(MAKE) --makefile=Makefile_calibrate_kubehound calibration-traces
-	-kubectl apply -f traces/kubehound-verify/attacks/CE_NSENTER.yaml
+	-$(MAKE) --makefile=Makefile_calibrate_kubehound calibration-attack
 	-kubectl apply -f attacks/lightening/deployment.yaml
 	-kubectl apply -f attacks/lightening/cap-checker.yaml -n storm
 	-kubectl create configmap check-script -n storm --from-file=attacks/lightening/check.sh
 
 .PHONY: lightening-off
 lightening-off:
-	-kubectl delete -f traces/kubehound-verify/attacks/CE_NSENTER.yaml
 	-kubectl delete configmap check-script -n storm
 	-kubectl delete -f attacks/lightening/cap-checker.yaml -n storm
 	-kubectl delete -f attacks/lightening/deployment.yaml
 	-$(MAKE) --makefile=Makefile_calibrate_kubehound remove-calibration-traces
+	-$(MAKE) --makefile=Makefile_calibrate_kubehound  remove-calibration-attack
 	
 
 ## Experiments

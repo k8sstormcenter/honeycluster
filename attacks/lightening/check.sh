@@ -17,11 +17,26 @@ check_command_in_pod() {
     local namespace=$1
     local pod=$2
     local command=$3
+    local podname=$(kubectl get pod $pod -n $namespace -o jsonpath='{.spec.containers[0].name}')
 
-    if kubectl exec -n $namespace $pod -- $command &> /dev/null; then
-        echo "Vulnerable: Command '$command' can be executed in pod $pod in namespace $namespace"
+    
+    error_output=$(kubectl exec -n "$namespace" -it "$pod" -c "$podname" -- /bin/bash -c "$command" 2>&1 /dev/null)
+    echo "$error_output"
+    error_output=$(kubectl exec -n "$namespace" -it "$pod" -c "$podname" --  "$command" 2>&1 /dev/null)
+    echo "$error_output"
+    if [[ "$error_output" == *"SUCCESS1"* ]]; then
+        echo "Vulnerable: Command chain: '$command' succeeded in pod $pod in namespace $namespace"
+        return 1
     else
-        echo "Secure: Command '$command' cannot be executed in pod $pod in namespace $namespace"
+        echo "Secure: Command chain: '$command' failed in pod $pod in namespace $namespace"
+        return 0
+    fi
+    if [[ "$error_output" == *"SUCCESS2"* ]]; then
+        echo "Vulnerable: Command chain: '$second_command' succeeded in pod $pod in namespace $namespace"
+        return 1
+    else
+        echo "Secure: Command chain: '$second_command' failed in pod $pod in namespace $namespace"
+        return 0
     fi
 }
 
@@ -31,6 +46,11 @@ debug_command_in_pod() {
     local image=$3
     local command=$4
     local second_command=$5
+    local serviceaccount=$(kubectl get pod $pod -n $namespace -o jsonpath='{.spec.serviceAccountName}')
+    echo "Service account: $serviceaccount"
+
+    #kubectl must use the service account of the lightening to launch the debug container
+    #but execute the command as the service account of the container
 
     full_command="$command"
     if [[ -n "$second_command" ]]; then
@@ -54,24 +74,6 @@ debug_command_in_pod() {
         echo "Secure: Command chain: '$second_command' failed in pod $pod in namespace $namespace"
         return 0
     fi
-    #TODO: this needs to be written as a proper function
-
-
-    # kubectl debug --profile=general -n $namespace -it $pod --image=$im -- /bin/bash -c "$command"; 
-    # error_output=$(kubectl debug --profile=general -n $namespace -it $pod --image=$im -- /bin/bash -c "$command && echo SUCCESS" 2>&1 /dev/null )
-    # echo $error_output
-    # if [[ "$error_output" == *"SUCCESS"* ]]; then  
-    #     echo "Vulnerable: Command: $command succeeded in pod $pod in namespace $namespace"
-    #     if [[ -n "$second_command" ]]; then
-    #         echo "Launching second attack: $second_command"
-    #         error_output=$(kubectl debug --profile=general -n $namespace -it $pod --image=$im -- /bin/bash -c "$second_command && echo SUCCESS" 2>&1 /dev/null )
-    #         echo $error_output
-    #     fi
-    #     return 1 
-    # else
-    #     echo "Secure: Command: $command failed in pod $pod in namespace $namespace"
-    #     return 0 
-    # fi
 
 
 }
@@ -109,13 +111,19 @@ check_capabilities_outside_pod() {
 namespaces=$(kubectl get namespaces -o jsonpath='{.items[*].metadata.name}')
 
 declare -A attack_dictionary
+declare -A unattack_dictionary
 
 attack_dictionary["CE_MODULE_LOAD"]="modprobe $(lsmod | awk 'NR==2{print $1}')"
-attack_dictionary["CE_NSENTER"]="nsenter -t 1 -a /bin/bash  -c 'lsns ; exit'"
+unattack_dictionary["CE_MODULE_LOAD"]="modprobe -r $(lsmod | awk 'NR==2{print $1}')" #that could be unsafe, so do NOT use in PROD
+attack_dictionary["CE_NSENTER"]="nsenter -t 1 -a /bin/bash  -c 'lsns ; mkdir -p /tmps; mount -t tmpfs tmpfs /tmps;  exit'"
+unattack_dictionary["CE_NSENTER"]="umount /tmps; rmdir /tmps"
 attack_dictionary["CE_PRIV_MOUNT"]="mount -t proc proc /proc"
-attack_dictionary["CE_SYS_PTRACE"]="strace -ff ls"
-# attack_dictionary["CE_UMH_CORE_PATTERN"]="sysctl -w kernel.core_pattern=/tmp/core && echo SUCCESS"
-# attack_dictionary["CE_VAR_LOG_SYMLINK"]="ln -s / /host/var/log/root_link && echo SUCCESS"
+# do not unmount proc, it will crash a lot of stuff depending how exactly that succeeded -> DO NOT USE ON REAL CLUSTER
+attack_dictionary["CE_SYS_PTRACE"]="strace -ff true"
+# does not have side effects
+attack_dictionary["CE_UMH_CORE_PATTERN"]="cat /proc/self/mounts && echo $(cat /proc/sys/kernel/core_pattern) > /proc/sys/kernel/core_pattern"
+attack_dictionary["CE_VAR_LOG_SYMLINK"]="ln -s / /host/var/log/root_link "
+unattack_dictionary["CE_VAR_LOG_SYMLINK"]="rm /host/var/log/root_link "
 # attack_dictionary["CONTAINER_ATTACH"]="kubectl attach $pod -n $ns -it && echo SUCCESS"  
 # attack_dictionary["IDENTITY_IMPERSONATE"]='kubectl auth can-i impersonate users -n $ns && echo SUCCESS'
 # attack_dictionary["POD_CREATE"]='kubectl auth can-i create pods -n $ns && echo SUCCESS'
@@ -155,7 +163,8 @@ for ns in default; do
         # CE_MODULE_LOAD: Check if its possible to load kernel modules 
         # Then: try to actually load the modules found in lsmod or under /lib/modules
 
-        attack_name="CE_MODULE_LOAD"  
+        attack_name="CE_MODULE_LOAD DEBUG"  
+        echo "Checking for $attack_name"
         command="${attack_dictionary[$attack_name]}"
         if [[ -n "$command" ]]; then  
             debug_command_in_pod "$ns" "$pod" "entlein/lightening:0.0.2" "$command" 
@@ -172,37 +181,56 @@ for ns in default; do
 
         # CE_NSENTER: Check if the user can use nsenter to escape the contianer
         attack_name="CE_NSENTER"  
+        echo "Checking for $attack_name"
         command="${attack_dictionary[$attack_name]}"
         second_command="${attack_dictionary[CE_PRIV_MOUNT]}"  #THIS IS JUST A SKETCH TODO: implement in proper language
         if [[ -n "$command" ]]; then  
-            debug_command_in_pod "$ns" "$pod" "entlein/lightening:0.0.2" "$command" "$second_command" #TODO: make it spawn inside the same shell!!! THAT MAKES MORE SENSE
-            check_command_in_pod $ns $pod "$command && echo SUCCESS1 && $second_command  && echo SUCCESS2 "
+            #debug_command_in_pod "$ns" "$pod" "entlein/lightening:0.0.2" "$command" "$second_command" #TODO: make it spawn inside the same shell!!! THAT MAKES MORE SENSE
+            check_command_in_pod $ns $pod "$command && echo SUCCESS1" # && $second_command  && echo SUCCESS2 "
         fi
 
         # CE_PRIV_MOUNT: Check if the user can mount filesystems
         # TODO: find out why the debug container in this case can do the nsenter but the above nsenter-debugger cannot
         attack_name="CE_PRIV_MOUNT"  
+        echo "Checking for $attack_name DEBUG"
         command="${attack_dictionary[$attack_name]}"
         second_command="${attack_dictionary[CE_NSENTER]}" 
         if [[ -n "$command" ]]; then  
             debug_command_in_pod "$ns" "$pod" "entlein/lightening:0.0.2" "$command" "$second_command" 
         fi
+        attack_name="CE_PRIV_MOUNT"  
+        echo "Checking for $attack_name "
+        command="${attack_dictionary[$attack_name]}"
+        second_command="${attack_dictionary[CE_NSENTER]}" 
+        if [[ -n "$command" ]]; then  
+            check_command_in_pod $ns $pod "$command && echo SUCCESS1 && $second_command  && echo SUCCESS2 "
+        fi
 
 
         # CE_SYS_PTRACE: Check if the user can use ptrace
-        #debug_command_in_pod $ns $pod "entlein/lightening:0.0.2" "strace -ff ls " 
         attack_name="CE_SYS_PTRACE"  
+        echo "Checking for $attack_name DEBUG"
         command="${attack_dictionary[$attack_name]}"
-        #second_command="${attack_dictionary[CE_NSENTER]}" 
         if [[ -n "$command" ]]; then  
             debug_command_in_pod "$ns" "$pod" "entlein/lightening:0.0.2" "$command" 
+            check_command_in_pod $ns $pod "$command && echo SUCCESS1"
         fi
 
-        # CE_UMH_CORE_PATTERN: Check if the user can modify core pattern
-        check_command_in_pod $ns $pod "sysctl -w kernel.core_pattern=/tmp/core "
+        attack_name="CE_UMH_CORE_PATTERN"
+        echo "Checking for $attack_name"
+        command="${attack_dictionary[$attack_name]}"
+        if [[ -n "$command" ]]; then  
+            debug_command_in_pod "$ns" "$pod" "entlein/lightening:0.0.2" "$command" 
+            check_command_in_pod $ns $pod "$command && echo SUCCESS1"
+        fi
 
-        # CE_VAR_LOG_SYMLINK: Check if the user can create symlinks in /var/log
-        check_command_in_pod $ns $pod "ln -s / /var/log/root_link "
+        attack_name="CE_VAR_LOG_SYMLINK"
+        echo "Checking for $attack_name"
+        command="${attack_dictionary[$attack_name]}"
+        if [[ -n "$command" ]]; then  
+            debug_command_in_pod "$ns" "$pod" "entlein/lightening:0.0.2" "$command" 
+            check_command_in_pod $ns $pod "$command && echo SUCCESS1"
+        fi
 
         # CONTAINER_ATTACH: 
 
