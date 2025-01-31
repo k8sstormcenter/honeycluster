@@ -18,12 +18,16 @@ check_command_in_pod() {
     local pod=$2
     local command=$3
     local podname=$(kubectl get pod $pod -n $namespace -o jsonpath='{.spec.containers[0].name}')
+    local configmap_name="$pod-$namespace-results"
 
     
-    error_output=$(kubectl exec -n "$namespace" -it "$pod" -c "$podname" -- /bin/bash -c "$command" 2>&1 /dev/null)
-    echo "$error_output"
-    error_output=$(kubectl exec -n "$namespace" -it "$pod" -c "$podname" --  "$command" 2>&1 /dev/null)
-    echo "$error_output"
+    error_output=$(kubectl exec -n "$namespace"  "$pod" -c "$podname" -- /bin/bash -c "$command" 2>&1 /dev/null)
+    #echo "$error_output"
+    if kubectl get configmap "$configmap_name" -n storm &> /dev/null; then 
+        kubectl patch configmap "$configmap_name" -n storm -p "{\"data\":{\"$command\":\"$error_output\"}}"
+    else
+        kubectl create configmap "$configmap_name" --from-literal="$attack_name=$command+$error_output" -n storm
+    fi
     if [[ "$error_output" == *"SUCCESS1"* ]]; then
         echo "Vulnerable: Command chain: '$command' succeeded in pod $pod in namespace $namespace"
         return 1
@@ -47,6 +51,7 @@ debug_command_in_pod() {
     local command=$4
     local second_command=$5
     local serviceaccount=$(kubectl get pod $pod -n $namespace -o jsonpath='{.spec.serviceAccountName}')
+    local configmap_name="$pod-$namespace-results-debug"
     echo "Service account: $serviceaccount"
 
     #kubectl must use the service account of the lightening to launch the debug container
@@ -58,7 +63,12 @@ debug_command_in_pod() {
     fi
 
     error_output=$(kubectl debug --profile=general -n "$namespace" -it "$pod" --image="$image" -- /bin/bash -c "$full_command" 2>&1 /dev/null)
-    echo "$error_output"
+    #echo "$error_output"
+    if kubectl get configmap "$configmap_name" -n storm &> /dev/null; then 
+        kubectl patch configmap "$configmap_name" -n storm -p "{\"data\":{\"$command\":\"$error_output\"}}"
+    else
+        kubectl create configmap "$configmap_name" --from-literal="$attack_name=$command+$error_output" -n storm
+    fi
 
     if [[ "$error_output" == *"SUCCESS1"* ]]; then
         echo "Vulnerable: Command chain: '$command' succeeded in pod $pod in namespace $namespace"
@@ -78,7 +88,6 @@ debug_command_in_pod() {
 
 }
 
-#TODO: exclude this process from the checks
 check_capabilities_outside_pod() {
     output_file="all_container_caps.txt"
     temp_dir="/tmp/cap-checker-output"
@@ -90,21 +99,8 @@ check_capabilities_outside_pod() {
         echo "Collecting capabilities from node: $node"
 
         p=$(kubectl get pods -l app=cap-checker -o jsonpath="{.items[?(@.spec.nodeName=='$node')].metadata.name}")
-        kubectl exec -n storm "$p" -- /bin/sh -c "for pid in \$(ls /proc | grep -E '^[0-9]+$'); do cap_eff=\$(capsh --decode=\$(cat /proc/\$pid/status | grep CapEff | awk '{print \$2}')); if [ -n \"\$cap_eff\" ]; then binary=\$(readlink -f /proc/\$pid/exe); cmdlines=\$(cat /proc/\$pid/cmdline)  ; echo \"Binary: \$binary, Cmdline: \$cmdlines, PID: \$pid, CapEff: \$cap_eff \"; fi; done" > "$temp_dir/container_caps_$node.txt"
+        kubectl exec -n storm "$p" -- /bin/sh -c "for pid in \$(ls /proc | grep -E '^[0-9]+$'); do cap_eff=\$(capsh --decode=\$(cat /proc/\$pid/status | grep CapEff | awk '{print \$2}')); if [ -n \"\$cap_eff\" ]; then binary=\$(readlink -f /proc/\$pid/exe); cmdlines=\$(cat /proc/\$pid/cmdline)  ; echo \"Binary: \$binary, Cmdline: \$cmdlines, PID: \$pid, CapEff: \$cap_eff \"; fi; done" > "$temp_dir/container_caps_$node.txt" 
  
-        # #now we exec into the daeomonset pod on this node and check the capabilities of all containers
-        # p=$(kubectl get pods -l app=cap-checker -o jsonpath="{.items[?(@.spec.nodeName=='$node')].metadata.name}")
-        # kubectl exec -n storm $p -- /bin/sh -c "
-        #     for pid in \$(ls /proc | grep -E '^[0-9]+$'); do
-        #         cap_eff=\$(capsh --decode=\$(cat /proc/\$pid/status | grep CapEff | awk '{print \$2}'))
-        #         if [ -n \"\$cap_eff\" ]; then
-        #             binary=\$(readlink -f /proc/\$pid/exe)
-        #             cmdlines=\$(cat /proc/\$pid/cmdline)  
-        #             echo \"Binary: \$binary, Cmdline: \$cmdlines, PID: \$pid, CapEff: \$cap_eff \"
-        #         fi
-        #     done
-        # " > $temp_dir/container_caps_$node.txt
-
         # Append the content to the final output file
         cat $temp_dir/container_caps_$node.txt >> $output_file
     done
@@ -172,8 +168,8 @@ for ns in default; do
         # CE_MODULE_LOAD: Check if its possible to load kernel modules 
         # Then: try to actually load the modules found in lsmod or under /lib/modules
 
-        attack_name="CE_MODULE_LOAD DEBUG"  
-        echo "Checking for $attack_name"
+        attack_name="CE_MODULE_LOAD"  
+        echo "Checking for $attack_name DEBUG"
         command="${attack_dictionary[$attack_name]}"
         if [[ -n "$command" ]]; then  
             debug_command_in_pod "$ns" "$pod" "entlein/lightening:0.0.2" "$command" 
@@ -181,9 +177,14 @@ for ns in default; do
 
         if echo $manifest | jq '.spec.containers[].securityContext | select(.privileged == true or (.capabilities.add[] == "SYS_MODULE"))' > /dev/null; then
             if [ $? -eq 0 ]; then
-                echo "Pod $pod in namespace $ns has cap_sys_module capability"
+                echo $manifest | jq '.spec.containers[].securityContext'
+                if echo $manifest | jq '.spec.containers[].securityContext.privileged == true' > /dev/null; then
+                    echo "Pod manifest of $pod in namespace $ns is priviledged"
+                else
+                echo "Pod manifest of $pod in namespace $ns has cap_sys_module capability"
+                fi
             else
-                echo "Pod $pod in namespace $ns does not have cap_sys_module capability"
+                echo "Pod manifest of $pod in namespace $ns does not have cap_sys_module capability"
             fi
         fi
 
