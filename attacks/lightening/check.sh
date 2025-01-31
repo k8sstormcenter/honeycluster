@@ -88,24 +88,33 @@ check_capabilities_outside_pod() {
 
     for node in $nodes; do
         echo "Collecting capabilities from node: $node"
-    
-        #now we exec into the daeomonset pod on this node and check the capabilities of all containers
+
         p=$(kubectl get pods -l app=cap-checker -o jsonpath="{.items[?(@.spec.nodeName=='$node')].metadata.name}")
-        kubectl exec -n storm $p -- /bin/sh -c "
-            for pid in \$(ls /proc | grep -E '^[0-9]+$'); do
-                cap_eff=\$(capsh --decode=\$(cat /proc/\$pid/status | grep CapEff | awk '{print \$2}'))
-                if [ -n \"\$cap_eff\" ]; then
-                    binary=\$(readlink -f /proc/\$pid/exe)
-                    cmdlines=\$(cat /proc/\$pid/cmdline)
-                    echo \"Binary: \$binary, Cmdline: \$cmdlines, PID: \$pid, CapEff: \$cap_eff \"
-                fi
-            done
-        " > $temp_dir/container_caps_$node.txt
+        kubectl exec -n storm "$p" -- /bin/sh -c "for pid in \$(ls /proc | grep -E '^[0-9]+$'); do cap_eff=\$(capsh --decode=\$(cat /proc/\$pid/status | grep CapEff | awk '{print \$2}')); if [ -n \"\$cap_eff\" ]; then binary=\$(readlink -f /proc/\$pid/exe); cmdlines=\$(cat /proc/\$pid/cmdline)  ; echo \"Binary: \$binary, Cmdline: \$cmdlines, PID: \$pid, CapEff: \$cap_eff \"; fi; done" > "$temp_dir/container_caps_$node.txt"
+ 
+        # #now we exec into the daeomonset pod on this node and check the capabilities of all containers
+        # p=$(kubectl get pods -l app=cap-checker -o jsonpath="{.items[?(@.spec.nodeName=='$node')].metadata.name}")
+        # kubectl exec -n storm $p -- /bin/sh -c "
+        #     for pid in \$(ls /proc | grep -E '^[0-9]+$'); do
+        #         cap_eff=\$(capsh --decode=\$(cat /proc/\$pid/status | grep CapEff | awk '{print \$2}'))
+        #         if [ -n \"\$cap_eff\" ]; then
+        #             binary=\$(readlink -f /proc/\$pid/exe)
+        #             cmdlines=\$(cat /proc/\$pid/cmdline)  
+        #             echo \"Binary: \$binary, Cmdline: \$cmdlines, PID: \$pid, CapEff: \$cap_eff \"
+        #         fi
+        #     done
+        # " > $temp_dir/container_caps_$node.txt
 
         # Append the content to the final output file
         cat $temp_dir/container_caps_$node.txt >> $output_file
     done
-    cat $output_file | grep -v awk | grep -v kubectl | grep -v containerd-shim-runc-v2 |grep -v containerd| grep -v systemd| grep -v pause | grep -v kubelet  | grep -v kube-apiserver | grep -v kube-controller-manager | grep -v kube-scheduler | grep -v kube-proxy | grep -v etcd | grep -v kindnetd | grep -v coredns | grep -v local-path-provisioner 
+    #cat $output_file | grep -v awk | grep -v kubectl | grep -v containerd-shim-runc-v2 |grep -v containerd| grep -v systemd| grep -v pause | grep -v kubelet  | grep -v kube-apiserver | grep -v kube-controller-manager | grep -v kube-scheduler | grep -v kube-proxy | grep -v etcd | grep -v kindnetd | grep -v coredns | grep -v local-path-provisioner 
+    kubectl create configmap container-capabilities --from-file=$output_file -n storm -o yaml --dry-run=client | kubectl apply -f -
+if [[ $? -eq 0 ]]; then
+  echo "ConfigMap 'container-capabilities' created successfully."
+else
+  echo "Error creating ConfigMap 'container-capabilities'."
+fi
 }
 # Get all namespaces
 namespaces=$(kubectl get namespaces -o jsonpath='{.items[*].metadata.name}')
