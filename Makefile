@@ -82,11 +82,12 @@ kubescape:
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo add headlamp https://headlamp-k8s.github.io/headlamp/
 	-$(HELM) repo update
-	-$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --set capabilities.runtimeDetection=enable --set alertCRD.installDefault=true --set nodeAgent.config.maxLearningPeriod=10m --set nodeAgent.config.stdoutExporter=true --set ksNamespace=honey --set clusterName=$(NAME) 
+#-$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --set capabilities.runtimeDetection=enable --set alertCRD.installDefault=true --set nodeAgent.config.maxLearningPeriod=10m --set nodeAgent.config.stdoutExporter=true --set ksNamespace=honey --set clusterName=$(NAME) 
+	-$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --values honeystack/kubescape/values.yaml
 	-$(HELM) upgrade --install headlamp headlamp/headlamp --namespace honey --values honeystack/headlamp/values.yaml
 	-kubectl -n honey create serviceaccount headlamp-admin
 	-kubectl create clusterrolebinding headlamp-admin-1 --serviceaccount=honey:headlamp-admin --clusterrole=cluster-admin
-	-kubectl create token headlamp-admin -n honey 
+#-kubectl create token headlamp-admin -n honey  ## TODO: this isnt a great solution
 # ##Desktop Headlamp
 # https://kubescape.io/docs/operator/ui-with-headlamp/
 # Make sure "Display only Official Plugins" is unchecked in the settings of the "@headlamp-k8s/plugin-catalog" (Settings/Plugins)
