@@ -13,7 +13,7 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 ##@ Scenario
 
 .PHONY: honey-up
-honey-up: tetragon vector redis traces  mongo lighteningrod stixviz #k8spin tracee
+honey-up: tetragon vector redis traces  mongo lighteningrod stixviz kubescape #k8spin tracee
 
 
 
@@ -28,6 +28,7 @@ wipe:
 	- kubectl delete -f lightening-rod/deployment.yaml
 	-$(HELM) uninstall mongo -n honey
 	-$(HELM) uninstall vector -n honey
+	-$(HELM) uninstall kubescape -n honey
 	- kubectl delete namespace honey
 	-$(HELM) uninstall -n storm redis
 	- kubectl delete namespace storm
@@ -76,6 +77,21 @@ mongo:
 	-$(HELM) repo update
 	-$(HELM) upgrade --install mongo bitnami/mongodb --namespace honey --create-namespace --values honeystack/mongo/values.yaml
 
+.PHONY: kubescape
+kubescape:
+	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
+	-$(HELM) repo add headlamp https://headlamp-k8s.github.io/headlamp/
+	-$(HELM) repo update
+#-$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --set capabilities.runtimeDetection=enable --set alertCRD.installDefault=true --set nodeAgent.config.maxLearningPeriod=10m --set nodeAgent.config.stdoutExporter=true --set ksNamespace=honey --set clusterName=$(NAME) 
+	-$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --values honeystack/kubescape/values.yaml
+	-$(HELM) upgrade --install headlamp headlamp/headlamp --namespace honey --values honeystack/headlamp/values.yaml
+	-kubectl -n honey create serviceaccount headlamp-admin
+	-kubectl create clusterrolebinding headlamp-admin-1 --serviceaccount=honey:headlamp-admin --clusterrole=cluster-admin
+#-kubectl create token headlamp-admin -n honey  ## TODO: this isnt a great solution
+# ##Desktop Headlamp
+# https://kubescape.io/docs/operator/ui-with-headlamp/
+# Make sure "Display only Official Plugins" is unchecked in the settings of the "@headlamp-k8s/plugin-catalog" (Settings/Plugins)
+# Select the Kubescape Headlamp plugin from the plugin catalog and click the install button
 
 .PHONY: redis
 redis:
