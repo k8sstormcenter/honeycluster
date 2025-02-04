@@ -337,14 +337,13 @@ customConfig:
         - kubernetes_logs
       source: |
               . = parse_json!(.message)
-
-    
-    # podlogs:
-    #    type: remap
-    #    inputs:
-    #       - app_logs
-    #    source: |
-    #           . = parse_json!(.message)
+ 
+    kubescape-nodeagent:
+       type: remap
+       inputs:
+          - kubescape-nodeagent_logs
+       source: |
+              . = parse_json!(.message)
   data_dir: /vector-data-dir
   api:
     enabled: true
@@ -355,10 +354,12 @@ customConfig:
       type: file
       include:
         - /var/run/cilium/tetragon/tetragon.log
+    kubescape-nodeagent_logs:  
+      type: kubernetes_logs
+      extra_label_selector: "app.kubernetes.io/instance=kubescape,app.kubernetes.io/component=node-agent"
     app_logs:
       type: kubernetes_logs
       exclude_paths_glob_patterns:
-        - "**/redpanda_*/**"
         - "**/kube-system_event-exporter-*/**"
         - "**/kube-system_fluentbit-*/**"
         - "**/kube-system_pdcsi-*/**"
@@ -369,7 +370,6 @@ customConfig:
         - "**/kubeshark_kubeshark-hub-*/**"
         - "**/gke-managed*/**"
         - "**/cert-manager_cert-manager*/**"
-        - "**/vector*/**"
         - "**/storm*/**"
         - "**/honey*/**"
         - "**/*Error getting SSL certificate*"
@@ -381,15 +381,17 @@ customConfig:
         #- dedupe 
         - remove-fields
       endpoint: redis://redis-headless.storm.svc.cluster.local:6379
-      key: "tetra {{ .message }}" # how to only insert uniques? HSETNX dataset <md5_hash> "<your_json_data>"
+      key: "tetra {{ .message }}" 
       encoding:
         codec: json
-    # redisbaseline: #TODO: here we want to be able to switch on and off the collection of the baseline
-    #   type: redis
-    #   inputs:
-    #     - dedupe
-    #   endpoint: redis://redis-headless.redpanda.svc.cluster.local:6379
-    #   key: "baseline {{ .md5_hash}}"
+    redisbaseline: #TODO: here we want to be able to switch on and off the collection of the baseline
+      type: redis
+      inputs:
+         - kubescape-nodeagent
+      encoding:
+        codec: json
+      endpoint: redis://redis-headless.storm.svc.cluster.local:6379
+      key: "kubescape {{ .message}}"
 
 
 
