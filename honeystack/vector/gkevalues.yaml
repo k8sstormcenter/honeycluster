@@ -338,12 +338,20 @@ customConfig:
       source: |
               . = parse_json!(.message)
  
-    kubescape-nodeagent:
+    kubescape-nodeagent_pre:
        type: remap
        inputs:
           - kubescape-nodeagent_logs
        source: |
               . = parse_json!(.message)
+
+    kubescape-nodeagent:
+      type: filter
+      inputs:
+        - kubescape-nodeagent_pre
+      condition: '.BaseRuntimeMetadata != null'
+
+
   data_dir: /vector-data-dir
   api:
     enabled: true
