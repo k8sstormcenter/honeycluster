@@ -87,11 +87,11 @@ capabilities:
   vulnerabilityScan: enable
   relevancy: enable
   # Generate VEX documents alongside the image vulnerabilities report (experimental)
-  vexGeneration: disable
+  vexGeneration: enable
 
   # ====== Runtime related capabilities ======
   #
-  runtimeObservability: disable
+  runtimeObservability: enable
   networkPolicyService: disable
   runtimeDetection: enable
   malwareDetection: enable

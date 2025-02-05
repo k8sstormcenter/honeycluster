@@ -146,7 +146,7 @@ traces-off:
 .PHONY: lightening
 lightening:
 	-$(MAKE) --makefile=Makefile_calibrate_kubehound calibration-traces
-	-$(MAKE) --makefile=Makefile_calibrate_kubehound calibration-attack
+	#-$(MAKE) --makefile=Makefile_calibrate_kubehound calibration-attack
 	-kubectl apply -f attacks/lightening/deployment.yaml
 	-kubectl apply -f attacks/lightening/cap-checker.yaml -n storm
 	-kubectl create configmap check-script -n storm --from-file=attacks/lightening/check.sh
@@ -157,7 +157,13 @@ lightening-off:
 	-kubectl delete -f attacks/lightening/cap-checker.yaml -n storm
 	-kubectl delete -f attacks/lightening/deployment.yaml
 	-$(MAKE) --makefile=Makefile_calibrate_kubehound remove-calibration-traces
-	-$(MAKE) --makefile=Makefile_calibrate_kubehound  remove-calibration-attack
+	#-$(MAKE) --makefile=Makefile_calibrate_kubehound  remove-calibration-attack
+
+.PHONY: sample-app
+sample-app:
+	$(MAKE) --makefile=cncf/harbor/Makefile install-helm install-harbor
+	#-kubectl create ns pets
+	#-kubectl apply -f https://raw.githubusercontent.com/Azure-Samples/aks-store-demo/main/aks-store-all-in-one.yaml -n pets
 	
 
 ## Experiments
