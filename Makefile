@@ -168,6 +168,10 @@ sample-app:
 	#-kubectl apply -f https://raw.githubusercontent.com/Azure-Samples/aks-store-demo/main/aks-store-all-in-one.yaml -n pets
 	
 
+.PHONY: sample-app-off
+sample-app-off:
+	$(MAKE) --makefile=cncf/harbor/Makefile clean
+
 ## Experiments
 ## curretly candidate #1 for the network observability 
 .PHONY: pixie

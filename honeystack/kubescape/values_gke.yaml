@@ -294,13 +294,15 @@ operator:
 
   resources:
     requests:
-      cpu: 50m
-      memory: 100Mi
+      cpu: 100m
+      memory: 2Gi
     limits:
       cpu: 750m
-      memory: 750Mi
+      memory: 5Gi  # on my 4 node GKE, its using 3 Gi
   env: { }
   labels: { }
+  nodeSelector:
+    node_pool: user-pool
 
   podScanGuardTime: "1h"
 
