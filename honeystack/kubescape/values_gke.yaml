@@ -485,8 +485,8 @@ nodeAgent:
       valueFrom:
         fieldRef:
           fieldPath: spec.nodeName
-    - name: RUNTIME_PATH
-      value: /host/usr/local/sbin/runc
+    #- name: RUNTIME_PATH
+    #  value: /host/usr/local/sbin/runc
 
 
 

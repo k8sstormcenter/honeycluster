@@ -83,7 +83,7 @@ kubescape:
 	-$(HELM) repo add headlamp https://headlamp-k8s.github.io/headlamp/
 	-$(HELM) repo update
 #-$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --set capabilities.runtimeDetection=enable --set alertCRD.installDefault=true --set nodeAgent.config.maxLearningPeriod=10m --set nodeAgent.config.stdoutExporter=true --set ksNamespace=honey --set clusterName=$(NAME) 
-	-$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --values honeystack/kubescape/values.yaml
+	-$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --values honeystack/kubescape/values_GKE.yaml
 	-$(HELM) upgrade --install headlamp headlamp/headlamp --namespace honey --values honeystack/headlamp/values.yaml
 	-kubectl -n honey create serviceaccount headlamp-admin
 	-kubectl create clusterrolebinding headlamp-admin-1 --serviceaccount=honey:headlamp-admin --clusterrole=cluster-admin
@@ -127,6 +127,7 @@ traces:
 	-kubectl apply -f traces/8detect-tcp.yaml
 	-kubectl apply -f traces/9managed-identitytokenaccess.yaml
 	-kubectl apply -f traces/10network-metadata.yaml
+	-$(MAKE) --makefile=Makefile_calibrate_kubehound calibration-traces
 
 .PHONY: traces-off
 traces-off: 
@@ -141,6 +142,7 @@ traces-off:
 	-kubectl delete -f traces/8detect-tcp.yaml
 	-kubectl delete -f traces/9managed-identitytokenaccess.yaml
 	-kubectl delete -f traces/10network-metadata.yaml
+	-$(MAKE) --makefile=Makefile_calibrate_kubehound remove-calibration-traces
 
 # Calling the other makefile
 .PHONY: lightening
