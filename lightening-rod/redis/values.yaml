@@ -12,3 +12,10 @@ resources:
   limits:
     cpu: 3
     memory: 1024Mi
+
+master:
+  pdb:
+    minAvailable: 0
+
+#persistence:
+# size: 1Gi
