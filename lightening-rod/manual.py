@@ -62,15 +62,8 @@ def wipesafe():
 def convert_list_to_stix():
     queue= request.args.get('queue')
     print(f"Converting list to STIX for queue: {queue}")
-    #if not queue:
-    #    return jsonify({"error": "No queue provided"}), 400
-    #elif queue == "active_queue":
     tetragon_logs = client.lrange(queue, 0, -1)
     transform_tetragon_to_stix(tetragon_logs)
-    #elif queue == "kubescape_queue":
-    #    #return jsonify({"message": "Now converting kubescape to STIX"}), 200
-    #    kubescape_logs = client.lrange(REDIS_KUBESCAPEKEY, 0, -1) #TODO: implement also here a queuing system
-    #    transform_tetragon_to_stix(kubescape_logs)
     return jsonify({"message": "List been converted to STIX"}), 200
 
 @app.route('/bundle_for_viz', methods=['GET'])
@@ -78,8 +71,6 @@ def bundle_for_viz():
     individual_bundles = client.hgetall(REDIS_BUNDLEKEY)
     deduplicate_bundles(individual_bundles)
     return jsonify({"message": "STIX bundeling ready for visualization"}), 200
-
-
 
 @app.route('/add_attack_bundle', methods=['POST'])
 def add_attack_bundle():
@@ -118,6 +109,7 @@ def delete_attack_bundle(bundle_id):
 ## Second part of code (TODO: move to a separate file) function definitions
 
 #In absence of a database, we will use a JSON file to provide some attack patterns
+# TODO: this is outdated -> use the testpost.sh instead
 def get_attack_patterns():
     try:
         attack_patterns = client.hgetall(REDIS_PATTERNKEY)
@@ -125,7 +117,6 @@ def get_attack_patterns():
             script_dir = os.path.dirname(os.path.abspath(__file__))
             json_file_path = os.path.join(script_dir, 'kubehound-stix.json')
 
-            # Read the JSON file
             with open(json_file_path, 'r') as file:
                 STIX_ATTACK_PATTERNS = json.load(file)
         else:
@@ -139,9 +130,9 @@ def create_relationship(source_ref, target_ref, relationship_type):
     """Creates a STIX relationship object."""
     return {
         "type": "relationship",
-        "spec_version": STIX_VERSION,  # Ensure consistent version
+        "spec_version": STIX_VERSION,  
         "id": generate_stix_id("relationship"),
-        "created": _get_current_time_iso_format(),  # Add created/modified timestamps
+        "created": _get_current_time_iso_format(),  
         "modified": _get_current_time_iso_format(),
         "relationship_type": relationship_type,
         "source_ref": source_ref,
