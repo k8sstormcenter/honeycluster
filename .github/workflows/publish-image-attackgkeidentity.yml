@@ -1,6 +1,10 @@
 name: Build and push sample GKE-identityattack image
 
 
+on:
+  push:
+    branches:
+      - protected
 
 env:
   REGISTRY: ghcr.io

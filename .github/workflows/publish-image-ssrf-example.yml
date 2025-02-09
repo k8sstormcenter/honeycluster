@@ -1,6 +1,11 @@
 name: Build and push vulnerable application image
 
-  
+on:
+  push:
+    branches:
+      - protected
+
+
 
 
 env:
