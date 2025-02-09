@@ -433,3 +433,39 @@ EOF
   ]
 }
 EOF
+
+#curl -X POST http://localhost:8000/add_attack_bundle \
+-H "Content-Type: application/json" \
+-d @- << 'EOF'
+{
+  "type": "bundle",
+  "id": "14",
+  "name": "kubescapetest",
+  "version": "1.0.0",
+  "spec_version": "2.1",
+  "objects": [
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--kubescapetest",
+      "name": "kubescapetest",
+      "description": "description kubescapetest"
+    },
+    {
+      "type": "indicator",
+      "id": "indicator--kubescapetest",
+      "name": "",
+      "description": "Detecting kubescapetest",
+      "pattern": "[process:extensions.kprobe_arguments.flags[0] MATCHES 'RDONLY']",
+      "pattern_type": "stix",
+      "valid_from": "2024-01-01T00:00:00Z"
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--kubescapetest",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--kubescapetest",
+      "target_ref": "attack-pattern--kubescapetest"
+    }
+  ]
+}
+EOF

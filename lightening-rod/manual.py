@@ -22,9 +22,11 @@ REDIS_KEY = os.getenv('REDIS_KEY', 'tetra')
 REDIS_OUTKEY = os.getenv('REDIS_OUTKEY', 'tetrasingle')
 REDIS_VISKEY = os.getenv('REDIS_VISKEY', 'tetrastix2')
 REDIS_BUNDLEKEY = os.getenv('REDIS_BUNDLEKEY', 'tetra_bundle')
+REDIS_KUBESCAPEKEY = os.getenv('REDIS_KUBESCAPEKEY', 'kubescape')
 REDIS_BUNDLEVISKEY = os.getenv('REDIS_BUNDLEVISKEY', 'tetrastix') #implement in UI
 REDIS_FOLLOWVISKEY = os.getenv('REDIS_FOLLOWVISKEY', 'tetraproc')
 REDIS_PATTERNKEY = os.getenv('REDIS_PATTERNKEY', 'tetra_pattern')
+REDIS_DEBUGKEY = os.getenv('REDIS_DEBUGKEY', 'tetra_debug')
 PROCESS_EXT_KEY = "process-ext"
 OBSERVED_DATA_EXT_KEY = "observed-data-ext"
 
@@ -39,8 +41,7 @@ client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
 # The real patterns should be stored in Redis for efficient processing
 # You can test them one by one or all at once
 # Once you are happy with your set of patterns, you should persist them to MongoDB 
-# Furture features will also include a backup/restore option to file
-# In a future enterprise version, you will be able to let the AI/RAG generate the patterns for you
+
 
 ### first part of code (TODO: move to a separate file) routes
 
@@ -54,17 +55,22 @@ def wipesafe():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/convert_single_to_stix', methods=['GET'])
-def convert_single_to_stix():
-    tetragon_log= request.args.get('log')
-    stix = transform_single_tetragon_to_stix(tetragon_log)
-    return stix, 200
 
+# lets deduce which type of logs we are dealing with by looking at the queue-name
+# the Bundles should all be in a form that can be deduplicated, no matter the original log source
 @app.route('/convert_list_to_stix', methods=['GET'])
 def convert_list_to_stix():
     queue= request.args.get('queue')
+    print(f"Converting list to STIX for queue: {queue}")
+    #if not queue:
+    #    return jsonify({"error": "No queue provided"}), 400
+    #elif queue == "active_queue":
     tetragon_logs = client.lrange(queue, 0, -1)
     transform_tetragon_to_stix(tetragon_logs)
+    #elif queue == "kubescape_queue":
+    #    #return jsonify({"message": "Now converting kubescape to STIX"}), 200
+    #    kubescape_logs = client.lrange(REDIS_KUBESCAPEKEY, 0, -1) #TODO: implement also here a queuing system
+    #    transform_tetragon_to_stix(kubescape_logs)
     return jsonify({"message": "List been converted to STIX"}), 200
 
 @app.route('/bundle_for_viz', methods=['GET'])
@@ -73,17 +79,7 @@ def bundle_for_viz():
     deduplicate_bundles(individual_bundles)
     return jsonify({"message": "STIX bundeling ready for visualization"}), 200
 
-@app.route('/convert_to_stix', methods=['GET'])
-async def convert_to_stix():
-    start = int(request.args.get('start', 30)) #TODO test if negative values work
-    stop = int(request.args.get('stop', 0))
-    REDIS_KEY = request.args.get('r', 'tetra')
-    tetragon_logs = client.lrange(REDIS_KEY, -start, stop)
-    transform_tetragon_to_stix(tetragon_logs)
-    individual_bundles = client.hgetall(REDIS_BUNDLEKEY)
-    deduplicate_bundles(individual_bundles)
-    #trees = group_bundles(individual_bundles)
-    return jsonify({"message": "STIX conversion successful"}), 200
+
 
 @app.route('/add_attack_bundle', methods=['POST'])
 def add_attack_bundle():
@@ -190,10 +186,11 @@ def create_process_stix_id(exec_id):
             truncated_exec_id = decoded_exec_id[-36:]  
             stix_id = f"process--{truncated_exec_id}"
             return stix_id
-            return stix_id
         except Exception as e:  # Handle decoding or other errors
             print(f"Error decoding or hashing exec_id: {e}")
 
+def flatten_kprobe_args_2(kprobe_args):
+    return [str(v) for arg in kprobe_args for v in arg.values()]
 
 def flatten_kprobe_args(args):
     flattened_args = {}
@@ -207,8 +204,9 @@ def flatten_kprobe_args(args):
     return flattened_args
 
 
-
-def transform_process_to_stix(log, node_name):
+ # THIS WOULD BE A STANDALONE PLUGIN FOR ALL THOSE USING TETRAGON
+def transform_kprobe_to_stix(log, node_name):
+    print(f"Transforming kprobe log to STIX")
     parent = log.get("parent", {})
     process = log.get("process", {})
     file_args = [] 
@@ -237,13 +235,16 @@ def transform_process_to_stix(log, node_name):
         "created_time": process.get("start_time", _get_current_time_iso_format()),
         "parent_ref": parent_process_object["id"],
         "extensions": {
+          #"extension-definition-kubernetes-kprobe": {  
+                "extension_type": "property-extension",
                 "flags": process.get("flags", ""),
                 "docker": process.get("docker", ""),
                 "container_id": process.get("pod", {}).get("container", {}).get("id", ""),
                 "pod_name": process.get("pod", {}).get("name", ""),
                 "namespace": process.get("pod", {}).get("namespace", ""),
                 "function_name": log.get("function_name", ""),
-                "kprobe_arguments": flatten_kprobe_args(log.get("args", []))             
+                "kprobe_arguments": flatten_kprobe_args(log.get("args", []))
+           # }          
         }
     }
     stix_objects.append(process_object)
@@ -263,14 +264,86 @@ def transform_process_to_stix(log, node_name):
         "number_observed": 1,
         "object_refs": [process_object["id"], parent_process_object["id"]],
         "extensions": {
-                "node_info": {"node_name": node_name }
+            #"extension-definition--kubernetes-metadata": {  
+                "extension_type": "property-extension",
+                "alert_name": log.get("policy_name"),
+                "arguments": "",
+                "rule_id": "",
+                "node_info": {"node_name": node_name},
+                "children": ""
             }
+            #}
         }
+        
 
     stix_objects.append(observed_data_object)
     return stix_objects
 
+def transform_kubescape_to_stix(log):
+    print(f"Transforming kubescape log to STIX")
+    base_metadata = log.get("BaseRuntimeMetadata", {})
+    runtime_k8s = log.get("RuntimeK8sDetails", {})
+    runtime_process = log.get("RuntimeProcessDetails", {})
+    cloud_metadata = log.get("CloudMetadata", {})
+    
+    stix_objects = []
+    parent_process_object = {
+        "type": "process",
+        "id": generate_stix_id("process"),
+        "pid": runtime_process.get("processTree", {}).get("ppid", -1),
+        "command_line": runtime_process.get("processTree", {}).get("pcomm", ""),
+        "cwd":"",
+        "created_time": base_metadata.get("timestamp", _get_current_time_iso_format()),
+    }
+    stix_objects.append(parent_process_object)
 
+    process_object = {
+        "type": "process",
+        "id": generate_stix_id("process"), # unfortunately kubescape doesnt capture something to
+        "pid": runtime_process.get("processTree", {}).get("pid", -1), 
+        "command_line": runtime_process.get("processTree", {}).get("cmdline", ""),
+        "cwd": runtime_process.get("processTree", {}).get("cwd", ""),
+        "created_time": base_metadata.get("timestamp", _get_current_time_iso_format()),
+        "parent_ref": parent_process_object["id"],
+        "extensions": {
+           # "extension-definition-kubernetes-kprobe": { 
+                "extension_type": "property-extension",
+                "container_id": runtime_k8s.get("containerID", ""),
+                "flags": log.get("message", ""),
+                "docker":  runtime_k8s.get("image", ""),
+                "pod_name": runtime_k8s.get("podName", ""),
+                "namespace": runtime_k8s.get("namespace", ""),
+                "function_name": log.get("RuleID", ""),
+                "kprobe_arguments": base_metadata.get("arguments", {}) #might need to flatten
+           # }
+        }
+    }
+    stix_objects.append(process_object)
+
+    # Create Observed Data object
+    current_time = log.get("time", _get_current_time_iso_format())
+    observed_data_object = {
+        "type": "observed-data",
+        "id": generate_stix_id("observed-data"),
+        "created_time": current_time,
+        "first_observed": current_time,
+        "last_observed": current_time,
+        "number_observed": 1,
+        "object_refs": [process_object["id"], parent_process_object["id"]],
+        "extensions": {
+            #"extension-definition--kubernetes-metadata": {  
+                "extension_type": "property-extension",
+                "alert_name": base_metadata.get("alertName", ""),
+                "arguments": base_metadata.get("arguments", {}),
+                "rule_id": log.get("RuleID", ""),
+                "node_info": cloud_metadata.get("instance_id", {}),
+                "children": runtime_process.get("processTree", {}).get("children", [])
+           # }
+        }
+    }
+    stix_objects.append(observed_data_object)
+
+    return stix_objects
 
 def matches(pattern, bundle, stix_version=STIX_VERSION):
     try:
@@ -280,8 +353,87 @@ def matches(pattern, bundle, stix_version=STIX_VERSION):
         raise
 
 
+# When matching STIX, the relationship/indicators etc objects are read before the observed-data objects
+# So, we need to make sure that the observed-data object is appended to the bundle AFTER
+# Else you get the "missing endpoint" error
 
 def transform_tetragon_to_stix(tetragon_log):
+    stix_bundles = []  
+    STIX_ATTACK_PATTERNS = get_attack_patterns()
+
+
+    for log_string in tetragon_log: 
+        try:
+            log = json.loads(log_string.decode('utf-8'))
+        except json.JSONDecodeError as e:
+            print(f"Skipping invalid JSON log entry: {e}")
+            continue
+
+        unique_key = log.get("md5_hash") #this is created in honeystack/vector/gkevalues.yaml
+        stix_objects = []  
+
+        if "process_exec" in log:
+            stix_objects.extend(transform_kprobe_to_stix(log["process_exec"], log.get("node_name"))) 
+
+        elif "process_kprobe" in log:
+            stix_objects.extend(transform_kprobe_to_stix(log["process_kprobe"], log.get("node_name"))) 
+        elif "BaseRuntimeMetadata" in log: 
+            stix_objects.extend(transform_kubescape_to_stix(log)) 
+        
+        #DEBUG: insert into REDISDEBUG the stix_objects at this point -> turn off for production
+        client.hset(REDIS_DEBUGKEY, f"{unique_key}", json.dumps(sanitize_bundle(stix_objects)))
+
+
+
+        matching_patterns = []
+        for STIX_ATTACK_PATTERN in STIX_ATTACK_PATTERNS:
+            pattern, indicator_id = get_pattern(STIX_ATTACK_PATTERN)
+            pattern_id = STIX_ATTACK_PATTERN["id"] 
+
+
+            temp_bundle = { 
+                "objects": stix_objects,  
+            }
+
+            if matches(pattern, temp_bundle):
+                matching_patterns.append((indicator_id, pattern_id, STIX_ATTACK_PATTERN))
+
+
+
+        if matching_patterns:  
+
+            stix_bundle = { 
+                "type": "bundle",
+                "id": generate_stix_id("bundle"),
+                "spec_version": "2.1",
+                "objects": stix_objects,  
+            }
+            for indicator_id, pattern_id, STIX_ATTACK_PATTERN in matching_patterns: 
+                print(f"Matched pattern ID: {pattern_id}, Indicator ID: {indicator_id}")
+                
+                indicator_relationship = create_relationship(stix_bundle["id"], indicator_id, "indicates") #bundle -> indicator
+                stix_bundle["objects"].append(indicator_relationship) 
+
+                # Find observed-data and add indicator ref.  Ensure its the last obj.
+                for obj in stix_bundle["objects"]:
+                    if obj.get("type") == "observed-data":
+                        obj["object_refs"].append(indicator_id)
+
+                        break
+
+
+            for _, _, STIX_ATTACK_PATTERN in matching_patterns: 
+                stix_bundle["objects"].extend(STIX_ATTACK_PATTERN["objects"])
+
+            client.hset(REDIS_BUNDLEKEY, f"{pattern_id}:{unique_key}", json.dumps(sanitize_bundle(stix_bundle)))
+            stix_bundles.append(stix_bundle)  
+
+    return stix_bundles
+
+
+
+
+def transform_tetragon_to_stix_2(tetragon_log):
     stix_objects = []
     STIX_ATTACK_PATTERNS = get_attack_patterns()
     if not tetragon_log:
@@ -302,9 +454,11 @@ def transform_tetragon_to_stix(tetragon_log):
             "objects": [],
         }
         if "process_exec" in tetragon_log:
-            stix_objects = transform_process_to_stix(tetragon_log["process_exec"], tetragon_log["node_name"])
+            stix_objects = transform_kprobe_to_stix(tetragon_log["process_exec"], tetragon_log["node_name"])
         elif "process_kprobe" in tetragon_log:
-            stix_objects = transform_process_to_stix(tetragon_log["process_kprobe"], tetragon_log["node_name"])
+            stix_objects = transform_kprobe_to_stix(tetragon_log["process_kprobe"], tetragon_log["node_name"])
+        elif "kubescape" in tetragon_log:
+            stix_objects = transform_kubescape_to_stix(tetragon_log)
 
         matching_patterns = [] 
 
@@ -349,68 +503,6 @@ def transform_tetragon_to_stix(tetragon_log):
 
 
 
-
-
-def transform_tetragon_to_stix_old(tetragon_log):
-    stix_objects = []
-    STIX_ATTACK_PATTERNS = get_attack_patterns()
-    if not tetragon_log:
-        return []
-
-    for log in tetragon_log:
-        tetragon_log = json.loads(log.decode('utf-8'))  # Decode bytes to string
-        UNIQUE = tetragon_log.get("md5_hash")
-        stix_objects = []
-        hasmatched = False
-        # We need to bundle the observables differently 
-        stix_bundle = {
-            "type": "bundle",
-            "id": generate_stix_id("bundle"),
-            "spec_version": "2.1",
-            "name" : "",
-            "objects": [],
-        }
-        if "process_exec" in tetragon_log:
-            stix_objects = transform_process_to_stix(tetragon_log["process_exec"], tetragon_log["node_name"])
-
-        elif "process_kprobe" in tetragon_log:
-            stix_objects = transform_process_to_stix(tetragon_log["process_kprobe"], tetragon_log["node_name"])
-        for STIX_ATTACK_PATTERN in STIX_ATTACK_PATTERNS:
-            try:
-                temp_bundle = {  
-                    "type": "bundle",
-                    "id": generate_stix_id("bundle"),
-                    "spec_version": "2.1",
-                    "name": "",
-                    "objects": [],
-                }
-                temp_bundle["objects"].extend(stix_objects)
-                PATTERN,ID =get_pattern(STIX_ATTACK_PATTERN)
-                IDD= STIX_ATTACK_PATTERN["id"]
-                stix_bundle["name"] = ID
-                #print(json.dumps(stix_bundle, indent=4)) 
-                if matches(PATTERN, temp_bundle):
-                    if hasmatched:
-                        continue
-                    else: 
-                        hasmatched = True
-                        stix_bundle["objects"].extend(stix_objects)
-                    redis_key = f"{REDIS_OUTKEY}:{ID}:{UNIQUE}"
-                    print(f"Writing to Redis key: {REDIS_BUNDLEKEY}")
-                    indicator_relationship = create_relationship(
-                            stix_bundle["id"], ID, "indicates"  # Assuming "indicates" relationship
-                        )
-                    stix_bundle["objects"].append(indicator_relationship)
-                    for obj in stix_bundle["objects"]:
-                        if obj["type"] == "observed-data":
-                            obj["object_refs"].append(ID)
-                            break 
-
-                    stix_bundle["objects"].extend(STIX_ATTACK_PATTERN["objects"])
-                    client.hset(REDIS_BUNDLEKEY,f"{ID}:{UNIQUE}", json.dumps(sanitize_bundle(stix_bundle)))
-            except Exception as e:
-                print(f"Error extending bundle in tranform_tetragon_to_stix: {e}")
-    return stix_bundle
 
 
 
@@ -472,7 +564,7 @@ def deduplicate_bundles(individual_bundles):
 
 
 #def process_follow_bundles(individual_bundles):
-def deduplicate_bundles_2(individual_bundles):
+def deduplicate_bundles_proc(individual_bundles):
     stix_bundle_array = {} 
     for key, value in individual_bundles.items():
         stix_bundle = json.loads(value)
