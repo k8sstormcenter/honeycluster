@@ -323,6 +323,7 @@ customConfig:
         del(.fieldk1)
         del(.fieldk2)
         del(.fieldk21)
+        del(.fieldk22)
         del(.pre)
         del(.key)
 
@@ -351,6 +352,27 @@ customConfig:
       inputs:
         - kubescape-nodeagent_pre
       condition: '.BaseRuntimeMetadata != null'
+
+    kubescape-create_key:
+      type: remap
+      inputs:
+        - kubescape-nodeagent
+      source: |
+        .field1 = .BaseRuntimeMetadata.alertName
+        .field2 = .RuntimeK8sDetails.containerID
+        .field3 = .RuntimeK8sDetails.podName
+        .field4 = if exists(.BaseRuntimeMetadata.arguments.capability) { .BaseRuntimeMetadata.arguments.capability } else { if exists(.BaseRuntimeMetadata.arguments.path) { .BaseRuntimeMetadata.arguments.path } else { if exists(.BaseRuntimeMetadata.arguments.exec) { .BaseRuntimeMetadata.arguments.exec } else { "1" } } }
+        .field5 = if exists(.RuntimeProcessDetails.processTree.cmdline) { .RuntimeProcessDetails.processTree.cmdline} else {""}
+        .field6 = if exists(.BaseRuntimeMetadata.infectedPID) { .BaseRuntimeMetadata.infectedPID } else { "1" }
+        .key, err = to_string(.field1) + to_string(.field2) + to_string(.field3) + to_string(.field4) + to_string(.field5) + to_string(.field6) 
+        .md5_hash = to_string(md5(.key))
+        del(.field1)
+        del(.field2)
+        del(.field3)
+        del(.field4)
+        del(.field5)
+        del(.field6)
+        del(.key)
 
 
   data_dir: /vector-data-dir
@@ -396,7 +418,7 @@ customConfig:
     redisbaseline: #TODO: here we want to be able to switch on and off the collection of the baseline
       type: redis
       inputs:
-         - kubescape-nodeagent
+         - kubescape-create_key
       encoding:
         codec: json
       endpoint: redis://redis-headless.storm.svc.cluster.local:6379

@@ -434,7 +434,7 @@ EOF
 }
 EOF
 
-#curl -X POST http://localhost:8000/add_attack_bundle \
+curl -X POST http://localhost:8000/add_attack_bundle \
 -H "Content-Type: application/json" \
 -d @- << 'EOF'
 {

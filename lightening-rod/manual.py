@@ -406,6 +406,7 @@ def transform_tetragon_to_stix(tetragon_log):
                 "type": "bundle",
                 "id": generate_stix_id("bundle"),
                 "spec_version": "2.1",
+                 #"name": "",
                 "objects": stix_objects,  
             }
             for indicator_id, pattern_id, STIX_ATTACK_PATTERN in matching_patterns: 
@@ -544,7 +545,7 @@ def deduplicate_bundles(individual_bundles):
             stix_bundle_array[ID] = {
                 "type": "bundle",
                 "id": stix_bundle["id"],
-                "name": stix_bundle["name"],
+                #"name": stix_bundle["name"],
                 "spec_version": "2.1",
                 "objects": stix_bundle["objects"],
             }
@@ -576,7 +577,7 @@ def deduplicate_bundles_proc(individual_bundles):
             stix_bundle_array[ID] = {
                 "type": "bundle",
                 "id": stix_bundle["id"],
-                "name": stix_bundle["name"],
+                #"name": stix_bundle["name"],
                 "spec_version": "2.1",
                 "objects": stix_bundle["objects"],
             }
