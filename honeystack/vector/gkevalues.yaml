@@ -300,6 +300,7 @@ customConfig:
         .fieldk1 = if exists(.process_kprobe.args) { if exists(.process_kprobe.args[0].file_arg.path) { .process_kprobe.args[0].file_arg.path } else { if exists(.process_kprobe.args[0].int_arg) {  .process_kprobe.args[0].int_arg } else { if exists(.process_kprobe.args[0].string_arg) { .process_kprobe.args[0].string_arg } else {  "1"  }  } } } else { "1" }
         .fieldk2 = if exists(.process_kprobe.args) { if exists(.process_kprobe.args[0].file_arg.permission) { .process_kprobe.args[0].file_arg.permission } else { if exists(.process_kprobe.args[1].int_arg) { .process_kprobe.args[1].int_arg } else { if exists(.process_kprobe.args[1].string_arg) { .process_kprobe.args[1].string_arg } else { "1" } } } } else { "1" }
         .fieldk21 = if exists(.process_kprobe.args) { if exists(.process_kprobe.args[1].sock_arg.state)     { .process_kprobe.args[1].sock_arg.state      } else { if exists(.process_kprobe.args[1].int_arg) { .process_kprobe.args[1].int_arg } else { if exists(.process_kprobe.args[1].string_arg) { .process_kprobe.args[1].string_arg } else { "1" } } } } else { "1" }
+        .fieldk22 = if exists(.process_kprobe.args) { if exists(.process_kprobe.args[1].truncated_bytes_arg.bytes_arg)     { .process_kprobe.args[1].truncated_bytes_arg.bytes_arg     } else { if exists(.process_kprobe.args[1].truncated_bytes_arg.orig_size) { .process_kprobe.args[1].truncated_bytes_arg.orig_size } else { if exists(.process_kprobe.args[1].size_arg) { .process_kprobe.args[1].size_arg } else { "1" } } } } else { "1" }
         .fieldf  = if exists(.process_kprobe.function_name) { .process_kprobe.function_name } else { "1" }
         .pre     = if exists(.process_exec) { "exec" } else { if exists(.process_exit) { "exit" } else { if exists(.process_kprobe){ "kpro" }  else { "1" } } }
         .key, err = to_string(.field1) + to_string(.field2) + to_string(.field3) + to_string(.field11) + to_string(.field22) + to_string(.field33) + to_string(.fieldf) + to_string(.fieldk1) + to_string(.fieldk2) + to_string(.fieldk21)
@@ -322,6 +323,7 @@ customConfig:
         del(.fieldk1)
         del(.fieldk2)
         del(.fieldk21)
+        del(.fieldk22)
         del(.pre)
         del(.key)
 
@@ -350,6 +352,27 @@ customConfig:
       inputs:
         - kubescape-nodeagent_pre
       condition: '.BaseRuntimeMetadata != null'
+
+    kubescape-create_key:
+      type: remap
+      inputs:
+        - kubescape-nodeagent
+      source: |
+        .field1 = .BaseRuntimeMetadata.alertName
+        .field2 = .RuntimeK8sDetails.containerID
+        .field3 = .RuntimeK8sDetails.podName
+        .field4 = if exists(.BaseRuntimeMetadata.arguments.capability) { .BaseRuntimeMetadata.arguments.capability } else { if exists(.BaseRuntimeMetadata.arguments.path) { .BaseRuntimeMetadata.arguments.path } else { if exists(.BaseRuntimeMetadata.arguments.exec) { .BaseRuntimeMetadata.arguments.exec } else { "1" } } }
+        .field5 = if exists(.RuntimeProcessDetails.processTree.cmdline) { .RuntimeProcessDetails.processTree.cmdline} else {""}
+        .field6 = if exists(.BaseRuntimeMetadata.infectedPID) { .BaseRuntimeMetadata.infectedPID } else { "1" }
+        .key, err = to_string(.field1) + to_string(.field2) + to_string(.field3) + to_string(.field4) + to_string(.field5) + to_string(.field6) 
+        .md5_hash = to_string(md5(.key))
+        del(.field1)
+        del(.field2)
+        del(.field3)
+        del(.field4)
+        del(.field5)
+        del(.field6)
+        del(.key)
 
 
   data_dir: /vector-data-dir
@@ -395,7 +418,7 @@ customConfig:
     redisbaseline: #TODO: here we want to be able to switch on and off the collection of the baseline
       type: redis
       inputs:
-         - kubescape-nodeagent
+         - kubescape-create_key
       encoding:
         codec: json
       endpoint: redis://redis-headless.storm.svc.cluster.local:6379

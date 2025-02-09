@@ -83,7 +83,7 @@ kubescape:
 	-$(HELM) repo add headlamp https://headlamp-k8s.github.io/headlamp/
 	-$(HELM) repo update
 #-$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --set capabilities.runtimeDetection=enable --set alertCRD.installDefault=true --set nodeAgent.config.maxLearningPeriod=10m --set nodeAgent.config.stdoutExporter=true --set ksNamespace=honey --set clusterName=$(NAME) 
-	-$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --values honeystack/kubescape/values.yaml
+	-$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --values honeystack/kubescape/values_GKE.yaml
 	-$(HELM) upgrade --install headlamp headlamp/headlamp --namespace honey --values honeystack/headlamp/values.yaml
 	-kubectl -n honey create serviceaccount headlamp-admin
 	-kubectl create clusterrolebinding headlamp-admin-1 --serviceaccount=honey:headlamp-admin --clusterrole=cluster-admin
@@ -127,6 +127,7 @@ traces:
 	-kubectl apply -f traces/8detect-tcp.yaml
 	-kubectl apply -f traces/9managed-identitytokenaccess.yaml
 	-kubectl apply -f traces/10network-metadata.yaml
+	-$(MAKE) --makefile=Makefile_calibrate_kubehound calibration-traces
 
 .PHONY: traces-off
 traces-off: 
@@ -141,12 +142,13 @@ traces-off:
 	-kubectl delete -f traces/8detect-tcp.yaml
 	-kubectl delete -f traces/9managed-identitytokenaccess.yaml
 	-kubectl delete -f traces/10network-metadata.yaml
+	-$(MAKE) --makefile=Makefile_calibrate_kubehound remove-calibration-traces
 
 # Calling the other makefile
 .PHONY: lightening
 lightening:
-	-$(MAKE) --makefile=Makefile_calibrate_kubehound calibration-traces
-	-$(MAKE) --makefile=Makefile_calibrate_kubehound calibration-attack
+	#-$(MAKE) --makefile=Makefile_calibrate_kubehound calibration-traces
+	#-$(MAKE) --makefile=Makefile_calibrate_kubehound calibration-attack
 	-kubectl apply -f attacks/lightening/deployment.yaml
 	-kubectl apply -f attacks/lightening/cap-checker.yaml -n storm
 	-kubectl create configmap check-script -n storm --from-file=attacks/lightening/check.sh
@@ -156,9 +158,19 @@ lightening-off:
 	-kubectl delete configmap check-script -n storm
 	-kubectl delete -f attacks/lightening/cap-checker.yaml -n storm
 	-kubectl delete -f attacks/lightening/deployment.yaml
-	-$(MAKE) --makefile=Makefile_calibrate_kubehound remove-calibration-traces
-	-$(MAKE) --makefile=Makefile_calibrate_kubehound  remove-calibration-attack
+	#-$(MAKE) --makefile=Makefile_calibrate_kubehound remove-calibration-traces
+	#-$(MAKE) --makefile=Makefile_calibrate_kubehound  remove-calibration-attack
+
+.PHONY: sample-app
+sample-app:
+	$(MAKE) --makefile=cncf/harbor/Makefile install-helm install-harbor
+	#-kubectl create ns pets
+	#-kubectl apply -f https://raw.githubusercontent.com/Azure-Samples/aks-store-demo/main/aks-store-all-in-one.yaml -n pets
 	
+
+.PHONY: sample-app-off
+sample-app-off:
+	$(MAKE) --makefile=cncf/harbor/Makefile clean
 
 ## Experiments
 ## curretly candidate #1 for the network observability 
