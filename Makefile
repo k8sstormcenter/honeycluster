@@ -13,7 +13,7 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 ##@ Scenario
 
 .PHONY: honey-up
-honey-up: tetragon vector redis traces  mongo lighteningrod stixviz kubescape #k8spin tracee
+honey-up: tetragon vector redis traces  mongo lighteningrod stixviz kubescape tracee #k8spin 
 
 
 
