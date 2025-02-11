@@ -194,6 +194,45 @@ def flatten_kprobe_args(args):
                 flattened_args[new_key] = v
     return flattened_args
 
+def flatten_tracee_args(args, prefix=None):
+    flattened_args = {}
+    if isinstance(args, dict): 
+        for key, value in args.items():
+            new_key = f"{prefix}_{key}" if prefix else key
+            if isinstance(value, dict):
+                flattened_args.update(flatten_tracee_args(value, new_key))
+            elif isinstance(value, list):
+                for i, item in enumerate(value):
+                    flattened_args.update(flatten_tracee_args(item, f"{new_key}[{i}]"))
+            else:
+                flattened_args[new_key] = value
+    elif isinstance(args, list):  
+        for i, item in enumerate(args):
+            flattened_args.update(flatten_tracee_args(item, f"{prefix}_{i}" if prefix else str(i)))
+    else: 
+        flattened_args[prefix] = args if prefix else args
+
+    return flattened_args
+
+def flatten_tracee_args_2(args, prefix=None):
+    flattened_args = {}
+    if isinstance(args, dict):
+        for key, value in args.items():
+            new_key = f"{prefix}_{key}" if prefix else key
+            if isinstance(value, (dict, list)):
+                flattened_args.update(flatten_tracee_args(value, new_key)) 
+            else:
+                flattened_args[new_key] = value
+    elif isinstance(args, list):
+        for item in args: 
+          flattened_args.update(flatten_tracee_args(item, prefix)) 
+    else: 
+        flattened_args[prefix] = args if prefix else args        
+    return flattened_args
+
+
+
+
 
  # THIS WOULD BE A STANDALONE PLUGIN FOR ALL THOSE USING TETRAGON
 def transform_kprobe_to_stix(log, node_name):
@@ -278,7 +317,7 @@ def transform_kubescape_to_stix(log):
     cloud_metadata = log.get("CloudMetadata", {})
     
     stix_objects = []
-    parent_process_object = {
+    parent_process_object = { # we should really consider removing the parents for kubescape, they are not really useful
         "type": "process",
         "id": generate_stix_id("process"),
         "pid": runtime_process.get("processTree", {}).get("ppid", -1),
@@ -336,6 +375,62 @@ def transform_kubescape_to_stix(log):
 
     return stix_objects
 
+def transform_tracee_to_stix(log):
+    container = log.get("container", {})
+    kubernetes = log.get("kubernetes", {})
+    metadata = log.get("metadata", {}).get("Properties", {})
+    event_time = log.get("timestamp", None)
+    if event_time: 
+       event_time = datetime.utcfromtimestamp(event_time / 1e9).isoformat(timespec="milliseconds") + "Z"
+    stix_objects = []
+
+    process_object = {
+        "type": "process",
+        "id": generate_stix_id("process"),
+        "pid": log.get("processId", -1),
+        "command_line": log.get("processName", ""),
+        "cwd": "",  # Not available in Tracee
+        "created_time": event_time or _get_current_time_iso_format(),
+        "extensions": {
+            #"extension-definition-kubernetes-kprobe": {
+                "extension_type": "property-extension",
+                "container_id": container.get("id", ""),
+                "flags": "", #for tracee those will be in the nested args
+                "docker": container.get("image", ""),
+                "pod_name": kubernetes.get("podName", ""),
+                "namespace": kubernetes.get("podNamespace", ""),
+                "function_name": log.get("syscall", ""),  
+                "kprobe_arguments": flatten_tracee_args(log.get("args", ""))
+            #}
+        }
+    }
+    stix_objects.append(process_object)
+
+    # Create Observed Data object
+    observed_data_object = {
+        "type": "observed-data",
+        "id": generate_stix_id("observed-data"),
+        "created": event_time or _get_current_time_iso_format(),
+        "modified": event_time or _get_current_time_iso_format(),
+        "first_observed": event_time or _get_current_time_iso_format(),
+        "last_observed": event_time or _get_current_time_iso_format(),
+        "number_observed": 1,
+        "object_refs": [process_object["id"], metadata.get("id", "")], #need to link in the tracee attack-pattern definitions
+        "extensions": {
+            #"extension-definition--kubernetes-metadata": {
+                "extension_type": "property-extension",
+                "alert_name": metadata.get("signatureName", ""),
+                "arguments": f"{metadata.get('Category', '')} {metadata.get('Technique', '')} {metadata.get('external_id', '')}",
+                "rule_id": metadata.get("signatureID", ""),
+                "node_info": log.get("hostName", ""),
+                "children": "", #not provided by tracee
+           # }
+        }
+    }
+    stix_objects.append(observed_data_object)
+
+    return stix_objects
+
 def matches(pattern, bundle, stix_version=STIX_VERSION):
     try:
         return len(match(pattern, [bundle], stix_version=stix_version)) == 1
@@ -370,6 +465,8 @@ def transform_tetragon_to_stix(tetragon_log):
             stix_objects.extend(transform_kprobe_to_stix(log["process_kprobe"], log.get("node_name"))) 
         elif "BaseRuntimeMetadata" in log: 
             stix_objects.extend(transform_kubescape_to_stix(log)) 
+        elif "matchedPolicies" in log:
+            stix_objects.extend(transform_tracee_to_stix(log))
         
         #DEBUG: insert into REDISDEBUG the stix_objects at this point -> turn off for production
         client.hset(REDIS_DEBUGKEY, f"{unique_key}", json.dumps(sanitize_bundle(stix_objects)))
