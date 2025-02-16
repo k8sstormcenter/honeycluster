@@ -10,6 +10,7 @@ We expressely thank the upstream maintainers of our main components: KubeHound, 
 If you d like to motivate me and make me smile: consider leaving a star ⭐
 
 <!--![kubecon25_stormcenter_harbor](https://github.com/user-attachments/assets/262115d6-fbd4-475b-bbb4-4a4a0af84db1) -->
+![StormcenterEnd2EndwithBG](https://github.com/user-attachments/assets/5d6a0614-8397-43c0-874b-6b59de1c819f)
 
 
 ## Table of Contents
