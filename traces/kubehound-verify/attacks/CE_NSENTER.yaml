@@ -13,7 +13,7 @@ spec:
       securityContext:
         privileged: true
       command: [ "/bin/sh", "-c" ]
-      args: [ "nsenter -t 1 -a /bin/bash && while true; do sleep 300; done;" ]
+      args: [ "nsenter -t 1 -a /bin/bash && sleep infinity;" ]
 
 --- 
 apiVersion: v1
