@@ -81,9 +81,6 @@ jobs:
           name: sbom
           path: sbom.json
           
-      - name: Push the image if scan passes
-        run: |
-          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:0.0.1 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
 
 
