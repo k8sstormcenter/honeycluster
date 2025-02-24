@@ -19,9 +19,18 @@ jobs:
       contents: write
       packages: write
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+    strategy:
+      matrix:
+        platform: [linux/amd64, linux/arm64]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to the Container registry
         uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
@@ -45,30 +54,33 @@ jobs:
       - name: Build an image from Dockerfile
         run: |
           cd lightening-rod
-          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:0.0.1  .
+          docker buildx build --platform ${{ matrix.platform }} --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:0.0.1 --push .
+
 
       - name: Install Trivy
+        if: matrix.platform == 'linux/amd64'
         run: |
           sudo apt-get update && sudo apt-get install -y wget
           wget https://github.com/aquasecurity/trivy/releases/download/v0.28.0/trivy_0.28.0_Linux-64bit.deb
           sudo dpkg -i trivy_0.28.0_Linux-64bit.deb
 
       - name: Scan Docker image with Trivy
+        if: matrix.platform == 'linux/amd64'
         run: |
           trivy image --exit-code 1 --severity HIGH,CRITICAL ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:0.0.1
 
       - name: Generate SBOM with Trivy
+        if: matrix.platform == 'linux/amd64'
         run: |
           trivy image --format cyclonedx --output sbom.json ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:0.0.1
 
       - name: Upload SBOM
+        if: matrix.platform == 'linux/amd64'
         uses: actions/upload-artifact@v4
         with:
           name: sbom
           path: sbom.json
           
-      - name: Push the image if scan passes
-        run: |
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:0.0.1
+
 
 

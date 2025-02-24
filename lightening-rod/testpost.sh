@@ -469,3 +469,38 @@ curl -X POST http://localhost:8000/add_attack_bundle \
   ]
 }
 EOF
+curl -X POST http://localhost:8000/add_attack_bundle \
+-H "Content-Type: application/json" \
+-d @- << 'EOF'
+{
+  "type": "bundle",
+  "id": "15",
+  "name": "NAME",
+  "version": "1.0.0",
+  "spec_version": "2.1",
+  "objects": [
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--tracee",
+      "name": "tracee",
+      "description": "description"
+    },
+    {
+      "type": "indicator",
+      "id": "indicator--tracee",
+      "name": "tracee",
+      "description": "Detecting tracee",
+      "pattern": "[process:extensions.kprobe_arguments.value.name MATCHES 'magic']",
+      "pattern_type": "stix",
+      "valid_from": "2024-01-01T00:00:00Z"
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--tracee",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--tracee",
+      "target_ref": "attack-pattern--tracee"
+    }
+  ]
+}
+EOF

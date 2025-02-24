@@ -339,7 +339,43 @@ customConfig:
         - kubernetes_logs
       source: |
               . = parse_json!(.message)
- 
+
+    tracee_pre:
+       type: remap
+       inputs:
+          - tracee_logs
+       source: |
+              . = parse_json!(.message)
+    tracee:
+      type: filter
+      inputs:
+        - tracee_pre
+      condition: |
+        !includes(["honey", "storm"], .kubernetes.podNamespace)  && .args != null
+
+    tracee-create_key:
+      type: remap
+      inputs:
+        - tracee
+      source: |
+        .field1 = .cgroupId
+        .field2 = .containerId
+        .field3 = .eventName
+        .field4 = if exists(.args[0].name) { .args[0].name } else { if exists(.args[0].type) { .args[0].type } else { if exists(.args[0].value) { .args[0].value } else { "1" } } }
+        .field5 = .mountNamespace
+        .field6 = .pidNamespace
+        .key, err = to_string(.field1) + to_string(.field2) + to_string(.field3) + to_string(.field4) + to_string(.field5) + to_string(.field6) 
+        .md5_hash = to_string(md5(.key))
+        del(.field1)
+        del(.field2)
+        del(.field3)
+        del(.field4)
+        del(.field5)
+        del(.field6)
+        del(.key)
+
+
+
     kubescape-nodeagent_pre:
        type: remap
        inputs:
@@ -385,6 +421,9 @@ customConfig:
       type: file
       include:
         - /var/run/cilium/tetragon/tetragon.log
+    tracee_logs:  
+      type: kubernetes_logs
+      extra_label_selector: "app.kubernetes.io/instance=tracee,app.kubernetes.io/name=tracee"
     kubescape-nodeagent_logs:  
       type: kubernetes_logs
       extra_label_selector: "app.kubernetes.io/instance=kubescape,app.kubernetes.io/component=node-agent"
@@ -423,7 +462,14 @@ customConfig:
         codec: json
       endpoint: redis://redis-headless.storm.svc.cluster.local:6379
       key: "kubescape {{ .message}}"
-
+    traceeredis: #TODO: here we want to be able to switch on and off the collection of the baseline
+      type: redis
+      inputs:
+         - tracee-create_key
+      encoding:
+        codec: json
+      endpoint: redis://redis-headless.storm.svc.cluster.local:6379
+      key: "tracee {{ .message}}"
 
 
         
