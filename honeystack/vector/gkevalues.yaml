@@ -410,6 +410,21 @@ customConfig:
         del(.field6)
         del(.key)
 
+    falco_pre:
+       type: remap
+       inputs:
+          - falco_logs #falco_logs is a new source
+       source: |
+              . = parse_json!(.message)
+
+    falco:
+      type: filter
+      inputs:
+        - falco_pre
+      condition: |
+        !includes(["honey", "storm"], .k8s_ns) 
+
+
 
   data_dir: /vector-data-dir
   api:
@@ -427,6 +442,9 @@ customConfig:
     kubescape-nodeagent_logs:  
       type: kubernetes_logs
       extra_label_selector: "app.kubernetes.io/instance=kubescape,app.kubernetes.io/component=node-agent"
+    falco_logs:  
+      type: kubernetes_logs
+      extra_label_selector: "app.kubernetes.io/instance=falco,app.kubernetes.io/name=falco"
     app_logs:
       type: kubernetes_logs
       exclude_paths_glob_patterns:
@@ -470,6 +488,14 @@ customConfig:
         codec: json
       endpoint: redis://redis-headless.storm.svc.cluster.local:6379
       key: "tracee {{ .message}}"
+    falcoredis:
+      type: redis
+      inputs:
+         - falco
+      encoding:
+        codec: json
+      endpoint: redis://redis-headless.storm.svc.cluster.local:6379
+      key: "falco {{ .message}}"
 
 
         
