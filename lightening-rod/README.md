@@ -1,4 +1,14 @@
+# local development
+```
+poetry install
+poetry run python manual.py
+```
+and additionally, you probably want both redis as well as stix-visualizer to be port-forwarded from your cluster.
+
+
+
 # uploading your bundles for your patterns (while we dont have a UI)
+
 
 > [!NOTE]
 > This python module contains various "deduplicate_bundles" functions, this is most likely the first function you would change to get a different graph-slicing
