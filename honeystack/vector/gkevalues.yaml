@@ -427,13 +427,41 @@ customConfig:
          del(.stream)
          del(.source_type)
 
-    falco:
+    falco_filter:
       type: filter
       inputs:
         - falco_pre
       condition: |
         !includes([ "storm"], .k8s_ns) 
+    
+    falco:
+      type: remap
+      inputs:
+        - falco_filter
+      source: |
+       .field1 = if exists( .interesting.container.id) { .interesting.container.id } else { "1" }
+       .field2 = if exists( .interesting.container.name) { .interesting.container.name } else { "1" }
+       .field3 = if exists(.interesting.proc.cmdline) { .interesting.proc.cmdline } else { "1" }
+       .field4 = if exists(.interesting.proc.pname) { .interesting.proc.pname } else { "1" }
+       .field5 = if exists(.interesting.evt.type) { .interesting.evt.type } else { "1" }
+       .field6 = if exists(.interesting.user.uid) { .interesting.user.uid } else { "1" }
+       .key, err = to_string(.field1) + to_string(.field2) + to_string(.field3) + to_string(.field4) + to_string(.field5) + to_string(.field6)
+       .md5_hash = to_string(md5(.key))
+        del(.field1)
+        del(.field2)
+        del(.field3)
+        del(.field4)
+        del(.field5)
+        del(.field6)
+        del(.key)
 
+    falco_dedupe:
+      type: dedupe
+      inputs:
+        - falco
+      fields :
+        match: [.md5_hash]     
+        
   data_dir: /vector-data-dir
   api:
     enabled: true
