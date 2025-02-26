@@ -413,18 +413,35 @@ customConfig:
     falco_pre:
        type: remap
        inputs:
-          - falco_logs #falco_logs is a new source
+          - falco_logs 
        source: |
-              . = parse_json!(.message)
+         .interesting = parse_json!(.message).output_fields
+         del(.file)
+         del(.kubernetes)
+
+    falco_json_1:
+      type: remap
+      inputs:
+        - falco_pre
+      source: |
+        .message= replace!(.message, r'^(?P<key>\w+)=(?P<value>\s+\w+)',"$$key=$$value;")
+
+
+
+    falco_message:  
+      type: remap
+      inputs:
+        - falco_json_1
+      source: |
+        . = parse_json!(.message).output_fields
+
 
     falco:
       type: filter
       inputs:
-        - falco_pre
+        - falco_message
       condition: |
-        !includes(["honey", "storm"], .k8s_ns) 
-
-
+        !includes([ "storm"], .k8s_ns) 
 
   data_dir: /vector-data-dir
   api:
