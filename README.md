@@ -5,9 +5,9 @@
 
 Welcome to the K8sStormCenter HoneyCluster repository. Here you will find everything you need to set up your own HoneyCluster: a Kubernetes cluster that is instrumented with bait and tripwires to collect data on the attacks carried out against it. With our complimentary [lightening-rod](https://github.com/k8sstormcenter/cti-stix-visualization) , the `attack paths` can be visualized and are made `shareable` using STIX. You can also use the `lightening`-feature to attack yourself to create a threat-model-starting point or to generally scan your setup. The `storm` feature is the collection of CTI from many `HoneyClusters` into a open shared threat-intel collection.
 
-We expressely thank the upstream maintainers of our main components: KubeHound, KubeScape, Vector, Tetragon, Oasis/STIX and Mitre.
+We expressely thank the upstream maintainers of our main components: KubeHound, KubeScape, Vector, Tetragon, Falco, Oasis/STIX and Mitre.
 
-consider leaving a star ⭐
+If you like it -> consider leaving a star ⭐
 
 <!--![kubecon25_stormcenter_harbor](https://github.com/user-attachments/assets/262115d6-fbd4-475b-bbb4-4a4a0af84db1) -->
 ![StormcenterEnd2EndwithBG](https://github.com/user-attachments/assets/5d6a0614-8397-43c0-874b-6b59de1c819f)
