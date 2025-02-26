@@ -13,7 +13,7 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 ##@ Scenario
 
 .PHONY: honey-up
-honey-up: tetragon vector redis traces  mongo lighteningrod stixviz kubescape tracee #k8spin 
+honey-up: tetragon vector redis traces  mongo lighteningrod stixviz kubescape tracee falco #k8spin 
 
 
 
@@ -29,6 +29,8 @@ wipe:
 	-$(HELM) uninstall mongo -n honey
 	-$(HELM) uninstall vector -n honey
 	-$(HELM) uninstall kubescape -n honey
+	-$(HELM) uninstall falco -n honey
+	-$(HELM) uninstall tracee -n honey
 	- kubectl delete namespace honey
 	-$(HELM) uninstall -n storm redis
 	- kubectl delete namespace storm
@@ -64,6 +66,12 @@ stixviz:
 .PHONY: lighteningrod
 lighteningrod:
 	-kubectl apply -f lightening-rod/deployment.yaml	
+
+.PHONY: falco
+falco:
+	-$(HELM) repo add falcosecurity https://falcosecurity.github.io/charts
+	-$(HELM) repo update
+	-$(HELM) upgrade --install falco falcosecurity/falco --namespace honey --create-namespace --values honeystack/falco/values.yaml		
 	
 .PHONY: tracee
 tracee:
