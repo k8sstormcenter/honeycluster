@@ -1,0 +1,21 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/python
+	{
+		"name": "Stanny's Python Dev Container",
+		"image": "mcr.microsoft.com/vscode/devcontainers/python:3.9",
+		"settings": {
+		  "terminal.integrated.shell.linux": "/bin/bash"
+		},
+		"features": {
+			"ghcr.io/nikobockerman/devcontainer-features/poetry-persistent-cache:1": {}
+		},
+		"runArgs": [
+		  "--network=host"
+		],
+		"postStartCommand": "curl -sSL https://install.python-poetry.org | python3 -",
+		"mounts": [
+		  "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
+		],
+		"workspaceFolder": "/workspace",
+		"remoteUser": "vscode"
+	  }

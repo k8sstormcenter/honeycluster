@@ -2,6 +2,8 @@
 bin/
 venv/
 one_line_list.txt
+output*.csv
+output*.json
 kube
 logonscript.sh
 gke_gcloud_auth_plugin_cache
