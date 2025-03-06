@@ -15,6 +15,8 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 .PHONY: honey-up
 honey-up: tetragon vector redis traces  mongo lighteningrod stixviz kubescape tracee falco #k8spin 
 
+.PHONY: dev
+dev: cluster-up tetragon vector redis traces lighteningrod stixviz kubescape tracee falco dev-ui
 
 
 ##@ remove all honeycluster instrumentation from k8s
@@ -66,6 +68,10 @@ stixviz:
 .PHONY: lighteningrod
 lighteningrod:
 	-kubectl apply -f lightening-rod/deployment.yaml	
+
+.PHONY: dev-ui
+dev-ui:
+	-kubectl apply -f development/redis-insight.yaml
 
 .PHONY: falco
 falco:
