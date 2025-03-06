@@ -84,12 +84,12 @@ jobs:
       - name: Scan Docker image with Trivy
         if: matrix.platform == 'linux/amd64'
         run: |
-          trivy image --exit-code 1 --severity HIGH,CRITICAL ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:0.0.1
+          trivy image --exit-code 1 --severity HIGH,CRITICAL ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
       - name: Generate SBOM with Trivy
         if: matrix.platform == 'linux/amd64'
         run: |
-          trivy image --format cyclonedx --output sbom.json ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:0.0.1
+          trivy image --format cyclonedx --output sbom.json ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
       - name: Upload SBOM
         if: matrix.platform == 'linux/amd64'
