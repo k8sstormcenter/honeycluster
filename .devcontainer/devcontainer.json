@@ -5,10 +5,7 @@
       "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {},
       "ghcr.io/devcontainers-extra/features/kind:1": {}
     },
-    "mounts": [
-	 "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
-     ],
-    "workspaceFolder": "/workspace",
-    "remoteUser": "vscode"
+    "postCreateCommand": "make cluster-up honey-up",
+    "remoteUser": "root"
 }
   
