@@ -2,7 +2,7 @@ name: Build and push Lightening Rod
 on:
   push:
     branches:
-      - master 
+      - main
   pull_request:
 
 
