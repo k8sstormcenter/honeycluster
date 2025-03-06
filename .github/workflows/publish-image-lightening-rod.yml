@@ -19,20 +19,20 @@ jobs:
       contents: write
       packages: write
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
-    strategy:
-      matrix:
-        platform: 
-         - linux/amd64
-         - linux/arm64
+    # strategy:
+    #   matrix:
+    #     platform: 
+    #      - linux/amd64
+    #      - linux/arm64
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Set up Docker 
-        uses: docker/setup-docker-action@v4
-      - name: Prepare
-        run: |
-          platform=${{ matrix.platform }}
-          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+      # - name: Set up Docker 
+      #   uses: docker/setup-docker-action@v4
+      # - name: Prepare
+      #   run: |
+      #     platform=${{ matrix.platform }}
+      #     echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -64,39 +64,39 @@ jobs:
         with:
           context: ./lightening-rod
           file: ./lightening-rod/Dockerfile
-          platforms: ${{ matrix.platform }}
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.platform }}
+        #    ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.platform }}
         #run: |
         #  cd lightening-rod
         #  docker buildx build --platform ${{ matrix.platform }} --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:0.0.1 --push .
 
 
       - name: Install Trivy
-        if: matrix.platform == 'linux/amd64'
+       # if: matrix.platform == 'linux/amd64'
         run: |
           sudo apt-get update && sudo apt-get install -y wget
           wget https://github.com/aquasecurity/trivy/releases/download/v0.28.0/trivy_0.28.0_Linux-64bit.deb
           sudo dpkg -i trivy_0.28.0_Linux-64bit.deb
 
       - name: Scan Docker image with Trivy
-        if: matrix.platform == 'linux/amd64'
+       # if: matrix.platform == 'linux/amd64'
         run: |
           trivy image --exit-code 1 --severity HIGH,CRITICAL ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
       - name: Generate SBOM with Trivy
-        if: matrix.platform == 'linux/amd64'
+       # if: matrix.platform == 'linux/amd64'
         run: |
           trivy image --format cyclonedx --output sbom.json ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
-     # - name: Upload SBOM
+      - name: Upload SBOM
      #   if: matrix.platform == 'linux/amd64'
-     #   uses: actions/upload-artifact@v4
-     #   with:
-     #     name: sbom
-     #     path: sbom.json
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.json
           
 
 
