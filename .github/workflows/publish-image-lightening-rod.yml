@@ -68,7 +68,7 @@ jobs:
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tags }}
+            ${{ steps.meta.outputs.tags }}
         #run: |
         #  cd lightening-rod
         #  docker buildx build --platform ${{ matrix.platform }} --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:0.0.1 --push .
