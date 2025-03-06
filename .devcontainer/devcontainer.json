@@ -8,8 +8,7 @@
 	  },
       "ghcr.io/devcontainers/features/docker-in-docker:2": {},
       "ghcr.io/devcontainers-extra/features/kind:1": {},
-      "ghcr.io/audacioustux/devcontainers/k9s:1": {},
-      "ghcr.io/devcontainers/features/common-utils:2": {}
+      "ghcr.io/audacioustux/devcontainers/k9s:1": {}
     },
     "postCreateCommand": "make cluster-up honey-up && docker run -d -p 8001:8001 --name redisinsight redislabs/redisinsight:latest&",
     "portsAttributes": {
