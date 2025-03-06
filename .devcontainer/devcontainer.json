@@ -2,11 +2,13 @@
     "name": "Kind StormCenter",
     "image": "mcr.microsoft.com/devcontainers/base:jammy", 
     "features": {
-      "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {},
-      "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+      "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
+			"minikube": "none",
+			"version": "latest"
+	  },
+      "ghcr.io/devcontainers/features/docker-in-docker:2": {},
       "ghcr.io/devcontainers-extra/features/kind:1": {}
     },
-    "postCreateCommand": "make cluster-up honey-up",
-    "remoteUser": "root"
+    "postCreateCommand": "make cluster-up honey-up"
 }
   
