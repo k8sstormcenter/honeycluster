@@ -23,6 +23,8 @@ REDIS_OUTKEY = os.getenv('REDIS_OUTKEY', 'tetrasingle')
 REDIS_VISKEY = os.getenv('REDIS_VISKEY', 'tetrastix2')
 REDIS_BUNDLEKEY = os.getenv('REDIS_BUNDLEKEY', 'tetra_bundle')
 REDIS_KUBESCAPEKEY = os.getenv('REDIS_KUBESCAPEKEY', 'kubescape')
+REDIS_TRACEEKEY = os.getenv('REDIS_TRACEEKEY', 'tracee')
+REDIS_FALCOKEY = os.getenv('REDIS_FALCOKEY', 'falco')
 REDIS_BUNDLEVISKEY = os.getenv('REDIS_BUNDLEVISKEY', 'tetrastix') #implement in UI
 REDIS_FOLLOWVISKEY = os.getenv('REDIS_FOLLOWVISKEY', 'tetraproc')
 REDIS_PATTERNKEY = os.getenv('REDIS_PATTERNKEY', 'tetra_pattern')
@@ -214,23 +216,6 @@ def flatten_tracee_args(args, prefix=None):
 
     return flattened_args
 
-def flatten_tracee_args_2(args, prefix=None):
-    flattened_args = {}
-    if isinstance(args, dict):
-        for key, value in args.items():
-            new_key = f"{prefix}_{key}" if prefix else key
-            if isinstance(value, (dict, list)):
-                flattened_args.update(flatten_tracee_args(value, new_key)) 
-            else:
-                flattened_args[new_key] = value
-    elif isinstance(args, list):
-        for item in args: 
-          flattened_args.update(flatten_tracee_args(item, prefix)) 
-    else: 
-        flattened_args[prefix] = args if prefix else args        
-    return flattened_args
-
-
 
 
 
@@ -273,7 +258,11 @@ def transform_kprobe_to_stix(log, node_name):
                 "pod_name": process.get("pod", {}).get("name", ""),
                 "namespace": process.get("pod", {}).get("namespace", ""),
                 "function_name": log.get("function_name", ""),
-                "kprobe_arguments": flatten_kprobe_args(log.get("args", []))
+                "kprobe0": log.get("kprobe0", ""),
+                "kprobe1": log.get("kprobe1", ""),
+                "kprobe2": log.get("kprobe2", ""),
+                "kprobe3": log.get("kprobe3 ", ""),
+                "kprobe4": log.get("kprobe4", "")
            # }          
         }
     }
@@ -431,6 +420,65 @@ def transform_tracee_to_stix(log):
 
     return stix_objects
 
+
+
+def transform_falco_to_stix(log):
+    process = log.get("interesting", {})
+    #metadata = log.get("tags", {})
+    event_time = log.get("timestamp", None)
+    stix_objects = []
+
+    process_object = {
+        "type": "process",
+        "id": create_process_stix_id(process.get("exec_id")),
+        "pid": process.get("pid", -1),
+        "command_line": f"{process.get("proc.commandline")}",
+        "cwd": process.get("proc.exepath", ""),
+        "created_time": process.get("evt.time", _get_current_time_iso_format()),
+        "extensions": {
+                "extension_type": "property-extension",
+                "flags": process.get("evt.arg.flags", ""),
+                "docker": f"{process.get("container.image.repository")} {process.get('container.image.tag')}",
+                "container_id": process.get("container.id",""),
+                "pod_name": process.get("k8s.pod.name", ""),
+                "namespace": process.get("k8s.pod.namespace", ""),
+                "function_name": log.get("evt.type", ""),
+                #so, we have fd and proc.exe events , it is a terrible idea to haphazardly map them into something flat like this, but its a start
+                "kprobe0": process.get("fd.l4proto", ""),
+                "kprobe1": process.get("fd.name", ""),
+                "kprobe2": process.get("fd.type", ""),
+                "kprobe3": process.get("evt.res", ""),
+                "kprobe4": process.get("user.name", ""),      
+        }
+    }
+    stix_objects.append(process_object)
+
+    # Create Observed Data object
+    observed_data_object = {
+        "type": "observed-data",
+        "id": generate_stix_id("observed-data"),
+        "created": event_time or _get_current_time_iso_format(),
+        "modified": event_time or _get_current_time_iso_format(),
+        "first_observed": event_time or _get_current_time_iso_format(),
+        "last_observed": event_time or _get_current_time_iso_format(),
+        "number_observed": 1,
+        "object_refs": [process_object["id"]], #need to link in the tracee attack-pattern definitions
+        "extensions": {
+            #"extension-definition--kubernetes-metadata": {
+                "extension_type": "property-extension",
+                "alert_name": log.get("priority", ""),
+                "arguments": flatten_kprobe_args_2(log.get("tags", "")),
+                "rule_id": log.get("rule", ""),
+                "node_info": log.get("hostname", ""),
+                "children": "",
+           # }
+        }
+    }
+    stix_objects.append(observed_data_object)
+
+    return stix_objects
+
+
 def matches(pattern, bundle, stix_version=STIX_VERSION):
     try:
         return len(match(pattern, [bundle], stix_version=stix_version)) == 1
@@ -467,6 +515,8 @@ def transform_tetragon_to_stix(tetragon_log):
             stix_objects.extend(transform_kubescape_to_stix(log)) 
         elif "matchedPolicies" in log:
             stix_objects.extend(transform_tracee_to_stix(log))
+        elif "interesting" in log:
+            stix_objects.extend(transform_falco_to_stix(log))
         
         #DEBUG: insert into REDISDEBUG the stix_objects at this point -> turn off for production
         client.hset(REDIS_DEBUGKEY, f"{unique_key}", json.dumps(sanitize_bundle(stix_objects)))
