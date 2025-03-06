@@ -68,7 +68,7 @@ jobs:
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-            ${{ steps.meta.outputs.tags }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.platform }}
         #run: |
         #  cd lightening-rod
         #  docker buildx build --platform ${{ matrix.platform }} --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:0.0.1 --push .
@@ -91,12 +91,12 @@ jobs:
         run: |
           trivy image --format cyclonedx --output sbom.json ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
-      - name: Upload SBOM
-        if: matrix.platform == 'linux/amd64'
-        uses: actions/upload-artifact@v4
-        with:
-          name: sbom
-          path: sbom.json
+     # - name: Upload SBOM
+     #   if: matrix.platform == 'linux/amd64'
+     #   uses: actions/upload-artifact@v4
+     #   with:
+     #     name: sbom
+     #     path: sbom.json
           
 
 
