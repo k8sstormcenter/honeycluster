@@ -218,80 +218,90 @@ def flatten_tracee_args(args, prefix=None):
 
 
 
+def generate_unique_log_id(container_id, pid, hostname, timestamp):
+    if not isinstance(pid, int):
+        raise ValueError("pid must be an integer")
+    if not isinstance(hostname, str):
+        raise ValueError("hostname must be a string")
+    if not isinstance(timestamp, (str, datetime)):
+        raise ValueError("timestamp must be a string (ISO 8601) or a datetime object")
+    # Convert Timestamp to ISO 8601 String (if needed)
+        
+    unique_id = f"{container_id or ''}|{pid}|{hostname}|{timestamp}"
 
- # THIS WOULD BE A STANDALONE PLUGIN FOR ALL THOSE USING TETRAGON
-def transform_kprobe_to_stix(log, node_name):
+    # Generate the Unique ID (SHA256 Hash)
+    #unique_id = hashlib.sha256(input_string.encode('utf-8')).hexdigest()
+
+    return unique_id
+
+def kprobe(k, element):
+    try:
+        kprobe=k.get(element,{}).get("string_arg", "") or k.get(element,{}).get("int_arg", "") or k.get(element,{}).get("sock_arg", "") or k.get(element,{}).get("file_arg", "")
+    except:
+        kprobe = ""
+    return kprobe
+
+
+# Requirements:
+# the timestamps must all be the same form and legnth!
+# the fields should capture as identical as possible the information from the very different sources
+# we need to identify a common ID to use as process identifer not these random-gen UUIDs!
+def transform_kprobe_to_stix(log, node_name,k):
     print(f"Transforming kprobe log to STIX")
     parent = log.get("parent", {})
     process = log.get("process", {})
-    file_args = [] 
-    for arg in log.get("args", []):
-        file_args.append(arg)
-
+    container_id = process.get("pod", {}).get("container", {}).get("id", "")
+    pid = process.get("pid", -1)
+    hostname = node_name
+    timestamp = process.get("start_time")
+    corr_id = generate_unique_log_id(container_id, pid, hostname, timestamp)
 
     stix_objects = []
-
-    parent_process_object = {
-        "type": "process",
-        "id": create_process_stix_id(parent.get("exec_id")),
-        "pid": parent.get("pid", -1),
-        "command_line": f"{parent.get('binary')} {parent.get('arguments')}",
-        "cwd": parent.get("cwd"),
-        "created_time": parent.get("start_time", _get_current_time_iso_format()),
-    }
-    stix_objects.append(parent_process_object)
 
     process_object = {
         "type": "process",
         "id": create_process_stix_id(process.get("exec_id")),
-        "pid": process.get("pid", -1),
+        "pid": pid,
         "command_line": f"{process.get('binary')} {process.get('arguments')}",
         "cwd": process.get("cwd"),
-        "created_time": process.get("start_time", _get_current_time_iso_format()),
-        "parent_ref": parent_process_object["id"],
+        "created_time": timestamp,
         "extensions": {
-          #"extension-definition-kubernetes-kprobe": {  
-                "extension_type": "property-extension",
                 "flags": process.get("flags", ""),
-                "docker": process.get("docker", ""),
-                "container_id": process.get("pod", {}).get("container", {}).get("id", ""),
+                "image_id": process.get("pod", {}).get("container", {}).get("image", {}).get("id", ""),
+                "container_id": container_id,
                 "pod_name": process.get("pod", {}).get("name", ""),
                 "namespace": process.get("pod", {}).get("namespace", ""),
                 "function_name": log.get("function_name", ""),
-                "kprobe0": log.get("kprobe0", ""),
-                "kprobe1": log.get("kprobe1", ""),
-                "kprobe2": log.get("kprobe2", ""),
-                "kprobe3": log.get("kprobe3 ", ""),
-                "kprobe4": log.get("kprobe4", "")
-           # }          
+                "parent_pid":parent.get("exec_id"),
+                "parent_command_line": f"{parent.get('binary')} {parent.get('arguments')}",
+                "parent_cwd": parent.get("cwd"),
+                "grand_parent_pid": parent.get("parent_exec_id"),
+                "kprobe0": kprobe(k,"kprobe0"),
+                "kprobe1": kprobe(k,"kprobe1"),
+                "kprobe2": kprobe(k,"kprobe2"),
+                "kprobe3": kprobe(k,"kprobe3"),
+                "kprobe4": kprobe(k,"kprobe4")         
         }
     }
     stix_objects.append(process_object)
-    parent_child_relationship = create_relationship(
-        parent_process_object["id"], process_object["id"], "parent-child"
-    )
-    stix_objects.append(parent_child_relationship)
 
     current_time = log.get("time", _get_current_time_iso_format())
+    # This is where interpreted stuff gets appended, like mitre TTPs, criticality and such
     observed_data_object = {
         "type": "observed-data",
         "id": generate_stix_id("observed-data"),
         "created": current_time,
-        "modified": current_time,
         "first_observed": current_time,
         "last_observed": current_time,
-        "number_observed": 1,
-        "object_refs": [process_object["id"], parent_process_object["id"]],
+        "number_observed": 1,#TODO: we need to get this from the dedup function
+        "object_refs": [process_object["id"]],
         "extensions": {
-            #"extension-definition--kubernetes-metadata": {  
-                "extension_type": "property-extension",
-                "alert_name": log.get("policy_name"),
-                "arguments": "",
-                "rule_id": "",
+                "alert_name": log.get("action"),
+                "correlation": corr_id,
+                "rule_id": log.get("policy_name"),
                 "node_info": {"node_name": node_name},
                 "children": ""
             }
-            #}
         }
         
 
@@ -303,43 +313,43 @@ def transform_kubescape_to_stix(log):
     base_metadata = log.get("BaseRuntimeMetadata", {})
     runtime_k8s = log.get("RuntimeK8sDetails", {})
     runtime_process = log.get("RuntimeProcessDetails", {})
-    cloud_metadata = log.get("CloudMetadata", {})
+    cloud_metadata = log.get("CloudMetadata", {}) or {}
+
+    container_id = runtime_k8s.get("containerID", "")
+    pid = runtime_process.get("processTree", {}).get("pid", -1)
+    hostname = cloud_metadata.get("instance_id", {}) or ""
+    timestamp =  base_metadata.get("timestamp", _get_current_time_iso_format())
+    corr_id = generate_unique_log_id(container_id, pid, hostname, timestamp)
     
     stix_objects = []
-    parent_process_object = { # we should really consider removing the parents for kubescape, they are not really useful
-        "type": "process",
-        "id": generate_stix_id("process"),
-        "pid": runtime_process.get("processTree", {}).get("ppid", -1),
-        "command_line": runtime_process.get("processTree", {}).get("pcomm", ""),
-        "cwd":"",
-        "created_time": base_metadata.get("timestamp", _get_current_time_iso_format()),
-    }
-    stix_objects.append(parent_process_object)
 
     process_object = {
         "type": "process",
-        "id": generate_stix_id("process"), # unfortunately kubescape doesnt capture something to
-        "pid": runtime_process.get("processTree", {}).get("pid", -1), 
+        "id": generate_stix_id("process"), # TODO use corr_id
+        "pid": pid, 
         "command_line": runtime_process.get("processTree", {}).get("cmdline", ""),
         "cwd": runtime_process.get("processTree", {}).get("cwd", ""),
         "created_time": base_metadata.get("timestamp", _get_current_time_iso_format()),
-        "parent_ref": parent_process_object["id"],
         "extensions": {
-           # "extension-definition-kubernetes-kprobe": { 
-                "extension_type": "property-extension",
-                "container_id": runtime_k8s.get("containerID", ""),
+                "container_id": container_id,
                 "flags": log.get("message", ""),
-                "docker":  runtime_k8s.get("image", ""),
+                "image_id":  runtime_k8s.get("image", ""),
                 "pod_name": runtime_k8s.get("podName", ""),
                 "namespace": runtime_k8s.get("namespace", ""),
                 "function_name": log.get("RuleID", ""),
-                "kprobe_arguments": base_metadata.get("arguments", {}) #might need to flatten
-           # }
+                "parent_pid":runtime_process.get("processTree", {}).get("ppid", -1),
+                "parent_command_line": runtime_process.get("processTree", {}).get("pcomm", ""),
+                "parent_cwd": "",
+                "grand_parent_pid": "",
+                "kprobe0.capability": base_metadata.get("arguments", {}).get("capability", ""),
+                "kprobe1.syscall": base_metadata.get("arguments", {}).get("syscall", ""),
+                "kprobe2.trace": base_metadata.get("trace", {}),
+                "kprobe3.severity": base_metadata.get("severity", {}),
+                "kprobe4.infectedPID": base_metadata.get("infectedPID", {})  
         }
     }
     stix_objects.append(process_object)
 
-    # Create Observed Data object
     current_time = log.get("time", _get_current_time_iso_format())
     observed_data_object = {
         "type": "observed-data",
@@ -348,16 +358,13 @@ def transform_kubescape_to_stix(log):
         "first_observed": current_time,
         "last_observed": current_time,
         "number_observed": 1,
-        "object_refs": [process_object["id"], parent_process_object["id"]],
+        "object_refs": [process_object["id"]],
         "extensions": {
-            #"extension-definition--kubernetes-metadata": {  
-                "extension_type": "property-extension",
                 "alert_name": base_metadata.get("alertName", ""),
-                "arguments": base_metadata.get("arguments", {}),
+                "correlation": corr_id, 
                 "rule_id": log.get("RuleID", ""),
-                "node_info": cloud_metadata.get("instance_id", {}),
+                "node_info": hostname, #importnat Kubescape doesnt give us the full hostname of the node
                 "children": runtime_process.get("processTree", {}).get("children", [])
-           # }
         }
     }
     stix_objects.append(observed_data_object)
@@ -382,10 +389,10 @@ def transform_tracee_to_stix(log):
         "created_time": event_time or _get_current_time_iso_format(),
         "extensions": {
             #"extension-definition-kubernetes-kprobe": {
-                "extension_type": "property-extension",
+               # "extension_type": "property-extension",
                 "container_id": container.get("id", ""),
                 "flags": "", #for tracee those will be in the nested args
-                "docker": container.get("image", ""),
+                "image_id": container.get("image", ""),
                 "pod_name": kubernetes.get("podName", ""),
                 "namespace": kubernetes.get("podNamespace", ""),
                 "function_name": log.get("syscall", ""),  
@@ -407,7 +414,7 @@ def transform_tracee_to_stix(log):
         "object_refs": [process_object["id"], metadata.get("id", "")], #need to link in the tracee attack-pattern definitions
         "extensions": {
             #"extension-definition--kubernetes-metadata": {
-                "extension_type": "property-extension",
+               # "extension_type": "property-extension",
                 "alert_name": metadata.get("signatureName", ""),
                 "arguments": f"{metadata.get('Category', '')} {metadata.get('Technique', '')} {metadata.get('external_id', '')}",
                 "rule_id": metadata.get("signatureID", ""),
@@ -424,7 +431,6 @@ def transform_tracee_to_stix(log):
 
 def transform_falco_to_stix(log):
     process = log.get("interesting", {})
-    tags = log.get("tags", [])
     event_time = log.get("timestamp", None)
     stix_objects = []
 
@@ -436,14 +442,13 @@ def transform_falco_to_stix(log):
         "cwd": process.get("proc.exepath", ""),
         "created_time": process.get("evt.time", _get_current_time_iso_format()),
         "extensions": {
-                "extension_type": "property-extension",
+               # "extension_type": "property-extension",
                 "flags": process.get("evt.arg.flags", ""),
-                "docker": f"{process.get("container.image.repository")} {process.get('container.image.tag')}",
+                "image_id": f"{process.get("container.image.repository")} {process.get('container.image.tag')}",
                 "container_id": process.get("container.id",""),
                 "pod_name": process.get("k8s.pod.name", ""),
                 "namespace": process.get("k8s.pod.namespace", ""),
                 "function_name": log.get("evt.type", ""),
-                #so, we have fd and proc.exe events , it is a terrible idea to haphazardly map them into something flat like this, but its a start
                 "kprobe0": process.get("fd.l4proto", ""),
                 "kprobe1": process.get("fd.name", ""),
                 "kprobe2": process.get("fd.type", ""),
@@ -465,7 +470,7 @@ def transform_falco_to_stix(log):
         "object_refs": [process_object["id"]], #need to link in the tracee attack-pattern definitions
         "extensions": {
             #"extension-definition--kubernetes-metadata": {
-                "extension_type": "property-extension",
+                #"extension_type": "property-extension",
                 "alert_name": log.get("priority", ""),
                 "arguments": ", ".join(log.get("tags", [])),
                 "rule_id": log.get("rule", ""),
@@ -507,10 +512,10 @@ def transform_tetragon_to_stix(tetragon_log):
         stix_objects = []  
 
         if "process_exec" in log:
-            stix_objects.extend(transform_kprobe_to_stix(log["process_exec"], log.get("node_name"))) 
+            stix_objects.extend(transform_kprobe_to_stix(log["process_exec"], log.get("node_name"),{})) 
 
         elif "process_kprobe" in log:
-            stix_objects.extend(transform_kprobe_to_stix(log["process_kprobe"], log.get("node_name"))) 
+            stix_objects.extend(transform_kprobe_to_stix(log["process_kprobe"], log.get("node_name"),log))
         elif "BaseRuntimeMetadata" in log: 
             stix_objects.extend(transform_kubescape_to_stix(log)) 
         elif "matchedPolicies" in log:
