@@ -362,6 +362,13 @@ customConfig:
       condition: |
         !includes(["honey", "storm"], .kubernetes.podNamespace)  && .args != null
 
+    tracee_dedupe:
+      type: dedupe
+      inputs:
+        - tracee-create_key
+      fields :
+        match: [.md5_hash]
+
     tracee-create_key:
       type: remap
       inputs:
@@ -528,7 +535,7 @@ customConfig:
     traceeredis: 
       type: redis
       inputs:
-         - tracee-create_key
+         - tracee_dedupe
       encoding:
         codec: json
       endpoint: redis://redis-headless.storm.svc.cluster.local:6379
