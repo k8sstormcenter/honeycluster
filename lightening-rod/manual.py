@@ -378,31 +378,32 @@ def transform_tracee_to_stix(log):
     event_time = log.get("timestamp", None)
     if event_time: 
        event_time = datetime.utcfromtimestamp(event_time / 1e9).isoformat(timespec="milliseconds") + "Z"
+
+    container_id = container.get("id", "")
+    pid = log.get("processId", -1)
+    hostname = log.get("hostName", "") or ""
+    corr_id = generate_unique_log_id(container_id, pid, hostname, event_time)
     stix_objects = []
 
     process_object = {
         "type": "process",
-        "id": generate_stix_id("process"),
-        "pid": log.get("processId", -1),
+        "id": generate_stix_id("process"), #TODO: use corr_id
+        "pid": pid,
         "command_line": log.get("processName", ""),
         "cwd": "",  # Not available in Tracee
         "created_time": event_time or _get_current_time_iso_format(),
         "extensions": {
-            #"extension-definition-kubernetes-kprobe": {
-               # "extension_type": "property-extension",
-                "container_id": container.get("id", ""),
+                "container_id": container_id,
                 "flags": "", #for tracee those will be in the nested args
                 "image_id": container.get("image", ""),
                 "pod_name": kubernetes.get("podName", ""),
                 "namespace": kubernetes.get("podNamespace", ""),
                 "function_name": log.get("syscall", ""),  
                 "kprobe_arguments": flatten_tracee_args(log.get("args", ""))
-            #}
         }
     }
     stix_objects.append(process_object)
 
-    # Create Observed Data object
     observed_data_object = {
         "type": "observed-data",
         "id": generate_stix_id("observed-data"),
@@ -413,14 +414,13 @@ def transform_tracee_to_stix(log):
         "number_observed": 1,
         "object_refs": [process_object["id"], metadata.get("id", "")], #need to link in the tracee attack-pattern definitions
         "extensions": {
-            #"extension-definition--kubernetes-metadata": {
-               # "extension_type": "property-extension",
                 "alert_name": metadata.get("signatureName", ""),
-                "arguments": f"{metadata.get('Category', '')} {metadata.get('Technique', '')} {metadata.get('external_id', '')}",
+                "correlation": corr_id,
+                "interpretation": f"{metadata.get('Category', '')} {metadata.get('Technique', '')} {metadata.get('external_id', '')}",
                 "rule_id": metadata.get("signatureID", ""),
-                "node_info": log.get("hostName", ""),
+                "node_info": hostname,
                 "children": "", #not provided by tracee
-           # }
+
         }
     }
     stix_objects.append(observed_data_object)
@@ -442,7 +442,6 @@ def transform_falco_to_stix(log):
         "cwd": process.get("proc.exepath", ""),
         "created_time": process.get("evt.time", _get_current_time_iso_format()),
         "extensions": {
-               # "extension_type": "property-extension",
                 "flags": process.get("evt.arg.flags", ""),
                 "image_id": f"{process.get("container.image.repository")} {process.get('container.image.tag')}",
                 "container_id": process.get("container.id",""),
@@ -458,7 +457,6 @@ def transform_falco_to_stix(log):
     }
     stix_objects.append(process_object)
 
-    # Create Observed Data object
     observed_data_object = {
         "type": "observed-data",
         "id": generate_stix_id("observed-data"),
@@ -469,14 +467,12 @@ def transform_falco_to_stix(log):
         "number_observed": 1,
         "object_refs": [process_object["id"]], #need to link in the tracee attack-pattern definitions
         "extensions": {
-            #"extension-definition--kubernetes-metadata": {
-                #"extension_type": "property-extension",
                 "alert_name": log.get("priority", ""),
-                "arguments": ", ".join(log.get("tags", [])),
+                "correlation": corr_id,
+                "interpretation": ", ".join(log.get("tags", [])),
                 "rule_id": log.get("rule", ""),
                 "node_info": log.get("hostname", ""),
-                "children": "",
-           # }
+                "children": ""
         }
     }
     stix_objects.append(observed_data_object)
