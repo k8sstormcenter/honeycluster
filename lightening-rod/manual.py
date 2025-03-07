@@ -424,7 +424,7 @@ def transform_tracee_to_stix(log):
 
 def transform_falco_to_stix(log):
     process = log.get("interesting", {})
-    #metadata = log.get("tags", {})
+    tags = log.get("tags", [])
     event_time = log.get("timestamp", None)
     stix_objects = []
 
@@ -467,7 +467,7 @@ def transform_falco_to_stix(log):
             #"extension-definition--kubernetes-metadata": {
                 "extension_type": "property-extension",
                 "alert_name": log.get("priority", ""),
-                "arguments": flatten_kprobe_args_2(log.get("tags", "")),
+                "arguments": ", ".join(log.get("tags", [])),
                 "rule_id": log.get("rule", ""),
                 "node_info": log.get("hostname", ""),
                 "children": "",
