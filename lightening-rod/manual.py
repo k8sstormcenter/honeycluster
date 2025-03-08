@@ -2,6 +2,7 @@ import uuid
 import json
 import os
 import base64
+import re
 from datetime import datetime, timezone
 from flask import Flask, request, jsonify
 import redis
@@ -44,9 +45,12 @@ client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
 # You can test them one by one or all at once
 # Once you are happy with your set of patterns, you should persist them to MongoDB 
 
+# TODO: rewrite as WASM components
+
 
 ### first part of code (TODO: move to a separate file) routes
 
+# route of type redis-state-management
 @app.route('/wipesafe', methods=['GET'])
 def wipesafe():
     try:
@@ -60,6 +64,13 @@ def wipesafe():
 
 # lets deduce which type of logs we are dealing with by looking at the queue-name
 # the Bundles should all be in a form that can be deduplicated, no matter the original log source
+
+## route of type data-transform-unspecific
+## while we pass the name of queue, which determines the datasource, it is not specific
+## it can be run in parallel for different queues 
+## TODO: input validation :) 
+## TODO: implement an actual queue (this was abandoned after node and pythons queue libs were incompatible)
+## TODO: this function will fail is the redis-key is too large, thus queue/chunking/pagination 
 @app.route('/convert_list_to_stix', methods=['GET'])
 def convert_list_to_stix():
     queue= request.args.get('queue')
@@ -67,13 +78,16 @@ def convert_list_to_stix():
     tetragon_logs = client.lrange(queue, 0, -1)
     transform_tetragon_to_stix(tetragon_logs)
     return jsonify({"message": "List been converted to STIX"}), 200
-
+## route of type data-transform-unspecific
 @app.route('/bundle_for_viz', methods=['GET'])
 def bundle_for_viz():
     individual_bundles = client.hgetall(REDIS_BUNDLEKEY)
     deduplicate_bundles(individual_bundles)
     return jsonify({"message": "STIX bundeling ready for visualization"}), 200
 
+
+
+## route of type configure-transformation-unspecific
 @app.route('/add_attack_bundle', methods=['POST'])
 def add_attack_bundle():
     data = request.json
@@ -133,7 +147,7 @@ def create_relationship(source_ref, target_ref, relationship_type):
     return {
         "type": "relationship",
         "spec_version": STIX_VERSION,  
-        "id": generate_stix_id("relationship"),
+        "id": generate_stix_id("relationship"), #TODO: create a predictable UUID  based on the three inputs
         "created": _get_current_time_iso_format(),  
         "modified": _get_current_time_iso_format(),
         "relationship_type": relationship_type,
@@ -171,30 +185,28 @@ def get_pattern(STIX_ATTACK_PATTERN):
             return obj["pattern"], obj["id"]  # Return both pattern and id
     return None, None
 
-
-def create_process_stix_id(exec_id):
+# The following works for tetragon
+def unique_process_stix_id(exec_id):
     if exec_id:
         try:
             decoded_exec_id = base64.b64decode(exec_id).decode('utf-8')  
             truncated_exec_id = decoded_exec_id[-36:]  
             stix_id = f"process--{truncated_exec_id}"
             return stix_id
-        except Exception as e:  # Handle decoding or other errors
+        except Exception as e:  
             print(f"Error decoding or hashing exec_id: {e}")
 
-def flatten_kprobe_args_2(kprobe_args):
-    return [str(v) for arg in kprobe_args for v in arg.values()]
+# This is an attempt to make a concat UUID for STIX, it doesnt work for falco until we get a pid
+def create_process_stix_id(corr_id):
+    if corr_id:
+        try:
+            truncated_exec_id = corr_id[:36]  
+            stix_id = f"process--{truncated_exec_id}"
+            return stix_id
+        except Exception as e:  
+            print(f"Error decoding or hashing exec_id: {e}")
 
-def flatten_kprobe_args(args):
-    flattened_args = {}
-    for i, item in enumerate(args): 
-        if isinstance(item, list):
-            flattened_args.update(flatten_kprobe_args(item))  
-        elif isinstance(item, dict):
-            for k, v in item.items():
-                new_key = f"{k}_{i}" if k in flattened_args else k  
-                flattened_args[new_key] = v
-    return flattened_args
+
 
 def flatten_tracee_args(args, prefix=None):
     flattened_args = {}
@@ -218,15 +230,38 @@ def flatten_tracee_args(args, prefix=None):
 
 
 
-def generate_unique_log_id(container_id, pid, hostname, timestamp):
+def generate_unique_log_id(container_id, pid, hostname, time,src):
     # Convert Timestamp to ISO 8601 
     # We use the first two ids since they are most reliably available in toolings,
-    unique_id = f"{container_id}|{timestamp}|{hostname}|{pid}"
+    #tetra: containerd://5a47f1e4aea1058c56280dfac88800b13082c4ac12c9e475c5485a9dd4d5a6bf|787304|honeycluster-control-plane|2025-03-07T16:26:29.583093313Z
+    #falco: 7edade45f808
+    pid= str(pid).zfill(8)
+    host=str(hostname[:12]).zfill(12)
+
+    if src == "tetra":
+        con_id = re.match(r"containerd://([0-9a-f]+)", container_id).group(1)[:12]
+        timestamp = re.sub(r"[-\:\.]", "", time[2:22]) 
+    elif src == "falco":
+        con_id = container_id
+        timestamp = re.sub(r"[-\:\.]", "", time[2:22]) 
+    elif src == "kubescape":
+        con_id = container_id[:12]
+        timestamp = re.sub(r"[-\:\.]", "", time[2:22]) 
+    elif src == "tracee":
+        con_id = container_id[:12]
+        timestamp = re.sub(r"[-\:\.]", "", time[2:22]) 
+        #host for tracee can be weird if she is picking up stuff on kind, should work on real k8s though
+    else:  
+        con_id = container_id[:12]
+        timestamp = re.sub(r"[-\:\.]", "", time[2:22]) 
+    
+    unique_id = f"{timestamp}{con_id}{pid}{host}"
     # Given that we need to manipulate the above string, we wont hash it
     #unique_id = hashlib.sha256(input_string.encode('utf-8')).hexdigest()
 
     return unique_id
 
+# This function is specific to tetragons format
 def kprobe(k, element):
     try:
         kprobe=k.get(element,{}).get("string_arg", "") or k.get(element,{}).get("int_arg", "") or k.get(element,{}).get("sock_arg", "") or k.get(element,{}).get("file_arg", "")
@@ -247,13 +282,13 @@ def transform_kprobe_to_stix(log, node_name,k):
     pid = process.get("pid", -1)
     hostname = node_name
     timestamp = process.get("start_time")
-    corr_id = generate_unique_log_id(container_id, pid, hostname, timestamp)
+    corr_id = generate_unique_log_id(container_id, pid, hostname, timestamp,"tetra")
 
     stix_objects = []
 
     process_object = {
         "type": "process",
-        "id": create_process_stix_id(process.get("exec_id")),
+        "id": create_process_stix_id(corr_id),
         "pid": pid,
         "command_line": f"{process.get('binary')} {process.get('arguments')}",
         "cwd": process.get("cwd"),
@@ -312,13 +347,13 @@ def transform_kubescape_to_stix(log):
     pid = runtime_process.get("processTree", {}).get("pid", -1)
     hostname = cloud_metadata.get("instance_id", {}) or ""
     timestamp =  base_metadata.get("timestamp", _get_current_time_iso_format())
-    corr_id = generate_unique_log_id(container_id, pid, hostname, timestamp)
+    corr_id = generate_unique_log_id(container_id, pid, hostname, timestamp,"kubescape")
     
     stix_objects = []
 
     process_object = {
         "type": "process",
-        "id": generate_stix_id("process"), # TODO use corr_id
+        "id": create_process_stix_id(corr_id), 
         "pid": pid, 
         "command_line": runtime_process.get("processTree", {}).get("cmdline", ""),
         "cwd": runtime_process.get("processTree", {}).get("cwd", ""),
@@ -375,12 +410,12 @@ def transform_tracee_to_stix(log):
     container_id = container.get("id", "")
     pid = log.get("processId", -1)
     hostname = log.get("hostName", "") or ""
-    corr_id = generate_unique_log_id(container_id, pid, hostname, event_time)
+    corr_id = generate_unique_log_id(container_id, pid, hostname, event_time,"tracee")
     stix_objects = []
 
     process_object = {
         "type": "process",
-        "id": generate_stix_id("process"), #TODO: use corr_id
+        "id": create_process_stix_id(corr_id),
         "pid": pid,
         "command_line": log.get("processName", ""),
         "cwd": "",  # Not available in Tracee
@@ -413,7 +448,6 @@ def transform_tracee_to_stix(log):
                 "rule_id": metadata.get("signatureID", ""),
                 "node_info": hostname,
                 "children": "", #not provided by tracee
-
         }
     }
     stix_objects.append(observed_data_object)
@@ -428,12 +462,12 @@ def transform_falco_to_stix(log):
     container_id = process.get("container.id","")
     pid = process.get("proc.tty", -1) # That is NOT the PID, we dont have the PID and for some reason adding the field to output doesnt work, PLEASE HELP
     hostname = log.get("hostname", "") 
-    corr_id = generate_unique_log_id(container_id, pid, hostname, event_time)
+    corr_id = generate_unique_log_id(container_id, pid, hostname, event_time,"falco")
     stix_objects = []
 
     process_object = {
         "type": "process",
-        "id": create_process_stix_id(corr_id), #TODO: use corr_id FIX PADDING
+        "id": create_process_stix_id(corr_id),
         "pid": pid,
         "command_line": f"{process.get("proc.commandline")}",
         "cwd": process.get("proc.exepath", ""),
