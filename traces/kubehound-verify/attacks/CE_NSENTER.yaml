@@ -25,7 +25,7 @@ metadata:
 spec:
   containers:
     - name: kh-calibration-ce-11-pod
-      image: entlein/ce-nsenter-setns:0.0.1  
+      image: k8sstormcenter/lightening-ce-nsenter:latest 
       securityContext:
         capabilities:
           add: ["SYS_ADMIN"]
