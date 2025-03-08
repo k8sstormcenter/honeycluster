@@ -53,7 +53,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./attacks/lightening
-          file: ./attacks/lightening-rod/Dockerfile
+          file: ./attacks/lightening/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
