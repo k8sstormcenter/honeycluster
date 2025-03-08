@@ -219,17 +219,10 @@ def flatten_tracee_args(args, prefix=None):
 
 
 def generate_unique_log_id(container_id, pid, hostname, timestamp):
-    if not isinstance(pid, int):
-        raise ValueError("pid must be an integer")
-    if not isinstance(hostname, str):
-        raise ValueError("hostname must be a string")
-    if not isinstance(timestamp, (str, datetime)):
-        raise ValueError("timestamp must be a string (ISO 8601) or a datetime object")
-    # Convert Timestamp to ISO 8601 String (if needed)
-        
-    unique_id = f"{container_id or ''}|{pid}|{hostname}|{timestamp}"
-
-    # Generate the Unique ID (SHA256 Hash)
+    # Convert Timestamp to ISO 8601 
+    # We use the first two ids since they are most reliably available in toolings,
+    unique_id = f"{container_id}|{timestamp}|{hostname}|{pid}"
+    # Given that we need to manipulate the above string, we wont hash it
     #unique_id = hashlib.sha256(input_string.encode('utf-8')).hexdigest()
 
     return unique_id
@@ -432,27 +425,33 @@ def transform_tracee_to_stix(log):
 def transform_falco_to_stix(log):
     process = log.get("interesting", {})
     event_time = log.get("timestamp", None)
+    container_id = process.get("container.id","")
+    pid = process.get("proc.tty", -1) # That is NOT the PID, we dont have the PID and for some reason adding the field to output doesnt work, PLEASE HELP
+    hostname = log.get("hostname", "") 
+    corr_id = generate_unique_log_id(container_id, pid, hostname, event_time)
     stix_objects = []
 
     process_object = {
         "type": "process",
-        "id": create_process_stix_id(process.get("exec_id")),
-        "pid": process.get("pid", -1),
+        "id": create_process_stix_id(corr_id), #TODO: use corr_id FIX PADDING
+        "pid": pid,
         "command_line": f"{process.get("proc.commandline")}",
         "cwd": process.get("proc.exepath", ""),
         "created_time": process.get("evt.time", _get_current_time_iso_format()),
         "extensions": {
                 "flags": process.get("evt.arg.flags", ""),
                 "image_id": f"{process.get("container.image.repository")} {process.get('container.image.tag')}",
-                "container_id": process.get("container.id",""),
+                "container_id": container_id,
                 "pod_name": process.get("k8s.pod.name", ""),
                 "namespace": process.get("k8s.pod.namespace", ""),
                 "function_name": log.get("evt.type", ""),
-                "kprobe0": process.get("fd.l4proto", ""),
-                "kprobe1": process.get("fd.name", ""),
-                "kprobe2": process.get("fd.type", ""),
-                "kprobe3": process.get("evt.res", ""),
-                "kprobe4": process.get("user.name", ""),      
+                "parent_pid": process.get("proc.ppid", -1),#that one doesnt exist either
+                "parent_command_line": f"{process.get('proc.pname')}",
+                "kprobe0.fdl4proto": process.get("fd.l4proto", ""),
+                "kprobe1.fdname": process.get("fd.name", ""),
+                "kprobe2.fdtype": process.get("fd.type", ""),
+                "kprobe3.evtres": process.get("evt.res", ""),
+                "kprobe4.username": process.get("user.name", ""),      
         }
     }
     stix_objects.append(process_object)
@@ -471,7 +470,7 @@ def transform_falco_to_stix(log):
                 "correlation": corr_id,
                 "interpretation": ", ".join(log.get("tags", [])),
                 "rule_id": log.get("rule", ""),
-                "node_info": log.get("hostname", ""),
+                "node_info": hostname,
                 "children": ""
         }
     }
