@@ -27,7 +27,8 @@ spec:
   serviceAccountName: rolebind-sa-rb-cr-crb-cr-fail
   containers:
     - name: rolebind-pod-rb-cr-crb-cr-fail
-      image: entlein/identity-impersonate:0.0.1
+      #image: entlein/identity-impersonate:0.0.1
+      image: ghcr.io/k8sstormcenter/lightening-identity-impersonate:latest
       imagePullPolicy: Always
       command: ["/bin/bash", "-c"]
       args:
@@ -65,7 +66,7 @@ spec:
   serviceAccountName: rolebind-sa-rb-cr-rb-cr
   containers:
     - name: rolebind-pod-rb-cr-rb-cr
-      image: entlein/identity-impersonate:0.0.1
+      image: ghcr.io/k8sstormcenter/lightening-identity-impersonate:latest
       imagePullPolicy: Always
       command: ["/bin/bash", "-c"]
       args:
@@ -103,7 +104,7 @@ spec:
   serviceAccountName: rolebind-sa-rb-cr-rb-r
   containers:
     - name: rolebind-pod-rb-cr-rb-r
-      image: entlein/identity-impersonate:0.0.1
+      image: ghcr.io/k8sstormcenter/lightening-identity-impersonate:latest
       imagePullPolicy: Always
       command: ["/bin/bash", "-c"]
       args:

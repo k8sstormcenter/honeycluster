@@ -1,0 +1,17 @@
+FROM ubuntu:24.04
+RUN apt-get update && apt-get install -y curl apt-transport-https ca-certificates  gnupg strace 
+RUN /bin/sh -c curl -LO "https://dl.k8s.io/release/v1.32.0/bin/linux/amd64/kubectl" && chmod +x kubectl && mv kubectl /usr/local/bin/
+ENTRYPOINT ["/bin/bash" "-c"] 
+
+
+# ❯ docker history --no-trunc entlein/pod-create:0.0.1
+# IMAGE                                                                     CREATED        CREATED BY                                                                                                                                         SIZE      COMMENT
+# sha256:f0edefca212e3cde551cc4662c02a4753d5cc4703deba256725afaadfd5d10a6   7 weeks ago    ENTRYPOINT ["/bin/bash" "-c"]                                                                                                                      0B        buildkit.dockerfile.v0
+# <missing>                                                                 7 weeks ago    RUN /bin/sh -c curl -LO "https://dl.k8s.io/release/v1.32.0/bin/linux/amd64/kubectl" && chmod +x kubectl && mv kubectl /usr/local/bin/ # buildkit   57.3MB    buildkit.dockerfile.v0
+# <missing>                                                                 7 weeks ago    RUN /bin/sh -c apt-get update && apt-get install -y curl apt-transport-https ca-certificates  gnupg strace # buildkit                              65.6MB    buildkit.dockerfile.v0
+# <missing>                                                                 3 months ago   /bin/sh -c #(nop)  CMD ["/bin/bash"]                                                                                                               0B        
+# <missing>                                                                 3 months ago   /bin/sh -c #(nop) ADD file:bcebbf0fddcba5b864d5d267b68dd23bcfb01275e6ec7bcab69bf8b56af14804 in /                                                   87.6MB    
+# <missing>                                                                 3 months ago   /bin/sh -c #(nop)  LABEL org.opencontainers.image.version=24.04                                                                                    0B        
+# <missing>                                                                 3 months ago   /bin/sh -c #(nop)  LABEL org.opencontainers.image.ref.name=ubuntu                                                                                  0B        
+# <missing>                                                                 3 months ago   /bin/sh -c #(nop)  ARG LAUNCHPAD_BUILD_ARCH                                                                                                        0B        
+# <missing>                                                                 3 months ago   /bin/sh -c #(nop)  ARG RELEASE                                                                                                                     0B 

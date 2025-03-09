@@ -39,7 +39,7 @@ spec:
   serviceAccountName: pod-create-sa 
   containers:
   - name: attacker-container
-    image: entlein/pod-create:0.0.1
+    image: ghcr.io/k8sstormcenter/lightening-pod-create:latest
     imagePullPolicy: Always
     command: ["/bin/sh", "-c"]
     args:
