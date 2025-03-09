@@ -2,8 +2,7 @@ name: Build and push lightening-kh-verify
 on:
   push:
     branches:
-      - main
-  pull_request:
+      - neo
 
 env:
   REGISTRY: ghcr.io

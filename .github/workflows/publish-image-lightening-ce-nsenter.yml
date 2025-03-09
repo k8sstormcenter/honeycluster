@@ -2,8 +2,7 @@ name: Build and push Lightening-ce-nsenter
 on:
   push:
     branches:
-      - main
-  pull_request:
+      - neo
 
 
 

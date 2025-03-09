@@ -2,8 +2,7 @@ name: Build and push Lightening-ce-umh-core-pattern
 on:
   push:
     branches:
-      - main
-  pull_request:
+      - neo
 
 
 
