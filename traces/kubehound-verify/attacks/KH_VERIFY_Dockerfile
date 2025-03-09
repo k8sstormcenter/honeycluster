@@ -1,0 +1,16 @@
+FROM ubuntu:24.04
+RUN apt-get update &&     apt-get install -y     kmod     iptables     mitmproxy     iproute2     net-tools     && apt-get clean
+
+ENTRYPOINT ["/bin/bash"] 
+
+
+# #❯ docker history --no-trunc entlein/kh-verify:0.0.1
+# IMAGE                                                                     CREATED        CREATED BY                                                                                                                                               SIZE      COMMENT
+# sha256:88944fd0a4b39b4fe6e0719570fc3ed547f9e893c7bd3616e480d7ce0d91b3fc   3 months ago   ENTRYPOINT ["/bin/bash"]                                                                                                                                 0B        buildkit.dockerfile.v0
+# <missing>                                                                 3 months ago   RUN /bin/sh -c apt-get update &&     apt-get install -y     kmod     iptables     mitmproxy     iproute2     net-tools     && apt-get clean # buildkit   196MB     buildkit.dockerfile.v0
+# <missing>                                                                 4 months ago   /bin/sh -c #(nop)  CMD ["/bin/bash"]                                                                                                                     0B        
+# <missing>                                                                 4 months ago   /bin/sh -c #(nop) ADD file:a3272496fda5a8d021b94dccaa6baa685ded51e9d23edb05f0b30978a83c9fc2 in /                                                         87.6MB    
+# <missing>                                                                 4 months ago   /bin/sh -c #(nop)  LABEL org.opencontainers.image.version=24.04                                                                                          0B        
+# <missing>                                                                 4 months ago   /bin/sh -c #(nop)  LABEL org.opencontainers.image.ref.name=ubuntu                                                                                        0B        
+# <missing>                                                                 4 months ago   /bin/sh -c #(nop)  ARG LAUNCHPAD_BUILD_ARCH                                                                                                              0B        
+# <missing>                                                                 4 months ago   /bin/sh -c #(nop)  ARG RELEASE                               

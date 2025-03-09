@@ -9,7 +9,8 @@ spec:
   hostNetwork: true
   containers:
     - name: netadmin-pod
-      image: entlein/kh-verify:0.0.1
+      #image: entlein/kh-verify:0.0.1
+      image: ghcr.io/k8sstormcenter/lightening-kh-verify:latest
       securityContext:
         capabilities:
           add: ["NET_ADMIN"]

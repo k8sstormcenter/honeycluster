@@ -11,7 +11,7 @@ metadata:
 spec:
   containers:
     - name: umh-core-container
-      image: entlein/ce-umh-core-pattern:0.0.1
+      image: ghcr.io/k8sstormcenter/lightening-ce-umh-core-pattern:latest
       imagePullPolicy: Always
       volumeMounts:
       - mountPath: /sysproc
