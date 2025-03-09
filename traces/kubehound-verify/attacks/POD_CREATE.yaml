@@ -54,7 +54,7 @@ spec:
           nodeName: honeycluster-control-plane 
           containers:
           - name: privileged-container
-            image: entlein/identity-impersonate:0.0.1
+            image: ghcr.io/k8sstormcenter/lightening-identity-impersonate:latest
             securityContext:
               capabilities:
                 add: ["SYS_ADMIN", "NET_ADMIN", "SYS_PTRACE", "SYS_MODULE", "DAC_OVERRIDE", "SETUID", "SETGID"] 
