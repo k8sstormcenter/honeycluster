@@ -8,5 +8,5 @@ metadata:
 spec:
   containers:
   - name: kubehound-identity-impersonate
-    image: entlein/identity-impersonate:0.0.1
+    image: ghcr.io/k8sstormcenter/lightening-identity-impersonate:latest
     imagePullPolicy: Always

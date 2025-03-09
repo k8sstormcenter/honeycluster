@@ -8,7 +8,7 @@ metadata:
 spec:
   containers:
   - name: kubehound-identity-assume
-    image: entlein/identity-assume:0.0.1
+    image: ghcr.io/k8sstormcenter/lightening-identity-assume:latest
     imagePullPolicy: Always
  
 
