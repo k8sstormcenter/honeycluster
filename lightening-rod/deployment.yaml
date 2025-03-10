@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
       - name: lighteningrod
-        image: ghcr.io/k8sstormcenter/lightning-rod:0.0.1
+        image: ghcr.io/k8sstormcenter/lightening-rod:latest
         #image: entlein/lighteningrod:0.0.1
         #image: entlein/lighteningrod:kpro
         imagePullPolicy: Always
