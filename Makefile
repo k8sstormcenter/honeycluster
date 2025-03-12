@@ -33,11 +33,17 @@ wipe:
 	-$(HELM) uninstall kubescape -n honey
 	-$(HELM) uninstall falco -n honey
 	-$(HELM) uninstall tracee -n honey
+	-$(HELM) uninstall deepfence-console --namespace honey
+	- kubectl delete pvc file-server-deepfence-console-file-server-0 -n honey 
+	- kubectl delete pvc kafka-broker-deepfence-console-kafka-broker-0 -n honey
+	- kubectl delete pvc neo4j-deepfence-console-neo4j-0 -n honey
+	- kubectl delete pvc postgres-deepfence-console-postgres-0 -n honey 
+	- kubectl delete pvc redis-deepfence-console-redis-0 -n honey
 	- kubectl delete namespace honey
 	-$(HELM) uninstall -n storm redis
 	- kubectl delete namespace storm
 	- kubectl delete namespace lightening
-	-$(HELM) uninstall tetragon -n kube-system
+	-$(HELM) uninstall tetragon -n honey
 
 
 ##@ Kind
@@ -78,7 +84,15 @@ falco:
 	-$(HELM) repo add falcosecurity https://falcosecurity.github.io/charts
 	-$(HELM) repo update
 	-$(HELM) upgrade --install falco falcosecurity/falco --namespace honey --create-namespace --values honeystack/falco/values.yaml		
-	
+
+.PHONY: deepfence
+deepfence:
+	-$(HELM) repo add deepfence https://deepfence-helm-charts.s3.amazonaws.com/threatmapper
+	-$(HELM) repo update
+	-$(HELM) upgrade --install deepfence-console deepfence/deepfence-console --namespace honey --create-namespace --values honeystack/deepfence/console-values.yaml
+	-$(HELM) upgrade --install  deepfence-agent deepfence/deepfence-agent --namespace honey --create-namespace --values honeystack/deepfence/values.yaml	
+
+
 .PHONY: tracee
 tracee:
 	-$(HELM) repo add aqua https://aquasecurity.github.io/helm-charts/
