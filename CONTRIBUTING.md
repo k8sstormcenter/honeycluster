@@ -13,7 +13,7 @@ This guide will (at some point) provide information on filing issues and guideli
 
 ## Getting Started
 
-Set it up on kind and run one of the prepared scenarios to make sure everything is working locally. 
+You can use a github codespace accrd to https://github.com/k8sstormcenter/honeycluster/wiki/Stormcenter-in-GitHub-Codespaces 
 
 ## Testing
 @mah-luke @tobias_grantner @joseftaha : can we include here please how we currenly test
