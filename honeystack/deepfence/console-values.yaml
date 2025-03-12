@@ -279,8 +279,8 @@ router:
     annotations: {}
     ## service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "true"
     type: ClusterIP # set service type to cluster ip and enable ingress if available
-    httpsPort: 4443
-    httpPort: 8880
+    httpsPort: 443
+    httpPort: 80
   resources: {}
   autoscaling:
     enabled: false
