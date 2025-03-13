@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: demo
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubesploit-server
+  namespace: demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubesploit-server
+  template:
+    metadata:
+      labels:
+        app: kubesploit-server
+    spec:
+      containers:
+      - name: kubesploit-server
+        image: ghcr.io/k8sstormcenter/kubesploit-server:latest
+        imagePullPolicy: Always
+        command: ["/bin/bash", "-c"]
+        args: [" sleep infinity"]
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubesploit-server
+  namespace: demo
+spec:
+  selector:
+    app: kubesploit-server
+  ports:
+  - port: 443
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubesploit-agent
+  namespace: demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubesploit-agent
+  template:
+    metadata:
+      labels:
+        app: kubesploit-agent
+    spec:
+      containers:
+      - name: kubesploit-agent
+        image: ghcr.io/k8sstormcenter/kubesploit-agent:latest
+        imagePullPolicy: Always
+        command: ["/bin/bash", "-c"]
+        args: ["sleep infinity "]
+        #args: ["./kubesploitAgent-Linux-x64 -url https://kubesploit-server.demo.svc.cluster.local:443 -psk kubesploit & sleep infinity"]
