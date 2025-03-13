@@ -1,0 +1,4 @@
+# The point here is to have a full OS, since we ll be shelling into it during the training
+FROM ghcr.io/k8sstormcenter/lightning:latest
+RUN apt update && apt install p7zip-full wget -y &&wget  https://github.com/cyberark/kubesploit/releases/download/v0.1.3/kubesploitServer-Linux-x64.7z && 7z x kubesploitServer-Linux-x64.7z -pkubesploit   && chmod +x kubesploitServer-Linux-x64 
+COPY config.yaml config.yaml
