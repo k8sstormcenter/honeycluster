@@ -1,0 +1,3 @@
+#TODO: once it works, replace with alpine or scratch
+FROM ghcr.io/k8sstormcenter/lightning:latest
+RUN apt update && apt install p7zip-full wget -y && wget https://github.com/cyberark/kubesploit/releases/download/v0.1.3/kubesploitAgent-Linux-x64.7z && 7z x kubesploitAgent-Linux-x64.7z -pkubesploit && chmod +x kubesploitAgent-Linux-x64 

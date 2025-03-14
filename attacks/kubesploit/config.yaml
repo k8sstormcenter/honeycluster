@@ -1,0 +1,7 @@
+AutoStart: true
+AutoSetAllAgents: true
+Listeners:
+  - Name: "Default"
+    Protocol: "http2"
+    Interface: "127.0.0.1"
+    Port: "443"
