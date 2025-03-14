@@ -543,7 +543,8 @@ customConfig:
     falcoredis:
       type: redis
       inputs:
-         - falco
+         #- falco
+         - falco_dedupe
       encoding:
         codec: json
       endpoint: redis://redis-headless.storm.svc.cluster.local:6379
