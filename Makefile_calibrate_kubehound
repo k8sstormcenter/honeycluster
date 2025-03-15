@@ -19,6 +19,7 @@ calibration-traces:
 	#kubectl apply -f traces/kubehound-verify/calibrationtraces/1-ce-module-load.yaml #TODO fix return type arguemnt 0
 	kubectl apply -f traces/kubehound-verify/calibrationtraces/1-ce-net-mitm.yaml
 	kubectl apply -f traces/kubehound-verify/calibrationtraces/1-ce-var-log-symlink.yaml
+	kubectl apply -f traces/kubehound-verify/calibrationtraces/1-std-redirect.yaml
 	kubectl apply -f traces/kubehound-verify/calibrationtraces/1-ce-umh-core-pattern.yaml
 	kubectl apply -f traces/kubehound-verify/calibrationtraces/1-exploit-containerd-sock.yaml #TODO: it was complaiing about something
 	kubectl apply -f traces/kubehound-verify/calibrationtraces/1-exploit-host-read.yaml
@@ -31,47 +32,47 @@ calibration-traces:
 .PHONY: calibration-attack
 calibration-attack: 
 	@echo "Attacking"
-	#-kubectl apply -f traces/kubehound-verify/attacks/CE_NSENTER.yaml 
+	-kubectl apply -f traces/kubehound-verify/attacks/CE_NSENTER.yaml 
 	-kubectl apply -f traces/kubehound-verify/attacks/CE_PRIV_MOUNT.yaml
-	#-kubectl apply -f traces/kubehound-verify/attacks/CE_SYS_PTRACE.yaml
-	#-kubectl apply -f traces/kubehound-verify/attacks/CE_MODULE_LOAD.yaml
-	#-kubectl apply -f traces/kubehound-verify/attacks/CE_NET_MITM.yaml
-	#-kubectl apply -f traces/kubehound-verify/attacks/CE_VAR_LOG_SYMLINK.yaml
-	#-kubectl apply -f traces/kubehound-verify/attacks/CE_UMH_CORE_PATTERN.yaml
-	#-kubectl apply -f traces/kubehound-verify/attacks/EXPLOIT_CONTAINERD_SOCK.yaml
-	#-kubectl apply -f traces/kubehound-verify/attacks/EXPLOIT_HOST_READ.yaml
-	#-kubectl apply -f traces/kubehound-verify/attacks/EXPLOIT_HOST_READ_TRAVERSE.yaml
-	#-kubectl apply -f traces/kubehound-verify/attacks/EXPLOIT_HOST_WRITE.yaml
-	#-kubectl apply -f traces/kubehound-verify/attacks/IDENTITY_ASSUME.yaml
-	#-kubectl apply -f traces/kubehound-verify/attacks/IDENTITY_IMPERSONATE.yaml
-	#-kubectl apply -f traces/kubehound-verify/attacks/ROLE_BIND_RB_CR-SA.yaml
-	#-kubectl apply -f traces/kubehound-verify/attacks/ROLE_BIND_CRB_CR.yaml
-	#-kubectl apply -f traces/kubehound-verify/attacks/ROLE_BIND_RB_R-SA.yaml
-	#-kubectl apply -f traces/kubehound-verify/attacks/SHARE_PS_NAMESPACE.yaml
-	#-kubectl apply -f traces/kubehound-verify/attacks/POD_CREATE.yaml
+	-kubectl apply -f traces/kubehound-verify/attacks/CE_SYS_PTRACE.yaml
+	-kubectl apply -f traces/kubehound-verify/attacks/CE_MODULE_LOAD.yaml
+	-kubectl apply -f traces/kubehound-verify/attacks/CE_NET_MITM.yaml
+	-kubectl apply -f traces/kubehound-verify/attacks/CE_VAR_LOG_SYMLINK.yaml
+	-kubectl apply -f traces/kubehound-verify/attacks/CE_UMH_CORE_PATTERN.yaml
+	-kubectl apply -f traces/kubehound-verify/attacks/EXPLOIT_CONTAINERD_SOCK.yaml
+	-kubectl apply -f traces/kubehound-verify/attacks/EXPLOIT_HOST_READ.yaml
+	-kubectl apply -f traces/kubehound-verify/attacks/EXPLOIT_HOST_READ_TRAVERSE.yaml
+	-kubectl apply -f traces/kubehound-verify/attacks/EXPLOIT_HOST_WRITE.yaml
+	-kubectl apply -f traces/kubehound-verify/attacks/IDENTITY_ASSUME.yaml
+	-kubectl apply -f traces/kubehound-verify/attacks/IDENTITY_IMPERSONATE.yaml
+	-kubectl apply -f traces/kubehound-verify/attacks/ROLE_BIND_RB_CR-SA.yaml
+	-kubectl apply -f traces/kubehound-verify/attacks/ROLE_BIND_CRB_CR.yaml
+	-kubectl apply -f traces/kubehound-verify/attacks/ROLE_BIND_RB_R-SA.yaml
+	-kubectl apply -f traces/kubehound-verify/attacks/SHARE_PS_NAMESPACE.yaml
+	-kubectl apply -f traces/kubehound-verify/attacks/POD_CREATE.yaml
 
 
 .PHONY: remove-calibration-attack	
 remove-calibration-attack:
 	@echo "Removing calibration attack"
-	#-kubectl delete -f traces/kubehound-verify/attacks/CE_NSENTER.yaml
+	-kubectl delete -f traces/kubehound-verify/attacks/CE_NSENTER.yaml
 	-kubectl delete -f traces/kubehound-verify/attacks/CE_PRIV_MOUNT.yaml
-	#-kubectl delete -f traces/kubehound-verify/attacks/CE_SYS_PTRACE.yaml
-	#-kubectl delete -f traces/kubehound-verify/attacks/CE_MODULE_LOAD.yaml
-	#-kubectl delete -f traces/kubehound-verify/attacks/CE_NET_MITM.yaml
-	#-kubectl delete -f traces/kubehound-verify/attacks/CE_VAR_LOG_SYMLINK.yaml
-	#-kubectl delete -f traces/kubehound-verify/attacks/CE_UMH_CORE_PATTERN.yaml
-	#-kubectl delete -f traces/kubehound-verify/attacks/EXPLOIT_CONTAINERD_SOCK.yaml
-	#-kubectl delete -f traces/kubehound-verify/attacks/EXPLOIT_HOST_READ.yaml
-	#-kubectl delete -f traces/kubehound-verify/attacks/EXPLOIT_HOST_READ_TRAVERSE.yaml
-	#-kubectl delete -f traces/kubehound-verify/attacks/EXPLOIT_HOST_WRITE.yaml
-	#-kubectl delete -f traces/kubehound-verify/attacks/IDENTITY_ASSUME.yaml
-	#-kubectl delete -f traces/kubehound-verify/attacks/IDENTITY_IMPERSONATE.yaml
-	#-kubectl delete -f traces/kubehound-verify/attacks/ROLE_BIND_RB_CR-SA.yaml
-	#-kubectl delete -f traces/kubehound-verify/attacks/ROLE_BIND_CRB_CR.yaml
-	#-kubectl delete -f traces/kubehound-verify/attacks/ROLE_BIND_RB_R-SA.yaml
-	#-kubectl delete -f traces/kubehound-verify/attacks/SHARE_PS_NAMESPACE.yaml
-	#-kubectl delete -f traces/kubehound-verify/attacks/POD_CREATE.yaml & kubectl delete pod kubehound-pod-create-pod
+	-kubectl delete -f traces/kubehound-verify/attacks/CE_SYS_PTRACE.yaml
+	-kubectl delete -f traces/kubehound-verify/attacks/CE_MODULE_LOAD.yaml
+	-kubectl delete -f traces/kubehound-verify/attacks/CE_NET_MITM.yaml
+	-kubectl delete -f traces/kubehound-verify/attacks/CE_VAR_LOG_SYMLINK.yaml
+	-kubectl delete -f traces/kubehound-verify/attacks/CE_UMH_CORE_PATTERN.yaml
+	-kubectl delete -f traces/kubehound-verify/attacks/EXPLOIT_CONTAINERD_SOCK.yaml
+	-kubectl delete -f traces/kubehound-verify/attacks/EXPLOIT_HOST_READ.yaml
+	-kubectl delete -f traces/kubehound-verify/attacks/EXPLOIT_HOST_READ_TRAVERSE.yaml
+	-kubectl delete -f traces/kubehound-verify/attacks/EXPLOIT_HOST_WRITE.yaml
+	-kubectl delete -f traces/kubehound-verify/attacks/IDENTITY_ASSUME.yaml
+	-kubectl delete -f traces/kubehound-verify/attacks/IDENTITY_IMPERSONATE.yaml
+	-kubectl delete -f traces/kubehound-verify/attacks/ROLE_BIND_RB_CR-SA.yaml
+	-kubectl delete -f traces/kubehound-verify/attacks/ROLE_BIND_CRB_CR.yaml
+	-kubectl delete -f traces/kubehound-verify/attacks/ROLE_BIND_RB_R-SA.yaml
+	-kubectl delete -f traces/kubehound-verify/attacks/SHARE_PS_NAMESPACE.yaml
+	-kubectl delete -f traces/kubehound-verify/attacks/POD_CREATE.yaml & kubectl delete pod kubehound-pod-create-pod
 
 
 
@@ -84,6 +85,7 @@ remove-calibration-traces:
 	-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-ce-module-load.yaml
 	-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-ce-net-mitm.yaml
 	-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-ce-var-log-symlink.yaml
+	-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-std-redirect.yaml
 	-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-ce-umh-core-pattern.yaml
 	-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-exploit-containerd-sock.yaml
 	-kubectl delete -f traces/kubehound-verify/calibrationtraces/1-exploit-host-read.yaml
