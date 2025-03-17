@@ -19,10 +19,10 @@ spec:
         operator: "Prefix"
         values:
         - "/"
-      - index: 2
-        operator: "Equal"
-        values:
-        - "/host/var/log/root_link"
+      # - index: 2
+      #   operator: "Equal"
+      #   values:
+      #   - "/host/var/log/root_link"
       matchActions:
       - action: Post  
 

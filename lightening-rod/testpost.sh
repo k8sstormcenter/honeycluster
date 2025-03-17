@@ -204,7 +204,7 @@ curl -X POST http://localhost:8000/add_attack_bundle \
           "id": "indicator--kh-ce-var-log-symlink",
           "name": "Symlink to log dir",
           "description": "Symbolic link to /var/log/root_link",
-          "pattern": "[process:command_line MATCHES 'ln -s' AND process:extensions.function_name MATCHES '__x64_sys_symlinkat' OR process:extensions.kprobe_arguments.string_arg_2 MATCHES 'var/log/root_link']",
+          "pattern": "[(process:command_line MATCHES 'ln -s' AND process:extensions.function_name MATCHES '__x64_sys_symlinkat' OR process:extensions.kprobe2.string_arg MATCHES 'var/log') OR (process:command_line MATCHES '/proc/net/route' OR process:command_line MATCHES 'ip')]",
           "pattern_type": "stix",
           "valid_from": "2024-01-01T00:00:00Z"
         },
@@ -217,6 +217,92 @@ curl -X POST http://localhost:8000/add_attack_bundle \
         }]
   }
 EOF
+
+
+curl -X POST http://localhost:8000/add_attack_bundle
+-H "Content-Type: application/json"
+-d @- << 'EOF'
+{
+  "type": "bundle",
+  "id": "2",
+  "name": "CE_VAR_LOG_ROUTE",
+  "version": "1.0.0",
+  "spec_version": "2.1",
+  "objects": [
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--kh-ce-var-log-route",
+      "name": "CE_VAR_LOG_ROUTE",
+      "description": "Arbitrary file reads on the host from a node via an exposed /var/log mount by calling to API:10250"
+    },
+    {
+      "type": "indicator",
+      "id": "indicator--kh-ce-var-log-route",
+      "name": "Symlink to log dir",
+      "description": "Symbolic link to /var/log/root_link",
+      "pattern": "[process:command_line MATCHES '10250/logs/' ]",
+      "pattern_type": "stix",
+      "valid_from": "2024-01-01T00:00:00Z"
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--kh-ce-var-log-route",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--kh-ce-var-log-route",
+      "target_ref": "attack-pattern--kh-ce-var-log-route"
+    }
+  ]
+}
+EOF
+
+
+
+curl -X POST http://localhost:8000/add_attack_bundle \
+-H "Content-Type: application/json" \
+-d @- << 'EOF'
+{"type":"bundle","id":"3","name":"CE_VAR_LOG_TOKEN","version":"1.0.0","spec_version":"2.1","objects":[{"type":"attack-pattern","id":"attack-pattern--kh-ce-var-log-TOKEN","name":"CE_VAR_LOG_TOKEN","description":"In order to access the logs, the pods own token must be used"},{"type":"indicator","id":"indicator--kh-ce-var-log-token","name":"pods own token must be used","description":"pod token used","pattern":"[process.extensions.function_name MATCHES 'security_file_permission' AND process:extensions.kprobe0.file_arg.path MATCHES '/run/secrets/kubernetes.io/serviceaccount/' ]","pattern_type":"stix","valid_from":"2024-01-01T00:00:00Z"},{"type":"relationship","id":"relationship--kh-ce-var-log-token","relationship_type":"indicates","source_ref":"indicator--kh-ce-var-log-token","target_ref":"attack-pattern--kh-ce-var-log-token"}]}
+EOF
+
+
+curl -X POST http://localhost:8000/add_attack_bundle \
+-H "Content-Type: application/json" \
+-d @- << 'EOF'
+{
+  "type": "bundle",
+  "id": "4",
+  "name": "CE_VAR_LOG_RM_SYMLINK",
+  "version": "1.0.0",
+  "spec_version": "2.1",
+  "objects": [
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--kh-ce-var-log-rm-symlink",
+      "name": "CE_VAR_LOG_SYMLINK",
+      "description": "Arbitrary file reads on the host from a node via an exposed /var/log mount.."
+    },
+    {
+      "type": "indicator",
+      "id": "indicator--kh-ce-var-log-rm-symlink",
+      "name": "Remove Symlink to log dir",
+      "description": "Remove Symbolic link to /var/log/root_link",
+      "pattern": "[process:command_line MATCHES '/bin/rm /var/log/' ]",
+      "pattern_type": "stix",
+      "valid_from": "2024-01-01T00:00:00Z"
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--kh-ce-var-log-rm-symlink",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--kh-ce-var-log-rm-symlink",
+      "target_ref": "attack-pattern--kh-ce-var-log-rm-symlink"
+    }
+  ]
+}
+EOF
+
+
+
+
 curl -X POST http://localhost:8000/add_attack_bundle \
 -H "Content-Type: application/json" \
 -d @- << 'EOF'
@@ -385,7 +471,8 @@ EOF
       "id": "indicator--containerescapeplusmount",
       "name": "Container Escape followed by Mount /proc",
       "description": "Detecting containerescapeplusmount",
-      "pattern": "[process:extensions.function_name MATCHES '__x64_sys_setns' OR process:extensions.function_name MATCHES '__x64_sys_mount']",      "pattern_type": "stix",
+      "pattern": "[process:extensions.function_name MATCHES '__x64_sys_setns' OR process:extensions.function_name MATCHES '__x64_sys_mount']",     
+       "pattern_type": "stix",
       "valid_from": "2024-01-01T00:00:00Z"
     },
     {

@@ -1,0 +1,37 @@
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy
+metadata:
+  name: "capture-stdin-stdout"
+spec:
+  kprobes:
+    - call: "sys_write"
+      syscall: true
+      args:
+      - index: 0
+        type: "int"
+      - index: 1
+        type: "char_buf"
+        sizeArgIndex: 3
+      - index: 2
+        type: "size_t"
+      selectors:
+      - matchBinaries:
+        - operator: "In"
+          values:
+          - "/usr/bin/sh"
+          - "/bin/sh"
+          - "/usr/bin/bash"
+          - "/bin/bash" 
+          - "/usr/bin/zsh"
+          - "/bin/zsh"
+          - "/usr/bin/dash"
+          - "/bin/dash"
+          followChildren: true
+      # match to stdin/stdout/stderr
+        matchArgs:
+        - index: 0
+          operator: "Equal"
+          values:
+          - "1"
+          - "2"
+          - "3"
