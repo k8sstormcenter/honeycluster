@@ -110,6 +110,7 @@
                 },
                 {
                     "type": "observed-data",
+                    "name": "detect-ce-var-log-symlink",
                     "id": "observed-data--20517b87-876e-40c0-b9ba-04d7564485ad",
                     "created": "2025-03-17T15:49:45.735778+00:00Z",
                     "first_observed": "2025-03-17T15:49:45.735778+00:00Z",
@@ -172,6 +173,7 @@
 
                         {
                             "type": "process",
+                            "name": "secrets/2025_03_15_18_12_22/token",
                             "id": "process--250315T18451306948f67154d1000314924g",
                             "pid": 314924,
                             "command_line": "/usr/bin/cat //var/run/secrets/kubernetes.io/serviceaccount/token",
@@ -200,6 +202,7 @@
                         },
                         {
                             "type": "observed-data",
+                            "name": "enumerate-service-account",
                             "id": "observed-data--e472c5bd-c252-477a-ba1e-2a85544539c1",
                             "created": "2025-03-17T18:32:20.968448+00:00Z",
                             "first_observed": "2025-03-17T18:32:20.968448+00:00Z",
@@ -238,7 +241,7 @@
                         {
                             "type": "indicator",
                             "id": "indicator--kh-ce-var-log-token",
-                            "name": "pods own token must be used",
+                            "name": "pod token access",
                             "description": "pod token used",
                             "pattern": "[process:extensions.function_name MATCHES 'security_file_permission' ]",
                             "pattern_type": "stix",
