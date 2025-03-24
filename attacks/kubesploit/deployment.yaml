@@ -3,6 +3,13 @@ kind: Namespace
 metadata:
   name: demo
 ---
+# CE_VAR_LOG_SYMLINK edge
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: varlog-sa
+  namespace: demo
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -18,6 +25,7 @@ spec:
       labels:
         app: kubesploit-server
     spec:
+      serviceAccountName: varlog-sa
       containers:
       - name: kubesploit-server
         image: ghcr.io/k8sstormcenter/kubesploit-server:latest
@@ -33,38 +41,29 @@ spec:
             path: /var/log
             type: Directory
 
-# ---
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   name: kubesploit-server
-#   namespace: demo
-# spec:
-#   selector:
-#     app: kubesploit-server
-#   ports:
-#   - port: 443
 
-# ---
-# apiVersion: apps/v1
-# kind: Deployment
-# metadata:
-#   name: kubesploit-agent
-#   namespace: demo
-# spec:
-#   replicas: 1
-#   selector:
-#     matchLabels:
-#       app: kubesploit-agent
-#   template:
-#     metadata:
-#       labels:
-#         app: kubesploit-agent
-#     spec:
-#       containers:
-#       - name: kubesploit-agent
-#         image: ghcr.io/k8sstormcenter/kubesploit-server:latest
-#         imagePullPolicy: Always
-#         command: ["/bin/bash", "-c"]
-#         args: ["sleep infinity "]
-#         #args: ["./kubesploitAgent-Linux-x64 -url https://kubesploit-server.demo.svc.cluster.local:443 -psk kubesploit & sleep infinity"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  namespace: demo
+  name: read-logs
+rules:
+- apiGroups: [""] # "" indicates the core API group
+  resources: ["nodes/log"]
+  verbs: ["get","list","watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: pod-read-logs
+  namespace: demo
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: read-logs
+subjects:
+  - kind: ServiceAccount
+    name: varlog-sa
+    namespace: demo
+
