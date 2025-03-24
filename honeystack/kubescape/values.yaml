@@ -39,7 +39,7 @@ volumeMounts: [ ]
 customScheduling:
   affinity:
     # Specify affinity rules here
-  nodeSelector:
+  nodeSelector: {}
     # Define nodeSelector rules here
   tolerations:
     # Set tolerations for nodes here
@@ -298,7 +298,7 @@ operator:
       memory: 100Mi
     limits:
       cpu: 750m
-      memory: 750Mi
+      memory: 5Gi
   env: { }
   labels: { }
 
@@ -558,7 +558,7 @@ nodeAgent:
   #               values:
   #                 - linux
 
-  #nodeSelector:
+  nodeSelector: {}
   #  kubernetes.io/os: linux
 
   startupJitterContainer:
@@ -619,8 +619,8 @@ clamav:
                 values:
                   - linux
 
-  nodeSelector:
-    kubernetes.io/os: linux
+  nodeSelector: {}
+    #kubernetes.io/os: linux
 # +++++++++++++++++++++++++++++ Synchronizer ++++++++++++++++++++++++++++++++++++++++++++++++
 
 synchronizer:
