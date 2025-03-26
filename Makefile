@@ -24,6 +24,7 @@ honey-up: tetragon vector redis traces  mongo lighteningrod stixviz kubescape tr
 dev: cluster-up tetragon vector redis traces lighteningrod stixviz kubescape tracee falco dev-ui
 
 
+
 ##@ remove all honeycluster instrumentation from k8s
 .PHONY: honey-down
 honey-down: traces-off  wipe
@@ -63,6 +64,32 @@ cluster-up: kind ## Create the kind cluster
 .PHONY: cluster-down
 cluster-down: kind  ## Delete the kind cluster
 	$(KIND) delete cluster --name $(CLUSTER_NAME)
+
+
+.PHONY: kind-pixie-up
+kind-pixie-up: 
+	$(KIND) create cluster --name pixie-cloud 
+	-$(HELM) repo add jetstack https://charts.jetstack.io
+	-$(HELM) repo update
+	-$(HELM) upgrade --install cert-manager jetstack/cert-manager --set installCRDs=true --namespace cert-manager  --create-namespace
+
+
+# .PHONY: speedscale
+# speedscale: 
+# 	-$(HELM) repo add speedscale https://speedscale.github.io/operator-helm/
+# 	-$(HELM) repo update
+# 	-$(HELM) upgrade --install speedscale-operator speedscale/speedscale-operator -n speedscale --create-namespace --values ./honeystack/speedscale/values.yaml
+
+
+.PHONY: pixie-cloud
+pixie-cloud:
+	-kubectl config use-context kind-pixie-cloud
+	cd ../pixie/
+	-kubectl create namespace plc
+	-./scripts/create_cloud_secrets.sh
+	-kustomize build k8s/cloud_deps/base/elastic/operator | kubectl apply -f -
+	-kustomize build k8s/cloud_deps/public | kubectl apply -f -
+	-kustomize build k8s/cloud/public/ | kubectl apply -f -
 
 
 .PHONY: k8spin
@@ -200,7 +227,14 @@ sample-app-off:
 ## curretly candidate #1 for the network observability 
 .PHONY: pixie
 pixie:
-	px deploy kubernetes
+	px deploy --pem_memory_limit=1Gi
+	#-$(HELM) repo add pixie-operator https://artifacts.px.dev/helm_charts/operator 
+	#-$(HELM) repo update
+	#-$(HELM) upgrade --install  pixie pixie-operator/pixie-operator-chart --set cloudAddr=getcosmic.ai --set deployKey= --set clusterName=$(CLUSTER_NAME) --namespace pl --create-namespace 
+	#helm repo add pixie-vizier https://artifacts.px.dev/helm_charts/vizier
+	#helm repo update
+	#helm install pixie pixie-vizier/vizier-chart --set deployKey= --set clusterName=$(CLUSTER_NAME) --namespace pl --create-namespace 
+
 
 ## kshark is useful if youre running in a high-stakes environment and you want pcaps
 .PHONY: kshark
