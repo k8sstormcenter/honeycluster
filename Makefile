@@ -7,7 +7,7 @@ OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 ifeq ($(findstring kind-,$(CURRENT_CONTEXT)),kind-)
     $(eval VALUES := values.yaml)
-elif $(findstring Default,$(CURRENT_CONTEXT))
+else ifeq $(findstring Default,$(CURRENT_CONTEXT))
     $(eval VALUES := values_k0s.yaml)
 else
     $(eval VALUES := values_gke.yaml)
@@ -26,7 +26,7 @@ honey-up: tetragon vector redis traces  mongo lighteningrod stixviz kubescape tr
 dev: cluster-up tetragon vector redis traces lighteningrod stixviz kubescape tracee falco dev-ui
 
 .PHONY: k0s
-k0s: storage vector redis patch traces kubescape dev-ui # add pixie here once you automated the auth0
+k0s: storage vector redis patch traces kubescape dev-ui pixie-cli pixie# add pixie here once you automated the auth0
 
 ##@ remove all honeycluster instrumentation from k8s
 .PHONY: honey-down
@@ -210,7 +210,15 @@ sample-app-off:
 	$(MAKE) --makefile=cncf/harbor/Makefile clean
 
 ## Experiments
-## curretly candidate #1 for the network observability 
+## curretly candidate #1 for the network observability
+# the cli install is interactive
+.PHONY: pixie-cli
+pixie-cli:
+	sudo bash -c "$(curl -fsSL https://getcosmic.ai/install.sh)"
+	export PX_CLOUD_ADDR=getcosmic.ai
+	px auth login
+	#px deploy --pem-memory_limit=1Gi
+
 .PHONY: pixie
 pixie:
 	px deploy kubernetes
