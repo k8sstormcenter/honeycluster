@@ -95,7 +95,7 @@ capabilities:
   networkPolicyService: enable
   runtimeDetection: enable
   malwareDetection: enable
-  nodeProfileService: enable
+  nodeProfileService: disable
   admissionController: enable
   httpDetection: enable
   seccompProfileService: enable
@@ -486,7 +486,7 @@ nodeAgent:
         fieldRef:
           fieldPath: spec.nodeName
     - name: RUNTIME_PATH
-      value: /host/usr/local/sbin/runc
+      value: /run/k0s/containerd.sock
 
 
 
@@ -569,6 +569,7 @@ nodeAgent:
 
 # +++++++++++++++++++++++++++++++ ClamAV ++++++++++++++++++++++++++++++++++++++++++++++++
 clamav:
+  enabled: false
   name: clamav
   image:
     # -- source code: https://github.com/kubescape/node-agent/tree/main/clamav
@@ -609,17 +610,6 @@ clamav:
       - key: freshclam.conf
         path: freshclam.conf
 
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-          - matchExpressions:
-              - key: kubernetes.io/os
-                operator: In
-                values:
-                  - linux
-
-  nodeSelector: {}
     #kubernetes.io/os: linux
 # +++++++++++++++++++++++++++++ Synchronizer ++++++++++++++++++++++++++++++++++++++++++++++++
 
