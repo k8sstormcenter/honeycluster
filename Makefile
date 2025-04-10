@@ -73,6 +73,7 @@ cluster-down: kind  ## Delete the kind cluster
 storage:
 	kubectl apply -f https://openebs.github.io/charts/openebs-operator-lite.yaml
 	kubectl apply -f https://openebs.github.io/charts/openebs-lite-sc.yaml
+	kubectl apply -f honeystack/openebs/sc.yaml
 	
 .PHONY: patch
 patch:	
