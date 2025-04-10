@@ -7,7 +7,7 @@ OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 ifeq ($(findstring kind-,$(CURRENT_CONTEXT)),kind-)
     $(eval VALUES := values.yaml)
-else ifeq $(findstring Default,$(CURRENT_CONTEXT))
+else ifeq ($(findstring Default,$(CURRENT_CONTEXT)),Default)
     $(eval VALUES := values_k0s.yaml)
 else
     $(eval VALUES := values_gke.yaml)
