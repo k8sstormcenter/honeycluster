@@ -7,6 +7,8 @@ OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 ifeq ($(findstring kind-,$(CURRENT_CONTEXT)),kind-)
     $(eval VALUES := values.yaml)
+elif $(findstring Default,$(CURRENT_CONTEXT))
+    $(eval VALUES := values_k0s.yaml)
 else
     $(eval VALUES := values_gke.yaml)
 endif
@@ -23,6 +25,8 @@ honey-up: tetragon vector redis traces  mongo lighteningrod stixviz kubescape tr
 .PHONY: dev
 dev: cluster-up tetragon vector redis traces lighteningrod stixviz kubescape tracee falco dev-ui
 
+.PHONY: k0s
+k0s: storage vector redis traces kubescape dev-ui # add pixie here once you automated the auth0
 
 ##@ remove all honeycluster instrumentation from k8s
 .PHONY: honey-down
@@ -64,6 +68,15 @@ cluster-up: kind ## Create the kind cluster
 cluster-down: kind  ## Delete the kind cluster
 	$(KIND) delete cluster --name $(CLUSTER_NAME)
 
+
+.PHONY: storage
+storage:
+	kubectl apply -f https://openebs.github.io/charts/openebs-operator-lite.yaml
+	kubectl apply -f https://openebs.github.io/charts/openebs-lite-sc.yaml
+	
+.PHONY: patch
+patch:	
+	kubectl patch pvc redis-data-redis-master-0 -n storm -p '{"spec": {"storageClassName": "local-hostpath"}}'
 
 .PHONY: k8spin
 k8spin:
@@ -113,9 +126,9 @@ mongo:
 .PHONY: kubescape
 kubescape:
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
-	-$(HELM) repo add headlamp https://headlamp-k8s.github.io/headlamp/
 	-$(HELM) repo update
 	-$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --values honeystack/kubescape/$(VALUES)
+
 
 .PHONY: redis
 redis:
