@@ -877,6 +877,9 @@ metadata:
   annotations:
     cloud.google.com/load-balancer-type: internal
     service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+    #traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    #traefik.ingress.kubernetes.io/router.tls: "true"
+    #traefik.ingress.kubernetes.io/service.sticky: "true"
   labels:
     app: pl-cloud
   name: cloud-proxy-service
@@ -884,7 +887,7 @@ metadata:
 spec:
   ports:
   - name: tcp-https
-    port: 443
+    port: 444
     protocol: TCP
     targetPort: 56000
   - name: tcp-grcp-web
