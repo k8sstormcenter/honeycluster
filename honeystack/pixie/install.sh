@@ -185,10 +185,7 @@ Github:
 EOS
 
 
-printf "\n\n"
-emph "Terms and Conditions ${tty_underline}https://www.px.dev/terms${tty_reset}"
-read -r -p "I have read and accepted the Terms & Conditions [y/n]: " READ_TERMS
-printf "\n\n"
+
 READ_TERMS='y'
 READ_TERMS=${READ_TERMS:0:1}
 if ! [[ "$READ_TERMS" == 'Y' || "$READ_TERMS" == 'y' ]]; then
@@ -196,7 +193,7 @@ if ! [[ "$READ_TERMS" == 'Y' || "$READ_TERMS" == 'y' ]]; then
 fi
 
 emph "Installing PX CLI:"
-read -r -p "Install Path [${DEFAULT_INSTALL_PATH}]: " INSTALL_PATH
+
 INSTALL_PATH=${INSTALL_PATH:-${DEFAULT_INSTALL_PATH}}
 
 if [[ "$INSTALL_PATH" != /* ]]
