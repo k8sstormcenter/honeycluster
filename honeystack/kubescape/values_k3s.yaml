@@ -166,7 +166,7 @@ persistence:
   # -- persistence storage class
   #    ref: https://kubernetes.io/docs/concepts/storage/storage-classes/
   #    note: set to "-" (dash) for default storage class
-  storageClass: "local-hostpath"
+  #storageClass: "local-hostpath"
 
   # -- persistence access mode
   #    ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes
