@@ -887,7 +887,7 @@ metadata:
 spec:
   ports:
   - name: tcp-https
-    port: 444
+    port: 443
     protocol: TCP
     targetPort: 56000
   - name: tcp-grcp-web
