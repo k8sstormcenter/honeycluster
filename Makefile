@@ -24,7 +24,6 @@ honey-up: tetragon vector redis traces  mongo lighteningrod stixviz kubescape tr
 dev: cluster-up tetragon vector redis traces lighteningrod stixviz kubescape tracee falco dev-ui
 
 
-
 ##@ remove all honeycluster instrumentation from k8s
 .PHONY: honey-down
 honey-down: traces-off  wipe
@@ -225,15 +224,18 @@ sample-app-off:
 
 ## Experiments
 ## curretly candidate #1 for the network observability 
+# the 1Gi limit is important on GKE else the scheduler gets confused, even if there s tons of RAM avail
 .PHONY: pixie
 pixie:
-	px deploy --pem_memory_limit=1Gi
+	px deploy --pem_memory_limit=1Gi 
 	#-$(HELM) repo add pixie-operator https://artifacts.px.dev/helm_charts/operator 
 	#-$(HELM) repo update
 	#-$(HELM) upgrade --install  pixie pixie-operator/pixie-operator-chart --set cloudAddr=getcosmic.ai --set deployKey= --set clusterName=$(CLUSTER_NAME) --namespace pl --create-namespace 
 	#helm repo add pixie-vizier https://artifacts.px.dev/helm_charts/vizier
 	#helm repo update
 	#helm install pixie pixie-vizier/vizier-chart --set deployKey= --set clusterName=$(CLUSTER_NAME) --namespace pl --create-namespace 
+
+
 
 
 ## kshark is useful if youre running in a high-stakes environment and you want pcaps
