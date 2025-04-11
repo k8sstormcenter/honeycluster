@@ -28,7 +28,7 @@ honey-up: tetragon vector redis traces  mongo lighteningrod stixviz kubescape tr
 dev: cluster-up tetragon vector redis traces lighteningrod stixviz kubescape tracee falco dev-ui
 
 .PHONY: k0s
-k0s: storage vector redis patch traces kubescape dev-ui pixie-cli pixie# add pixie here once you automated the auth0
+k0s: storage tetragon vector redis patch traces kubescape dev-ui pixie-cli pixie# add pixie here once you automated the auth0
 
 ##@ remove all honeycluster instrumentation from k8s
 .PHONY: honey-down
