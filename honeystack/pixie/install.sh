@@ -152,16 +152,7 @@ execute() {
   fi
 }
 
-wait_for_user() {
-  local c
-  echo
-  read -r -p "Continue (Y/n): " c
-  # We test for \r and \n because some stuff does \r instead.
-  if ! [[ "$c" == '' || "$c" == $'\r' || "$c" == $'\n' || "$c" == 'Y' || "$c" == 'y' ]]; then
-    exit 1
-  fi
-  echo
-}
+
 
 exists_but_not_writable() {
   [[ -e "$1" ]] && ! [[ -r "$1" && -w "$1" && -x "$1" ]]
@@ -198,7 +189,7 @@ printf "\n\n"
 emph "Terms and Conditions ${tty_underline}https://www.px.dev/terms${tty_reset}"
 read -r -p "I have read and accepted the Terms & Conditions [y/n]: " READ_TERMS
 printf "\n\n"
-
+READ_TERMS='y'
 READ_TERMS=${READ_TERMS:0:1}
 if ! [[ "$READ_TERMS" == 'Y' || "$READ_TERMS" == 'y' ]]; then
     abort "Cannot install Pixie CLI (px) until you accept the Terms & Conditions."

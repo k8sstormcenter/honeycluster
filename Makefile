@@ -235,7 +235,27 @@ pixie:
 	#helm repo update
 	#helm install pixie pixie-vizier/vizier-chart --set deployKey= --set clusterName=$(CLUSTER_NAME) --namespace pl --create-namespace 
 
+.PHONY: pixie-cli
+pixie-cli:
+	#bash -c "$(curl -fsSL https://getcosmic.ai/install.sh)"
+    ./honeystack/pixie/install.sh
+	export PX_CLOUD_ADDR=getcosmic.ai
+	export PATH:= $(PATH):/home/laborant/bin
+	#px auth login
+	#px deploy --pem-memory_limit=1Gi
 
+.PHONY: pixie-airgap
+pixie-airgap:
+	git clone https://github.com/k8sstormcenter/pixie.git
+	cd pixie
+	mkcert -install
+	kubectl create ns plc
+	./scripts/create_cloud_secrets.sh
+	cd ../honeycluster/honeystack/pixie/pixie_cloud
+	# remove job # actually dont, it gives an error
+	kubectl apply -f yamls/cloud_deps_elastic_operator.yaml
+	kubectl apply -f yamls/cloud_deps.yaml
+	kubectl apply -f yamls/cloud.yaml
 
 
 ## kshark is useful if youre running in a high-stakes environment and you want pcaps

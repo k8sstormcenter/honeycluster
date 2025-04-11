@@ -1,0 +1,3099 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app: pl-cloud
+  name: pl-kuberesolver-role
+  namespace: plc
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - services
+  - endpoints
+  verbs:
+  - '*'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app: pl-cloud
+  name: pl-kuberesolver-role-binding
+  namespace: plc
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pl-kuberesolver-role
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: plc
+---
+apiVersion: v1
+data:
+  hydra.yml: |
+    # All URLS must be set in the environment variables instead of config.
+    serve:
+      cookies:
+        same_site_mode: Strict
+
+    oidc:
+      subject_identifiers:
+        supported_types:
+          - pairwise
+          - public
+kind: ConfigMap
+metadata:
+  labels:
+    app: pl-cloud
+  name: hydra-config
+  namespace: plc
+---
+apiVersion: v1
+data:
+  identity.schema.json: |
+    {
+      "$id": "https://schemas.ory.sh/presets/kratos/quickstart/email-password/identity.schema.json",
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "properties": {
+        "traits":{
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "string",
+              "format": "email",
+              "title": "E-Mail",
+              "minLength": 3,
+              "ory.sh/kratos": {
+                "credentials": {
+                  "password": {
+                    "identifier": true
+                  }
+                },
+                "recovery": {
+                  "via": "email"
+                }
+              }
+            }
+          },
+          "required": [
+            "email"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  kratos.yml: |
+    # All URLS must be set in the environment variables instead of config.
+    selfservice:
+      methods:
+        password:
+          enabled: true
+          config:
+            haveibeenpwned_enabled: false
+        link:
+          enabled: true
+      flows:
+        verification:
+          enabled: false
+
+        recovery:
+          enabled: true
+
+        settings:
+          privileged_session_max_age: 15m
+
+        registration:
+          after:
+            password:
+              hooks:
+                -
+                  hook: session
+    log:
+      level: trace
+    hashers:
+      argon2:
+        parallelism: 1
+        memory: 128MB
+        iterations: 2
+        salt_length: 16
+        key_length: 16
+
+    identity:
+      default_schema_id: default
+      schemas:
+        - id: default
+          url: file:///etc/config/kratos/identity.schema.json
+
+    courier:
+      smtp:
+        connection_uri: smtps://test:test@mailslurper:1025/?skip_ssl_verify=true
+kind: ConfigMap
+metadata:
+  labels:
+    app: pl-cloud
+  name: kratos-config
+  namespace: plc
+---
+apiVersion: v1
+data:
+  ANALYTICS_ENABLED: "false"
+kind: ConfigMap
+metadata:
+  labels:
+    app: pl-cloud
+  name: pl-analytics-config
+  namespace: plc
+---
+apiVersion: v1
+data:
+  PL_ARTIFACT_BUCKET: pixie-dev-public
+  PL_ARTIFACT_MANIFEST_URL: https://artifacts.px.dev/artifacts/manifest.json
+  PL_SA_KEY_PATH: /creds/service_account.json
+kind: ConfigMap
+metadata:
+  labels:
+    app: pl-cloud
+  name: pl-artifact-config
+  namespace: plc
+---
+apiVersion: v1
+data:
+  PL_BQ_DATASET: ""
+  PL_BQ_DATASET_LOC: ""
+  PL_BQ_PROJECT: ""
+  PL_BQ_SA_KEY_PATH: ""
+kind: ConfigMap
+metadata:
+  labels:
+    app: pl-cloud
+  name: pl-bq-config
+  namespace: plc
+---
+apiVersion: v1
+data:
+  CONTACT_ENABLED: "false"
+kind: ConfigMap
+metadata:
+  labels:
+    app: pl-cloud
+  name: pl-contact-config
+  namespace: plc
+---
+apiVersion: v1
+data:
+  PL_POSTGRES_DB: pl
+  PL_POSTGRES_HOSTNAME: postgres.plc.svc.cluster.local
+  PL_POSTGRES_PORT: "5432"
+kind: ConfigMap
+metadata:
+  labels:
+    app: pl-cloud
+  name: pl-db-config
+  namespace: plc
+---
+apiVersion: v1
+data:
+  PASSTHROUGH_PROXY_PORT: "4444"
+  PL_DOMAIN_NAME: dev.withpixie.dev
+kind: ConfigMap
+metadata:
+  labels:
+    app: pl-cloud
+  name: pl-domain-config
+  namespace: plc
+---
+apiVersion: v1
+data:
+  PL_MD_INDEX_DELETE_AFTER: 3d
+  PL_MD_INDEX_MAX_AGE: 3d
+  PL_MD_INDEX_NAME: md_entities_9
+  PL_MD_INDEX_REPLICAS: "4"
+  PL_MD_MANUAL_INDEX_MANAGEMENT: "false"
+kind: ConfigMap
+metadata:
+  labels:
+    app: pl-cloud
+  name: pl-indexer-config
+  namespace: plc
+---
+apiVersion: v1
+data:
+  PL_AUTH_CLIENT_ID: auth-code-client
+  PL_AUTH_EMAIL_PASSWORD_CONN: ""
+  PL_AUTH_URI: /oauth/hydra
+  PL_OAUTH_PROVIDER: hydra
+kind: ConfigMap
+metadata:
+  labels:
+    app: pl-cloud
+  name: pl-oauth-config
+  namespace: plc
+---
+apiVersion: v1
+data:
+  PL_HYDRA_ADMIN_HOST: https://hydra.plc.svc.cluster.local:4445
+  PL_HYDRA_PUBLIC_HOST: https://hydra.plc.svc.cluster.local:4444
+  PL_HYDRA_SERVICE: hydra.plc.svc.cluster.local:4444
+  PL_KRATOS_ADMIN_HOST: https://kratos.plc.svc.cluster.local:4434
+  PL_KRATOS_PUBLIC_HOST: https://kratos.plc.svc.cluster.local:4433
+  PL_KRATOS_SERVICE: kratos.plc.svc.cluster.local:4433
+kind: ConfigMap
+metadata:
+  labels:
+    app: pl-cloud
+  name: pl-ory-service-config
+  namespace: plc
+---
+apiVersion: v1
+data:
+  headers_common.conf: |-
+    # HSTS config.
+    add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
+  nginx.conf.tmpl: |-
+    # File borrowed from openresty config.
+
+    # Environment variable need to be specified here (and below).
+    env PL_OAUTH_PROVIDER;
+    env PL_AUTH_URI;
+    env PL_AUTH_CLIENT_ID;
+    env PL_AUTH_EMAIL_PASSWORD_CONN;
+    env PL_OIDC_HOST;
+    env PL_OIDC_METADATA_URL;
+    env PL_OIDC_CLIENT_ID;
+    env PL_OIDC_ADDITIONAL_SCOPES;
+    env PL_OIDC_SOCIAL_CONFIG_LOGIN;
+    env PL_OIDC_SOCIAL_CONFIG_SIGNUP;
+    env PL_LD_CLIENT_ID;
+    env PL_DOMAIN_NAME;
+    env PL_API_SERVICE_HTTP;
+    env PL_SEGMENT_UI_WRITE_KEY;
+    env PL_SEGMENT_CLI_WRITE_KEY;
+    env PL_HYDRA_SERVICE;
+    env PL_KRATOS_SERVICE;
+    env SCRIPT_BUNDLE_URLS;
+    env SCRIPT_BUNDLE_DEV;
+    env PL_SCRIPT_MODIFICATION_DISABLED;
+    env ANALYTICS_ENABLED;
+    env ANNOUNCEMENT_ENABLED;
+    env ANNOUNCE_WIDGET_URL;
+    env CONTACT_ENABLED;
+    env PASSTHROUGH_PROXY_PORT;
+
+    worker_processes  auto;
+
+    events {
+        worker_connections  1024;
+    }
+
+    http {
+        include       mime.types;
+        default_type  application/octet-stream;
+        sendfile      on;
+        server_tokens off;
+
+        log_format upstreamlog '[$time_local] $remote_addr - $remote_user - $server_name to: $upstream_addr: $request upstream_response_time $upstream_response_time msec $msec request_time $request_time';
+
+        resolver kube-dns.kube-system.svc.cluster.local valid=5s;
+
+        # Tune nginx keepalives to work with the GCP HTTP(S) Load Balancer:
+        keepalive_timeout 650;
+        keepalive_requests 10000;
+
+        # Increase default server names length to 128:
+        server_names_hash_bucket_size 128;
+
+        proxy_cache_path   /var/cache/nginx levels=1:2 keys_zone=my_cache:10m max_size=100m inactive=1d;
+        proxy_temp_path    /var/cache/nginx/tmp;
+
+        ssl_buffer_size 4k;
+        ssl_session_cache shared:SSL:10m;
+        ssl_session_timeout 1h;
+        ssl_protocols TLSv1.2 TLSv1.3;
+
+        upstream httpapisvc {
+             # The nginx parser does not seem to understand that the $api_service
+             # variable contains the port. Just referring to it as api-service since this
+             # works in a service agnosistic way.
+             server api-service:51200;
+             keepalive 128;
+        }
+
+        upstream grpcapisvc {
+             # The nginx parser does not seem to understand that the $api_service
+             # variable contains the port. Just referring to it as api-service since this
+             # works in a service agnosistic way.
+             server api-service:51200;
+             keepalive 128;
+        }
+
+        # This is the default fallback server if none of the subdomains match.
+        server {
+            listen [::]:56000 default_server;
+            listen 56000;
+            server_name _;
+
+            ssl_certificate /certs/tls.crt;
+            ssl_certificate_key /certs/tls.key;
+
+            include /usr/local/openresty/nginx/conf.d/pixie_health_check.conf;
+
+            if ($http_x_forwarded_proto = "http") {
+                return 404;
+            }
+
+            location / {
+                return 404;
+            }
+        }
+
+        # This is the server that we use for all the locations that don't have a subdomain.
+        # This just serves the minimal pages necessary to authenticate and get into a subdomain specfic site.
+        server {
+            listen [::]:56000 ssl http2;
+            listen 56000 ssl http2;
+            server_name @PL_DOMAIN_NAME@ *.cluster.local;
+
+            include /usr/local/openresty/nginx/conf.d/pixie_compression.conf;
+            include /usr/local/openresty/nginx/conf.d/pixie_vars.conf;
+            include /usr/local/openresty/nginx/conf.d/pixie_server_defaults.conf;
+            include /usr/local/openresty/nginx/conf.d/pixie_api.conf;
+
+            if ($http_x_forwarded_proto = "http") {
+                return 307 https://$host$request_uri;
+            }
+
+            location /install.sh {
+              root /installer;
+              try_files "/install.sh" =404;
+            }
+
+            location / {
+              return 307 https://work.$domain_name$request_uri;
+            }
+        }
+
+        # This is the server for the work subdomain.
+        server {
+            listen [::]:56000 ssl http2;
+            listen 56000 ssl http2;
+            server_name work.@PL_DOMAIN_NAME@;
+
+            error_page 404 = @error404;
+            include /usr/local/openresty/nginx/conf.d/pixie_compression.conf;
+            include /usr/local/openresty/nginx/conf.d/pixie_vars.conf;
+            include /usr/local/openresty/nginx/conf.d/pixie_server_defaults.conf;
+            include /usr/local/openresty/nginx/conf.d/pixie_health_check.conf;
+            include /usr/local/openresty/nginx/conf.d/pixie_api.conf;
+            include /usr/local/openresty/nginx/conf.d/headers_common.conf;
+            include /usr/local/openresty/nginx/conf.d/private/*.conf;
+
+            # Disable caching by default.
+            add_header Cache-Control "no-store";
+
+            if ($http_x_forwarded_proto = "http") {
+                return 307 https://$host$request_uri;
+            }
+
+            location /oauth/hydra {
+                if ($hydra_service = "") {
+                    return 404;
+                }
+                # Using a variable in the proxy_pass argument and a trailing slash on the location
+                # doesn't forward the subpath to the proxy destination. Instead we need to manually
+                # manage this change by rewriting the path.
+                rewrite ^/oauth/hydra/(.*) /$1  break;
+                # Note - storing the protocol in the env variable causes nginx to reject the proxy_pass dest.
+                proxy_pass https://$hydra_service$uri$is_args$args;
+            }
+
+            # Disable self-service registration in Kratos is the only way to prevent registration to orgs
+            # that a user does not have permission to join. Org Admins should instead invite their users.
+            # In the future Kratos will support disabling registration within kratos_config.yaml.
+            # We want to replace this rule when that becomes available.
+            # Issue tracking the feature: https://github.com/ory/kratos/issues/882
+            location /oauth/kratos/self-service/registration {
+                error_page 404 = @error404;
+                return 404;
+            }
+
+            location /oauth/kratos {
+                error_page 404 = @error404;
+                if ($kratos_service = "") {
+                    return 404;
+                }
+                # Using a variable in the proxy_pass argument and a trailing slash on the location
+                # doesn't forward the subpath to the proxy destination. Instead we need to manually
+                # manage this change by rewriting the path.
+                rewrite ^/oauth/kratos/(.*) /$1  break;
+                # Note - storing the protocol in the env variable causes nginx to reject the proxy_pass dest.
+                proxy_pass https://$kratos_service$uri$is_args$args;
+            }
+
+            location /install.sh {
+              root /installer;
+              try_files "/install.sh" =404;
+            }
+
+            location / {
+                gzip_static off;
+                root   /assets;
+                try_files $uri "/index.html";
+            }
+
+            # Cache all contents hosted under /static. This is actually the same as the contents hosted under '/'
+            # but nginx knows to cache these and webpack puts all the hashed assets in here.
+            location ~ ^/static(/.*)$ {
+                gzip_static off;
+                root   /assets;
+                include /usr/local/openresty/nginx/conf.d/pixie_cache.conf;
+                include /usr/local/openresty/nginx/conf.d/pixie_filter.conf;
+                try_files $1 "/index.html";
+            }
+
+            location /auth-complete {
+                root   /assets;
+                include /usr/local/openresty/nginx/conf.d/pixie_filter.conf;
+                try_files $uri "/index.html";
+            }
+
+            location ~ ^/docs(?:/(.*))?$ {
+                return 307 https://docs.pixielabs.ai/$1;
+            }
+
+            location @error404 {
+              return 307 https://$domain_name?not_found=$uri;
+            }
+        }
+
+        # This is the proxy server for segment.
+        server {
+            listen [::]:56000 ssl http2;
+            listen 56000 ssl http2;
+            server_name segment.@PL_DOMAIN_NAME@;
+
+            include /usr/local/openresty/nginx/conf.d/pixie_compression.conf;
+            include /usr/local/openresty/nginx/conf.d/pixie_vars.conf;
+
+            set $segment_cdn "cdn.segment.com";
+
+            location /v1/projects {
+                proxy_pass https://$segment_cdn$uri$is_args$args;
+                proxy_cache my_cache;
+                proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+            }
+
+            location /analytics.js/v1 {
+                proxy_pass https://$segment_cdn$uri$is_args$args;
+                proxy_cache my_cache;
+                proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+            }
+
+            location /analytics-next {
+                proxy_pass https://$segment_cdn$uri$is_args$args;
+                proxy_cache my_cache;
+                proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+            }
+
+            location /next-integrations {
+                proxy_pass https://$segment_cdn$uri$is_args$args;
+                proxy_cache my_cache;
+                proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+            }
+
+            location /cli-write-key {
+                return 200 $segment_cli_write_key;
+                default_type text/plain;
+            }
+
+            location / {
+                set $segment_api "api.segment.io";
+                proxy_pass https://$segment_api$uri$is_args$args;
+                proxy_cache my_cache;
+                proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+            }
+        }
+
+        # This is the redirect to the netlify hosted site for docs.
+        server {
+            listen [::]:56000 ssl http2;
+            listen 56000 ssl http2;
+            server_name docs.@PL_DOMAIN_NAME@;
+
+            location / {
+              return 307 https://docs.pixielabs.ai$request_uri;
+            }
+        }
+    }
+  pixie_api.conf: |-
+    location /api/ {
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_pass https://httpapisvc;
+    }
+
+
+    location ~ ^/pl.* {
+         rewrite ^/pl\.(.*)$ /px.$1 last;
+    }
+
+    location ~ ^/px.cloudapi.* {
+         # The nginx parser does not seem to understand that the $api_service
+         # variable contains the port. Just referring to it as api-service since this
+         # works in a service agnosistic way.
+         grpc_pass grpcs://grpcapisvc;
+    }
+
+    location ~ ^/px.api.* {
+         # The nginx parser does not seem to understand that the $api_service
+         # variable contains the port. Just referring to it as api-service since this
+         # works in a service agnosistic way.
+         grpc_pass grpcs://grpcapisvc;
+    }
+  pixie_cache.conf: |-
+    etag on;
+    expires 60m;
+    add_header Cache-Control "public";
+    include /usr/local/openresty/nginx/conf.d/headers_common.conf;
+  pixie_compression.conf: |-
+    gzip on;
+
+    # Enable compression for common types.
+    gzip_types
+      application/x-font-opentype
+      application/grpc-web-text
+      application/javascript
+      application/json
+      application/x-font-ttf
+      application/x-javascript
+      application/xml
+      image/svg+xml
+      font/woff2
+      text/css
+      text/javascript
+      text/plain
+      text/xml;
+
+    # Try to serve .gz files directly if they exist.
+    # TODO(zasgar): Re-enable once we fix env subs.
+    gzip_static off;
+
+    # Increase the compression level, at the expense of additional CPU
+    # cpu cycles are cheap virtually everywhere now, bandwidth not nearly as much.
+    gzip_comp_level 9;
+
+    gzip_proxied any;
+
+    # How many buffers to hold.
+    gzip_buffers 16 64k;
+
+    # Min size before we compress.
+    gzip_min_length 50;
+  pixie_filter.conf: |-
+    # These re-write variables used in our assets.
+    sub_filter_types application/javascript;
+    sub_filter '__CONFIG_OAUTH_PROVIDER__' "'${oauth_provider}'";
+    sub_filter '__CONFIG_AUTH_URI__' "'${auth_uri}'";
+    sub_filter '__CONFIG_AUTH_CLIENT_ID__' "'${auth_client_id}'";
+    sub_filter '__CONFIG_AUTH_EMAIL_PASSWORD_CONN__' "'${auth_email_password_conn}'";
+    sub_filter '__CONFIG_OIDC_HOST__' "'${oidc_host}'";
+    sub_filter '__CONFIG_OIDC_METADATA_URL__' "'${oidc_metadata_url}'";
+    sub_filter '__CONFIG_OIDC_CLIENT_ID__' "'${oidc_client_id}'";
+    sub_filter '__CONFIG_OIDC_ADDITIONAL_SCOPES__' "'${oidc_additional_scopes}'";
+    sub_filter '__CONFIG_OIDC_SOCIAL_CONFIG_LOGIN__' "`${oidc_social_config_login}`";
+    sub_filter '__CONFIG_OIDC_SOCIAL_CONFIG_SIGNUP__' "`${oidc_social_config_signup}`";
+    sub_filter '__CONFIG_DOMAIN_NAME__' "'${domain_name}'";
+    sub_filter '__CONFIG_SCRIPT_BUNDLE_URLS__' "'${script_bundle_urls}'";
+    sub_filter '__CONFIG_SCRIPT_BUNDLE_DEV__' "'${script_bundle_dev}'";
+    sub_filter '__CONFIG_SCRIPT_MODIFICATION_DISABLED__' "${script_modification_disabled}";
+    sub_filter '__SEGMENT_UI_WRITE_KEY__' "'${segment_ui_write_key}'";
+    sub_filter '__SEGMENT_ANALYTICS_JS_DOMAIN__' "'segment.${domain_name}'";
+    sub_filter '__CONFIG_LD_CLIENT_ID__' "'${ld_client_id}'";
+    sub_filter '__ANALYTICS_ENABLED__' "${analytics_enabled}";
+    sub_filter '__ANNOUNCEMENT_ENABLED__' "${announcement_enabled}";
+    sub_filter '__ANNOUNCE_WIDGET_URL__' "'${announce_widget_url}'";
+    sub_filter '__CONTACT_ENABLED__' "${contact_enabled}";
+    sub_filter '__PASSTHROUGH_PROXY_PORT__' "'${passthrough_proxy_port}'";
+    # Only need to filter once since these variables should not be repeated.
+    sub_filter_once on;
+  pixie_health_check.conf: |-
+    location /healthz {
+        access_log off;
+        return 200 "healthy\n";
+    }
+  pixie_server_defaults.conf: |-
+    # On redirects don't rewrite the host/port. This can cause problems because the nginx service
+    # is behind a load balancer/proxy.
+    absolute_redirect off;
+  pixie_vars.conf: |-
+    # Get the environment information so that we can inject the correct config
+    # into the javascript assets.
+    # The environment variable also need an ENV directive above.
+    set_by_lua_block $oauth_provider          { return os.getenv("PL_OAUTH_PROVIDER") }
+    set_by_lua_block $auth_uri          { return os.getenv("PL_AUTH_URI") }
+    set_by_lua_block $auth_client_id       { return os.getenv("PL_AUTH_CLIENT_ID") }
+    set_by_lua_block $auth_email_password_conn       { return os.getenv("PL_AUTH_EMAIL_PASSWORD_CONN") }
+    set_by_lua_block $oidc_host          { return os.getenv("PL_OIDC_HOST") }
+    set_by_lua_block $oidc_metadata_url          { return os.getenv("PL_OIDC_METADATA_URL") }
+    set_by_lua_block $oidc_client_id          { return os.getenv("PL_OIDC_CLIENT_ID") }
+    set_by_lua_block $oidc_additional_scopes  { return os.getenv("PL_OIDC_ADDITIONAL_SCOPES") }
+    set_by_lua_block $oidc_social_config_login  { return os.getenv("PL_OIDC_SOCIAL_CONFIG_LOGIN") }
+    set_by_lua_block $oidc_social_config_signup  { return os.getenv("PL_OIDC_SOCIAL_CONFIG_SIGNUP") }
+    set_by_lua_block $domain_name           { return os.getenv("PL_DOMAIN_NAME") }
+    set_by_lua_block $api_service           { return os.getenv("PL_API_SERVICE_HTTP") }
+    set_by_lua_block $segment_ui_write_key  { return os.getenv("PL_SEGMENT_UI_WRITE_KEY") }
+    set_by_lua_block $segment_cli_write_key  { return os.getenv("PL_SEGMENT_CLI_WRITE_KEY") }
+    set_by_lua_block $script_bundle_urls  { return os.getenv("SCRIPT_BUNDLE_URLS") }
+    set_by_lua_block $script_bundle_dev  { return os.getenv("SCRIPT_BUNDLE_DEV") }
+    set_by_lua_block $script_modification_disabled  { return os.getenv("PL_SCRIPT_MODIFICATION_DISABLED") }
+    set_by_lua_block $analytics_enabled  { return os.getenv("ANALYTICS_ENABLED") }
+    set_by_lua_block $announcement_enabled  { return os.getenv("ANNOUNCEMENT_ENABLED") }
+    set_by_lua_block $announce_widget_url  { return os.getenv("ANNOUNCE_WIDGET_URL") }
+    set_by_lua_block $ld_client_id  { return os.getenv("PL_LD_CLIENT_ID") }
+    set_by_lua_block $contact_enabled  { return os.getenv("CONTACT_ENABLED") }
+    set_by_lua_block $passthrough_proxy_port  { return os.getenv("PASSTHROUGH_PROXY_PORT") }
+    set_by_lua_block $hydra_service  { return os.getenv("PL_HYDRA_SERVICE") }
+    set_by_lua_block $kratos_service  { return os.getenv("PL_KRATOS_SERVICE") }
+kind: ConfigMap
+metadata:
+  labels:
+    app: pl-cloud
+  name: pl-proxy-nginx-config
+  namespace: plc
+---
+apiVersion: v1
+data:
+  PL_SCRIPT_MODIFICATION_DISABLED: "false"
+  SCRIPT_BUNDLE_DEV: "false"
+  SCRIPT_BUNDLE_URLS: '[ "https://artifacts.px.dev/pxl_scripts/bundle.json" ]'
+kind: ConfigMap
+metadata:
+  labels:
+    app: pl-cloud
+  name: pl-script-bundles-config
+  namespace: plc
+---
+apiVersion: v1
+data:
+  PL_BUNDLE_BUCKET: pixie-prod-artifacts
+  PL_BUNDLE_PATH: script-bundles/bundle-oss.json
+kind: ConfigMap
+metadata:
+  labels:
+    app: pl-cloud
+  name: pl-scriptmgr-config
+  namespace: plc
+---
+apiVersion: v1
+data:
+  PL_API_SERVICE_HTTP: api-service.plc.svc.cluster.local:51200
+  PL_ARTIFACT_TRACKER_SERVICE: kubernetes:///artifact-tracker-service.plc:50750
+  PL_AUTH_SERVICE: kubernetes:///auth-service.plc:50100
+  PL_CONFIG_MANAGER_SERVICE: kubernetes:///config-manager-service.plc:50500
+  PL_CRON_SCRIPT_SERVICE: kubernetes:///cron-script-service.plc:50700
+  PL_ELASTIC_SERVICE: https://pl-elastic-es-http.plc:9200
+  PL_PLUGIN_SERVICE: kubernetes:///plugin-service.plc:50600
+  PL_PROFILE_SERVICE: kubernetes:///profile-service.plc:51500
+  PL_PROJECT_MANAGER_SERVICE: kubernetes:///project-manager-service.plc:50300
+  PL_SCRIPTMGR_SERVICE: kubernetes:///scriptmgr-service.plc:52000
+  PL_VZMGR_SERVICE: kubernetes:///vzmgr-service.plc:51800
+kind: ConfigMap
+metadata:
+  labels:
+    app: pl-cloud
+  name: pl-service-config
+  namespace: plc
+---
+apiVersion: v1
+data:
+  PL_SUPPORT_ACCESS_ENABLED: "false"
+kind: ConfigMap
+metadata:
+  labels:
+    app: pl-cloud
+  name: pl-support-access-config
+  namespace: plc
+---
+apiVersion: v1
+data:
+  PL_CLIENT_TLS_CERT: /certs/client.crt
+  PL_CLIENT_TLS_KEY: /certs/client.key
+  PL_SERVER_SIDE_TLS: "true"
+  PL_SERVER_TLS_CERT: /certs/server.crt
+  PL_SERVER_TLS_KEY: /certs/server.key
+  PL_TLS_CA_CERT: /certs/ca.crt
+kind: ConfigMap
+metadata:
+  labels:
+    app: pl-cloud
+  name: pl-tls-config
+  namespace: plc
+---
+apiVersion: v1
+data:
+  envoy.yaml: |
+    static_resources:
+
+      listeners:
+      - name: listener_0
+        address:
+          socket_address: { address: 0.0.0.0, port_value: 56004 }
+        filter_chains:
+        - filters:
+          - name: envoy.http_connection_manager
+            config:
+              access_log:
+              - name: envoy.file_access_log
+                config:
+                  path: "/dev/stdout"
+              codec_type: auto
+              stat_prefix: ingress_http
+              route_config:
+                name: local_route
+                virtual_hosts:
+                - name: local_service
+                  domains: ["*"]
+                  routes:
+                  - match:
+                      prefix: "/px.api"
+                    route:
+                      cluster: api_service
+                      timeout: 3600s
+                  - match:
+                      prefix: "/healthz"
+                    route:
+                      cluster: api_service
+                  cors:
+                    allow_origin_string_match:
+                    - suffix: "dev.withpixie.dev"
+                    allow_methods: GET, PUT, DELETE, POST, OPTIONS
+                    allow_headers: >
+                      keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,
+                      x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,
+                      x-grpc-web,authorization,grpc-timeout,grpc-status,grpc-message
+                    max_age: "1728000"
+                    expose_headers: grpc-status,grpc-message,grpc-timeout
+                    allow_credentials: true
+              http_filters:
+              - name: envoy.grpc_web
+              - name: envoy.cors
+              - name: envoy.router
+          tls_context:
+            common_tls_context:
+              tls_certificates:
+                - certificate_chain:
+                    filename: "/certs/tls.crt"
+                  private_key:
+                    filename: "/certs/tls.key"
+      clusters:
+      - name: api_service
+        connect_timeout: 0.25s
+        type: logical_dns
+        http2_protocol_options: {}
+        lb_policy: round_robin
+        hosts:
+        - socket_address:
+            address: api-service
+            port_value: 51200
+        tls_context:
+          common_tls_context:
+            tls_certificates:
+              - certificate_chain:
+                  filename: "/service-certs/client.crt"
+                private_key:
+                  filename: "/service-certs/client.key"
+kind: ConfigMap
+metadata:
+  labels:
+    app: pl-cloud
+  name: proxy-envoy-config
+  namespace: plc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: pl-cloud
+  name: api-service
+  namespace: plc
+spec:
+  ports:
+  - name: tcp-http2
+    port: 51200
+    protocol: TCP
+    targetPort: 51200
+  selector:
+    app: pl-cloud
+    name: api-server
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: pl-cloud
+  name: artifact-tracker-service
+  namespace: plc
+spec:
+  clusterIP: None
+  ports:
+  - name: tcp-http2
+    port: 50750
+    protocol: TCP
+    targetPort: 50750
+  selector:
+    app: pl-cloud
+    name: artifact-tracker-server
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: pl-cloud
+  name: auth-service
+  namespace: plc
+spec:
+  clusterIP: None
+  ports:
+  - name: tcp-http2
+    port: 50100
+    protocol: TCP
+    targetPort: 50100
+  selector:
+    app: pl-cloud
+    name: auth-server
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    cloud.google.com/load-balancer-type: internal
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+  labels:
+    app: pl-cloud
+  name: cloud-proxy-service
+  namespace: plc
+spec:
+  ports:
+  - name: tcp-https
+    port: 443
+    protocol: TCP
+    targetPort: 56000
+  - name: tcp-grcp-web
+    port: 4444
+    protocol: TCP
+    targetPort: 56004
+  - name: tcp-http2
+    port: 5555
+    protocol: TCP
+    targetPort: 56000
+  selector:
+    app: pl-cloud
+    name: cloud-proxy-server
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: pl-cloud
+  name: config-manager-service
+  namespace: plc
+spec:
+  clusterIP: None
+  ports:
+  - name: tcp-http2
+    port: 50500
+    protocol: TCP
+    targetPort: 50500
+  selector:
+    app: pl-cloud
+    name: config-manager-server
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: pl-cloud
+  name: cron-script-service
+  namespace: plc
+spec:
+  clusterIP: None
+  ports:
+  - name: tcp-http2
+    port: 50700
+    protocol: TCP
+    targetPort: 50700
+  selector:
+    app: pl-cloud
+    name: cron-script-server
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: pl-cloud
+    name: hydra
+  name: hydra
+  namespace: plc
+spec:
+  ports:
+  - name: public
+    port: 4444
+    targetPort: 4444
+  - name: admin
+    port: 4445
+    targetPort: 4445
+  selector:
+    app: pl-cloud
+    name: hydra
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: pl-cloud
+    name: kratos
+  name: kratos
+  namespace: plc
+spec:
+  ports:
+  - name: public
+    port: 4433
+    targetPort: 4433
+  - name: admin
+    port: 4434
+    targetPort: 4434
+  selector:
+    app: pl-cloud
+    name: kratos
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: pl-cloud
+  name: plugin-service
+  namespace: plc
+spec:
+  clusterIP: None
+  ports:
+  - name: tcp-http2
+    port: 50600
+    protocol: TCP
+    targetPort: 50600
+  selector:
+    app: pl-cloud
+    name: plugin-server
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: pl-cloud
+  name: profile-service
+  namespace: plc
+spec:
+  clusterIP: None
+  ports:
+  - name: tcp-http2
+    port: 51500
+    protocol: TCP
+    targetPort: 51500
+  selector:
+    app: pl-cloud
+    name: profile-server
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: pl-cloud
+  name: project-manager-service
+  namespace: plc
+spec:
+  clusterIP: None
+  ports:
+  - name: tcp-http2
+    port: 50300
+    protocol: TCP
+    targetPort: 50300
+  selector:
+    app: pl-cloud
+    name: project-manager-server
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: pl-cloud
+  name: scriptmgr-service
+  namespace: plc
+spec:
+  ports:
+  - name: tcp-http2
+    port: 52000
+    protocol: TCP
+    targetPort: 52000
+  selector:
+    app: pl-cloud
+    name: scriptmgr-server
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    cloud.google.com/app-protocols: '{"tcp-http2":"HTTP2"}'
+    cloud.google.com/load-balancer-type: internal
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+  labels:
+    app: pl-cloud
+  name: vzconn-service
+  namespace: plc
+spec:
+  ports:
+  - name: tcp-http2
+    port: 51600
+    protocol: TCP
+    targetPort: 51600
+  selector:
+    app: pl-cloud
+    name: vzconn-server
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: pl-cloud
+  name: vzmgr-service
+  namespace: plc
+spec:
+  clusterIP: None
+  ports:
+  - name: tcp-http2
+    port: 51800
+    protocol: TCP
+    targetPort: 51800
+  selector:
+    app: pl-cloud
+    name: vzmgr-server
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: pl-cloud
+  name: api-server
+  namespace: plc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pl-cloud
+      name: api-server
+  template:
+    metadata:
+      labels:
+        app: pl-cloud
+        name: api-server
+    spec:
+      containers:
+      - env:
+        - name: PL_JWT_SIGNING_KEY
+          valueFrom:
+            secretKeyRef:
+              key: jwt-signing-key
+              name: cloud-auth-secrets
+        - name: PL_SESSION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: session-key
+              name: cloud-session-secrets
+        - name: PL_VZMGR_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              key: PL_VZMGR_SERVICE
+              name: pl-service-config
+        - name: PL_SCRIPTMGR_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              key: PL_SCRIPTMGR_SERVICE
+              name: pl-service-config
+        - name: PL_AUTH_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              key: PL_AUTH_SERVICE
+              name: pl-service-config
+        - name: PL_PLUGIN_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              key: PL_PLUGIN_SERVICE
+              name: pl-service-config
+        - name: PL_PROJECT_MANAGER_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              key: PL_PROJECT_MANAGER_SERVICE
+              name: pl-service-config
+        - name: PL_PROFILE_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              key: PL_PROFILE_SERVICE
+              name: pl-service-config
+        - name: PL_ARTIFACT_TRACKER_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              key: PL_ARTIFACT_TRACKER_SERVICE
+              name: pl-service-config
+        - name: PL_ELASTIC_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              key: PL_ELASTIC_SERVICE
+              name: pl-service-config
+        - name: PL_MD_INDEX_NAME
+          valueFrom:
+            configMapKeyRef:
+              key: PL_MD_INDEX_NAME
+              name: pl-indexer-config
+        - name: PL_CONFIG_MANAGER_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              key: PL_CONFIG_MANAGER_SERVICE
+              name: pl-service-config
+        - name: PL_SEGMENT_WRITE_KEY
+          valueFrom:
+            configMapKeyRef:
+              key: write-key
+              name: segment-config
+        - name: PL_CRON_SCRIPT_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              key: PL_CRON_SCRIPT_SERVICE
+              name: pl-service-config
+        - name: PL_VIZIER_IMAGE_SECRET_PATH
+          value: /vizier-image-secret
+        - name: PL_VIZIER_IMAGE_SECRET_FILE
+          value: vizier_image_secret.json
+        - name: PL_ELASTIC_USERNAME
+          value: elastic
+        - name: PL_ELASTIC_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: elastic
+              name: pl-elastic-es-elastic-user
+        - name: PL_ELASTIC_CA_CERT
+          value: /elastic-certs-pub/tls.crt
+        - name: PL_WORK_DOMAIN
+          value: work.$(PL_DOMAIN_NAME)
+        - name: PL_KRATOS_BROWSER_URL
+          value: https://$(PL_WORK_DOMAIN)/oauth/kratos
+        - name: PL_HYDRA_BROWSER_URL
+          value: https://$(PL_WORK_DOMAIN)/oauth/hydra
+        envFrom:
+        - configMapRef:
+            name: pl-tls-config
+        - configMapRef:
+            name: pl-domain-config
+        - configMapRef:
+            name: pl-ory-service-config
+        - configMapRef:
+            name: pl-auth-connector-config
+        - configMapRef:
+            name: pl-script-bundles-config
+        - configMapRef:
+            name: pl-errors-config
+            optional: true
+        image: gcr.io/pixie-oss/pixie-prod/cloud-api_server_image:latest
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 51200
+            scheme: HTTPS
+        name: api-server
+        ports:
+        - containerPort: 51200
+          name: http2
+        - containerPort: 51201
+          name: metrics-http
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 51200
+            scheme: HTTPS
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 10100
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /certs
+          name: certs
+        - mountPath: /vizier-image-secret
+          name: vizier-image-secret
+        - mountPath: /elastic-certs-pub
+          name: elastic-certs-pub
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10100
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+      - name: certs
+        secret:
+          secretName: service-tls-certs
+      - name: vizier-image-secret
+        secret:
+          optional: true
+          secretName: vizier-image-secret
+      - configMap:
+          name: proxy-envoy-config
+        name: envoy-yaml
+      - name: elastic-certs-pub
+        secret:
+          secretName: pl-elastic-es-http-certs-public
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: pl-cloud
+    db: pgsql
+  name: artifact-tracker-server
+  namespace: plc
+spec:
+  selector:
+    matchLabels:
+      app: pl-cloud
+      name: artifact-tracker-server
+  template:
+    metadata:
+      labels:
+        app: pl-cloud
+        name: artifact-tracker-server
+    spec:
+      containers:
+      - env:
+        - name: PL_VIZIER_VERSION
+          value: 0.14.14
+        - name: PL_CLI_VERSION
+          value: 0.8.5
+        - name: PL_OPERATOR_VERSION
+          value: 0.1.7
+        - name: PL_JWT_SIGNING_KEY
+          valueFrom:
+            secretKeyRef:
+              key: jwt-signing-key
+              name: cloud-auth-secrets
+        - name: PL_POSTGRES_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: PL_POSTGRES_USERNAME
+              name: pl-db-secrets
+        - name: PL_POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: PL_POSTGRES_PASSWORD
+              name: pl-db-secrets
+        envFrom:
+        - configMapRef:
+            name: pl-db-config
+        - configMapRef:
+            name: pl-tls-config
+        - configMapRef:
+            name: pl-artifact-config
+        - configMapRef:
+            name: pl-domain-config
+        image: gcr.io/pixie-oss/pixie-prod/cloud-artifact_tracker_server_image:latest
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 50750
+            scheme: HTTPS
+        name: artifact-tracker-server
+        ports:
+        - containerPort: 50750
+          name: http2
+        - containerPort: 50751
+          name: metrics-http
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 50750
+            scheme: HTTPS
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 10100
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /certs
+          name: certs
+        - mountPath: /creds
+          name: artifact-access-sa
+          readOnly: true
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10100
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+      - name: certs
+        secret:
+          secretName: service-tls-certs
+      - name: artifact-access-sa
+        secret:
+          optional: true
+          secretName: artifact-access-sa
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: pl-cloud
+    db: pgsql
+  name: auth-server
+  namespace: plc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pl-cloud
+      name: auth-server
+  template:
+    metadata:
+      labels:
+        app: pl-cloud
+        name: auth-server
+    spec:
+      containers:
+      - env:
+        - name: PL_JWT_SIGNING_KEY
+          valueFrom:
+            secretKeyRef:
+              key: jwt-signing-key
+              name: cloud-auth-secrets
+        - name: PL_OIDC_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              key: oidc-client-id
+              name: cloud-oidc-secrets
+              optional: true
+        - name: PL_OIDC_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: oidc-client-secret
+              name: cloud-oidc-secrets
+              optional: true
+        - name: PL_PROFILE_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              key: PL_PROFILE_SERVICE
+              name: pl-service-config
+        - name: PL_PROJECT_MANAGER_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              key: PL_PROJECT_MANAGER_SERVICE
+              name: pl-service-config
+        - name: PL_DATABASE_KEY
+          valueFrom:
+            secretKeyRef:
+              key: database-key
+              name: pl-db-secrets
+        - name: PL_POSTGRES_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: PL_POSTGRES_USERNAME
+              name: pl-db-secrets
+        - name: PL_POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: PL_POSTGRES_PASSWORD
+              name: pl-db-secrets
+        - name: PL_HYDRA_CLIENT_ID
+          valueFrom:
+            configMapKeyRef:
+              key: PL_AUTH_CLIENT_ID
+              name: pl-oauth-config
+        - name: PL_AUTH0_HOST
+          value: https://$(PL_AUTH_URI)
+        envFrom:
+        - configMapRef:
+            name: pl-tls-config
+        - configMapRef:
+            name: pl-db-config
+        - configMapRef:
+            name: pl-domain-config
+        - configMapRef:
+            name: pl-support-access-config
+        - configMapRef:
+            name: pl-ory-service-config
+        - configMapRef:
+            name: pl-oauth-config
+        - configMapRef:
+            name: pl-errors-config
+            optional: true
+        image: gcr.io/pixie-oss/pixie-prod/cloud-auth_server_image:latest
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 50100
+            scheme: HTTPS
+        name: auth-server
+        ports:
+        - containerPort: 50100
+          name: http2
+        - containerPort: 50101
+          name: metrics-http
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 50100
+            scheme: HTTPS
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 10100
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /certs
+          name: certs
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10100
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+      - name: certs
+        secret:
+          secretName: service-tls-certs
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: pl-cloud
+  name: cloud-proxy
+  namespace: plc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pl-cloud
+      name: cloud-proxy-server
+  template:
+    metadata:
+      labels:
+        app: pl-cloud
+        name: cloud-proxy-server
+    spec:
+      containers:
+      - env:
+        - name: PL_JWT_SIGNING_KEY
+          valueFrom:
+            secretKeyRef:
+              key: jwt-signing-key
+              name: cloud-auth-secrets
+        - name: PL_TLS_CERT
+          value: /certs/tls.crt
+        - name: PL_TLS_KEY
+          value: /certs/tls.key
+        - name: PL_API_SERVICE_HTTP
+          valueFrom:
+            configMapKeyRef:
+              key: PL_API_SERVICE_HTTP
+              name: pl-service-config
+        - name: PL_SEGMENT_UI_WRITE_KEY
+          valueFrom:
+            configMapKeyRef:
+              key: ui-write-key
+              name: segment-config
+        - name: PL_SEGMENT_CLI_WRITE_KEY
+          valueFrom:
+            configMapKeyRef:
+              key: cli-write-key
+              name: segment-config
+        envFrom:
+        - configMapRef:
+            name: pl-oauth-config
+        - configMapRef:
+            name: pl-domain-config
+        - configMapRef:
+            name: pl-service-config
+        - configMapRef:
+            name: pl-ory-service-config
+        - configMapRef:
+            name: pl-ld-config
+        - configMapRef:
+            name: pl-analytics-config
+        - configMapRef:
+            name: pl-announcement-config
+        - configMapRef:
+            name: pl-contact-config
+        - configMapRef:
+            name: pl-script-bundles-config
+        image: gcr.io/pixie-oss/pixie-prod/cloud-proxy_server_image:latest
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 56000
+            scheme: HTTPS
+        name: cloud-proxy-server
+        ports:
+        - containerPort: 56000
+          name: http2
+        - containerPort: 56001
+          name: metrics-http
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 56000
+            scheme: HTTPS
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            add:
+            - CHOWN
+            - DAC_OVERRIDE
+            - FSETID
+            - FOWNER
+            - MKNOD
+            - SETFCAP
+            - SETGID
+            - SETUID
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /certs
+          name: certs
+        - mountPath: /usr/local/openresty/nginx/conf.d
+          name: nginx-config
+      - args:
+        - -c
+        - /etc/envoy.yaml
+        - --service-cluster
+        - $(POD_NAME)
+        command:
+        - envoy
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        image: envoyproxy/envoy:v1.12.2@sha256:b36ee021fc4d285de7861dbaee01e7437ce1d63814ead6ae3e4dfcad4a951b2e
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 56004
+            scheme: HTTPS
+        name: envoy
+        ports:
+        - containerPort: 56004
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 56004
+            scheme: HTTPS
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 10100
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /certs
+          name: certs
+        - mountPath: /etc/envoy.yaml
+          name: envoy-yaml
+          subPath: envoy.yaml
+        - mountPath: /service-certs
+          name: service-certs
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+      - name: service-certs
+        secret:
+          secretName: service-tls-certs
+      - configMap:
+          name: proxy-envoy-config
+        name: envoy-yaml
+      - name: certs
+        secret:
+          secretName: cloud-proxy-tls-certs
+      - configMap:
+          name: pl-proxy-nginx-config
+        name: nginx-config
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: pl-cloud
+  name: config-manager-server
+  namespace: plc
+spec:
+  selector:
+    matchLabels:
+      app: pl-cloud
+      name: config-manager-server
+  template:
+    metadata:
+      labels:
+        app: pl-cloud
+        name: config-manager-server
+    spec:
+      containers:
+      - env:
+        - name: PL_JWT_SIGNING_KEY
+          valueFrom:
+            secretKeyRef:
+              key: jwt-signing-key
+              name: cloud-auth-secrets
+        - name: PL_ARTIFACT_TRACKER_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              key: PL_ARTIFACT_TRACKER_SERVICE
+              name: pl-service-config
+        - name: PL_VZMGR_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              key: PL_VZMGR_SERVICE
+              name: pl-service-config
+        - name: PL_PROD_SENTRY
+          valueFrom:
+            configMapKeyRef:
+              key: PL_PROD_SENTRY
+              name: pl-sentry-dsn-config
+        - name: PL_DEV_SENTRY
+          valueFrom:
+            configMapKeyRef:
+              key: PL_DEV_SENTRY
+              name: pl-sentry-dsn-config
+        - name: PL_OPERATOR_SENTRY
+          valueFrom:
+            configMapKeyRef:
+              key: PL_OPERATOR_SENTRY
+              name: pl-sentry-dsn-config
+              optional: true
+        - name: PL_LD_SDK_KEY
+          valueFrom:
+            configMapKeyRef:
+              key: PL_LD_SDK_KEY
+              name: pl-ld-config
+              optional: true
+        envFrom:
+        - configMapRef:
+            name: pl-tls-config
+        - configMapRef:
+            name: pl-domain-config
+        image: gcr.io/pixie-oss/pixie-prod/cloud-config_manager_server_image:latest
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 50500
+            scheme: HTTPS
+        name: config-manager-server
+        ports:
+        - containerPort: 50500
+          name: http2
+        - containerPort: 50501
+          name: metrics-http
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 50500
+            scheme: HTTPS
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 10100
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /certs
+          name: certs
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10100
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+      - name: certs
+        secret:
+          secretName: service-tls-certs
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: pl-cloud
+    db: pgsql
+  name: cron-script-server
+  namespace: plc
+spec:
+  selector:
+    matchLabels:
+      app: pl-cloud
+      name: cron-script-server
+  template:
+    metadata:
+      labels:
+        app: pl-cloud
+        name: cron-script-server
+    spec:
+      containers:
+      - env:
+        - name: PL_JWT_SIGNING_KEY
+          valueFrom:
+            secretKeyRef:
+              key: jwt-signing-key
+              name: cloud-auth-secrets
+        - name: PL_POSTGRES_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: PL_POSTGRES_USERNAME
+              name: pl-db-secrets
+        - name: PL_POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: PL_POSTGRES_PASSWORD
+              name: pl-db-secrets
+        - name: PL_DATABASE_KEY
+          valueFrom:
+            secretKeyRef:
+              key: database-key
+              name: pl-db-secrets
+        - name: PL_VZMGR_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              key: PL_VZMGR_SERVICE
+              name: pl-service-config
+        envFrom:
+        - configMapRef:
+            name: pl-db-config
+        - configMapRef:
+            name: pl-tls-config
+        - configMapRef:
+            name: pl-domain-config
+        image: gcr.io/pixie-oss/pixie-prod/cloud-cron_script_server_image:latest
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 50700
+            scheme: HTTPS
+        name: cron-script-server
+        ports:
+        - containerPort: 50700
+          name: http2
+        - containerPort: 50701
+          name: metrics-http
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 50700
+            scheme: HTTPS
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 10100
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /certs
+          name: certs
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10100
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+      - name: certs
+        secret:
+          secretName: service-tls-certs
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: pl-cloud
+    name: hydra
+  name: hydra
+  namespace: plc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pl-cloud
+      name: hydra
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: pl-cloud
+        name: hydra
+    spec:
+      containers:
+      - args:
+        - serve
+        - -c
+        - /etc/config/hydra/hydra.yml
+        - all
+        env:
+        - name: PL_POSTGRES_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: PL_POSTGRES_USERNAME
+              name: pl-db-secrets
+        - name: PL_POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: PL_POSTGRES_PASSWORD
+              name: pl-db-secrets
+        - name: OIDC_SUBJECT_IDENTIFIERS_PAIRWISE_SALT
+          valueFrom:
+            secretKeyRef:
+              key: OIDC_SUBJECT_IDENTIFIERS_PAIRWISE_SALT
+              name: pl-hydra-secrets
+        - name: SECRETS_SYSTEM
+          valueFrom:
+            secretKeyRef:
+              key: SECRETS_SYSTEM
+              name: pl-hydra-secrets
+        - name: DSN
+          value: postgres://$(PL_POSTGRES_USERNAME):$(PL_POSTGRES_PASSWORD)@$(PL_POSTGRES_HOSTNAME):$(PL_POSTGRES_PORT)/$(PL_POSTGRES_DB)?sslmode=disable&max_conns=20&max_idle_conns=4
+        - name: SERVE_TLS_CERT_PATH
+          value: /certs/server.crt
+        - name: SERVE_TLS_KEY_PATH
+          value: /certs/server.key
+        - name: PL_WORK_DOMAIN
+          value: work.$(PL_DOMAIN_NAME)
+        - name: PL_OAUTH_DOMAIN
+          value: $(PL_WORK_DOMAIN)/oauth
+        - name: HYDRA_URL
+          value: https://$(PL_OAUTH_DOMAIN)/hydra
+        - name: URLS_CONSENT
+          value: https://$(PL_OAUTH_DOMAIN)/auth/hydra/consent
+        - name: URLS_LOGIN
+          value: https://$(PL_WORK_DOMAIN)/api/auth/oauth/login
+        - name: URLS_LOGOUT
+          value: https://$(PL_OAUTH_DOMAIN)/logout
+        - name: URLS_SELF_PUBLIC
+          value: $(HYDRA_URL)
+        - name: URLS_SELF_ISSUER
+          value: $(HYDRA_URL)
+        envFrom:
+        - configMapRef:
+            name: pl-db-config
+        - configMapRef:
+            name: pl-domain-config
+        image: oryd/hydra:v1.9.2-sqlite@sha256:61771c706934e1ffd66f86700a28a294ce4ed150fbf30cc131710924271a5871
+        imagePullPolicy: IfNotPresent
+        name: server
+        ports:
+        - containerPort: 4444
+        - containerPort: 4445
+        - containerPort: 5555
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 10100
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /etc/config/hydra
+          name: config
+        - mountPath: /certs
+          name: certs
+      - command:
+        - sh
+        - -c
+        - 'set -x; URL="https://localhost:4445/health/ready"; until [ $(wget --no-check-certificate
+          --spider --quiet --server-response ${URL} 2>&1 | awk ''NR==1{print $2}'')
+          -eq 200 ]; do echo "waiting for ${URL}"; sleep 2; done; CMD="hydra clients
+          update auth-code-client"; hydra clients get auth-code-client --endpoint=https://localhost:4445
+          --skip-tls-verify; if [ $? -ne 0 ]; then echo "Creating client"; CMD="hydra
+          clients create --id auth-code-client"; fi; ${CMD} --endpoint https://localhost:4445
+          --secret "${HYDRA_CLIENT_SECRET}" --grant-types authorization_code,refresh_token,implicit
+          --response-types code,id_token,token --scope openid,offline,notifications,gist,vizier
+          --callbacks "https://${PL_DOMAIN_NAME}/oauth/auth/callback" --callbacks
+          "https://work.${PL_DOMAIN_NAME}/auth/callback" --skip-tls-verify; sleep
+          infinity; '
+        env:
+        - name: HYDRA_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: CLIENT_SECRET
+              name: pl-hydra-secrets
+        envFrom:
+        - configMapRef:
+            name: pl-domain-config
+        image: oryd/hydra:v1.9.2-alpine@sha256:faa6ca02e77e0a08f66bfa7470a5e06d80e6e68c9c35410c65a4ea7b501aea61
+        imagePullPolicy: IfNotPresent
+        name: client-create-or-update
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 10100
+          seccompProfile:
+            type: RuntimeDefault
+      initContainers:
+      - args:
+        - migrate
+        - -c
+        - /etc/config/hydra/hydra.yml
+        - sql
+        - -e
+        - --yes
+        env:
+        - name: PL_POSTGRES_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: PL_POSTGRES_USERNAME
+              name: pl-db-secrets
+        - name: PL_POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: PL_POSTGRES_PASSWORD
+              name: pl-db-secrets
+        - name: OIDC_SUBJECT_IDENTIFIERS_PAIRWISE_SALT
+          valueFrom:
+            secretKeyRef:
+              key: OIDC_SUBJECT_IDENTIFIERS_PAIRWISE_SALT
+              name: pl-hydra-secrets
+        - name: SECRETS_SYSTEM
+          valueFrom:
+            secretKeyRef:
+              key: SECRETS_SYSTEM
+              name: pl-hydra-secrets
+        - name: HYDRA_DATABASE
+          value: hydra
+        - name: DSN
+          value: postgres://$(PL_POSTGRES_USERNAME):$(PL_POSTGRES_PASSWORD)@$(PL_POSTGRES_HOSTNAME):$(PL_POSTGRES_PORT)/$(PL_POSTGRES_DB)?sslmode=disable&max_conns=20&max_idle_conns=4
+        envFrom:
+        - configMapRef:
+            name: pl-db-config
+        image: oryd/hydra:v1.9.2-sqlite@sha256:61771c706934e1ffd66f86700a28a294ce4ed150fbf30cc131710924271a5871
+        imagePullPolicy: IfNotPresent
+        name: migrate
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 10100
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /etc/config/hydra
+          name: config
+      restartPolicy: Always
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10100
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+      - configMap:
+          items:
+          - key: hydra.yml
+            path: hydra.yml
+          name: hydra-config
+        name: config
+      - name: certs
+        secret:
+          secretName: service-tls-certs
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: pl-cloud
+    db: pgsql
+  name: indexer-server
+  namespace: plc
+spec:
+  selector:
+    matchLabels:
+      app: pl-cloud
+      name: indexer-server
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "51801"
+        prometheus.io/scheme: http
+        prometheus.io/scrape: "true"
+      labels:
+        app: pl-cloud
+        monitoring.gke.io/scrape: "true"
+        name: indexer-server
+    spec:
+      containers:
+      - env:
+        - name: PL_JWT_SIGNING_KEY
+          valueFrom:
+            secretKeyRef:
+              key: jwt-signing-key
+              name: cloud-auth-secrets
+        - name: PL_VZMGR_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              key: PL_VZMGR_SERVICE
+              name: pl-service-config
+        - name: PL_ES_PASSWD
+          valueFrom:
+            secretKeyRef:
+              key: elastic
+              name: pl-elastic-es-elastic-user
+        envFrom:
+        - configMapRef:
+            name: pl-indexer-config
+        - configMapRef:
+            name: pl-tls-config
+        - configMapRef:
+            name: pl-domain-config
+        - configMapRef:
+            name: pl-jetstream-config
+        - configMapRef:
+            name: pl-errors-config
+            optional: true
+        image: gcr.io/pixie-oss/pixie-prod/cloud-indexer_server_image:latest
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 51800
+            scheme: HTTPS
+        name: indexer-server
+        ports:
+        - containerPort: 51800
+          name: http2
+        - containerPort: 51801
+          name: metrics-http
+        readinessProbe:
+          failureThreshold: 6
+          httpGet:
+            path: /healthz
+            port: 51800
+            scheme: HTTPS
+          periodSeconds: 15
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 10100
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /certs
+          name: certs
+        - mountPath: /es-certs
+          name: es-certs
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10100
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+      - name: certs
+        secret:
+          secretName: service-tls-certs
+      - name: es-certs
+        secret:
+          secretName: pl-elastic-es-http-certs-internal
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: pl-cloud
+    name: kratos
+  name: kratos
+  namespace: plc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pl-cloud
+      name: kratos
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: pl-cloud
+        name: kratos
+    spec:
+      containers:
+      - args:
+        - serve
+        - -c
+        - /etc/config/kratos/kratos.yml
+        - --dev
+        env:
+        - name: PL_POSTGRES_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: PL_POSTGRES_USERNAME
+              name: pl-db-secrets
+        - name: PL_POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: PL_POSTGRES_PASSWORD
+              name: pl-db-secrets
+        - name: DSN
+          value: postgres://$(PL_POSTGRES_USERNAME):$(PL_POSTGRES_PASSWORD)@$(PL_POSTGRES_HOSTNAME):$(PL_POSTGRES_PORT)/$(PL_POSTGRES_DB)?sslmode=disable&max_conns=20&max_idle_conns=4
+        - name: SERVE_PUBLIC_TLS_CERT_PATH
+          value: /certs/server.crt
+        - name: SERVE_PUBLIC_TLS_KEY_PATH
+          value: /certs/server.key
+        - name: SERVE_ADMIN_TLS_CERT_PATH
+          value: /certs/server.crt
+        - name: SERVE_ADMIN_TLS_KEY_PATH
+          value: /certs/server.key
+        - name: LOG_LEVEL
+          value: trace
+        - name: PL_WORK_DOMAIN
+          value: work.$(PL_DOMAIN_NAME)
+        - name: PL_OAUTH_DOMAIN
+          value: $(PL_WORK_DOMAIN)/oauth
+        - name: FRONTEND_URL
+          value: https://$(PL_WORK_DOMAIN)/auth/ossauth
+        - name: ADMIN_URL
+          value: https://kratos:4434
+        - name: AUTH_LOGIN_URL
+          value: https://$(PL_WORK_DOMAIN)/auth/password-login
+        - name: SERVE_PUBLIC_BASE_URL
+          value: https://$(PL_OAUTH_DOMAIN)/kratos/
+        - name: SERVE_ADMIN_BASE_URL
+          value: $(ADMIN_URL)/
+        - name: SELFSERVICE_DEFAULT_BROWSER_RETURN_URL
+          value: $(AUTH_LOGIN_URL)/
+        - name: HYDRA_LOGIN_URL
+          value: https://$(PL_WORK_DOMAIN)/api/auth/oauth/login
+        - name: SELFSERVICE_ALLOWED_RETURN_URLS
+          value: $(FRONTEND_URL)/,$(HYDRA_LOGIN_URL)
+        - name: SELFSERVICE_FLOWS_SETTINGS_UI_URL
+          value: https://$(PL_WORK_DOMAIN)/auth/password/recovery
+        - name: SELFSERVICE_FLOWS_SETTINGS_AFTER_PASSWORD_DEFAULT_BROWSER_RETURN_URL
+          value: https://$(PL_WORK_DOMAIN)/
+        - name: SELFSERVICE_FLOWS_RECOVERY_UI_URL
+          value: https://$(PL_WORK_DOMAIN)/auth/password/recovery
+        - name: SELFSERVICE_FLOWS_LOGOUT_AFTER_DEFAULT_BROWSER_RETURN_URL
+          value: $(AUTH_LOGIN_URL)
+        - name: SELFSERVICE_FLOWS_LOGIN_UI_URL
+          value: $(AUTH_LOGIN_URL)
+        - name: SELFSERVICE_FLOWS_ERROR_UI_URL
+          value: https://$(PL_WORK_DOMAIN)/auth/password/error
+        envFrom:
+        - configMapRef:
+            name: pl-db-config
+        - configMapRef:
+            name: pl-domain-config
+        image: oryd/kratos:v0.10.1@sha256:fdcfac3da3b64e619af553451607e1ab00160e59860bb19ec145cdc6f6f9c41d
+        imagePullPolicy: IfNotPresent
+        name: server
+        ports:
+        - containerPort: 4433
+        - containerPort: 4434
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 10100
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /etc/config/kratos
+          name: config
+        - mountPath: /certs
+          name: certs
+      - command:
+        - sh
+        - -c
+        - 'set -x; URL="${ADMIN_URL}/admin/health/ready"; until [ $(curl -k -m 0.5
+          -s -o /dev/null -w "%{http_code}" ${URL}) -eq 200 ]; do echo "waiting for
+          ${URL}"; sleep 2; done; curl -k -s -H "Content-Type: application/json" --data
+          "${ADMIN_IDENTITY}" "${ADMIN_URL}/admin/identities"; sleep infinity; '
+        env:
+        - name: ADMIN_URL
+          value: https://kratos:4434
+        - name: ADMIN_IDENTITY
+          value: |-
+            {
+
+              "schema_id": "default",
+              "traits": {
+                "email": "admin@default.com"
+              },
+              "credentials": {
+                "password": {
+                  "config": {
+                    "password": "admin"
+                  }
+                }
+              }
+            }
+        image: ghcr.io/pixie-io/pixie-oss-pixie-dev-public-curl:multiarch-7.87.0@sha256:f7f265d5c64eb4463a43a99b6bf773f9e61a50aaa7cefaf564f43e42549a01dd
+        imagePullPolicy: IfNotPresent
+        name: admin-create-if-not-exists
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 10100
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /etc/config/kratos
+          name: config
+        - mountPath: /certs
+          name: certs
+      initContainers:
+      - args:
+        - -c
+        - /etc/config/kratos/kratos.yml
+        - migrate
+        - sql
+        - -e
+        - --yes
+        env:
+        - name: PL_POSTGRES_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: PL_POSTGRES_USERNAME
+              name: pl-db-secrets
+        - name: PL_POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: PL_POSTGRES_PASSWORD
+              name: pl-db-secrets
+        - name: DSN
+          value: postgres://$(PL_POSTGRES_USERNAME):$(PL_POSTGRES_PASSWORD)@$(PL_POSTGRES_HOSTNAME):$(PL_POSTGRES_PORT)/$(PL_POSTGRES_DB)?sslmode=disable&max_conns=20&max_idle_conns=4
+        envFrom:
+        - configMapRef:
+            name: pl-db-config
+        image: oryd/kratos:v0.10.1@sha256:fdcfac3da3b64e619af553451607e1ab00160e59860bb19ec145cdc6f6f9c41d
+        imagePullPolicy: IfNotPresent
+        name: migrate
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 10100
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /etc/config/kratos
+          name: config
+      restartPolicy: Always
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10100
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: ""
+      volumes:
+      - configMap:
+          items:
+          - key: kratos.yml
+            path: kratos.yml
+          - key: identity.schema.json
+            path: identity.schema.json
+          name: kratos-config
+        name: config
+      - name: certs
+        secret:
+          secretName: service-tls-certs
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: pl-cloud
+  name: metrics-server
+  namespace: plc
+spec:
+  selector:
+    matchLabels:
+      app: pl-cloud
+      name: metrics-server
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "50801"
+        prometheus.io/scheme: http
+        prometheus.io/scrape: "true"
+      labels:
+        app: pl-cloud
+        monitoring.gke.io/scrape: "true"
+        name: metrics-server
+    spec:
+      containers:
+      - env:
+        - name: PL_JWT_SIGNING_KEY
+          valueFrom:
+            secretKeyRef:
+              key: jwt-signing-key
+              name: cloud-auth-secrets
+        envFrom:
+        - configMapRef:
+            name: pl-tls-config
+        - configMapRef:
+            name: pl-domain-config
+        - configMapRef:
+            name: pl-bq-config
+        image: gcr.io/pixie-oss/pixie-prod/cloud-metrics_server_image:latest
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 50800
+            scheme: HTTPS
+        name: metrics-server
+        ports:
+        - containerPort: 50800
+          name: http2
+        - containerPort: 50801
+          name: metrics-http
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 50800
+            scheme: HTTPS
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 10100
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /certs
+          name: certs
+        - mountPath: /creds
+          name: bq-access-sa
+          readOnly: true
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10100
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+      - name: certs
+        secret:
+          secretName: service-tls-certs
+      - name: bq-access-sa
+        secret:
+          optional: true
+          secretName: bq-access-sa
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: pl-cloud
+    db: pgsql
+  name: plugin-server
+  namespace: plc
+spec:
+  selector:
+    matchLabels:
+      app: pl-cloud
+      name: plugin-server
+  template:
+    metadata:
+      labels:
+        app: pl-cloud
+        name: plugin-server
+    spec:
+      containers:
+      - env:
+        - name: PL_JWT_SIGNING_KEY
+          valueFrom:
+            secretKeyRef:
+              key: jwt-signing-key
+              name: cloud-auth-secrets
+        - name: PL_POSTGRES_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: PL_POSTGRES_USERNAME
+              name: pl-db-secrets
+        - name: PL_POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: PL_POSTGRES_PASSWORD
+              name: pl-db-secrets
+        - name: PL_DATABASE_KEY
+          valueFrom:
+            secretKeyRef:
+              key: database-key
+              name: pl-db-secrets
+        - name: PL_CRON_SCRIPT_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              key: PL_CRON_SCRIPT_SERVICE
+              name: pl-service-config
+        - name: PL_SEGMENT_WRITE_KEY
+          valueFrom:
+            configMapKeyRef:
+              key: write-key
+              name: segment-config
+        envFrom:
+        - configMapRef:
+            name: pl-db-config
+        - configMapRef:
+            name: pl-tls-config
+        - configMapRef:
+            name: pl-domain-config
+        image: gcr.io/pixie-oss/pixie-prod/cloud-plugin_server_image:latest
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 50600
+            scheme: HTTPS
+        name: plugin-server
+        ports:
+        - containerPort: 50600
+          name: http2
+        - containerPort: 50601
+          name: metrics-http
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 50600
+            scheme: HTTPS
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 10100
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /certs
+          name: certs
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10100
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+      - name: certs
+        secret:
+          secretName: service-tls-certs
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: pl-cloud
+    db: pgsql
+  name: profile-server
+  namespace: plc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pl-cloud
+      name: profile-server
+  template:
+    metadata:
+      labels:
+        app: pl-cloud
+        name: profile-server
+    spec:
+      containers:
+      - env:
+        - name: PL_JWT_SIGNING_KEY
+          valueFrom:
+            secretKeyRef:
+              key: jwt-signing-key
+              name: cloud-auth-secrets
+        - name: PL_DATABASE_KEY
+          valueFrom:
+            secretKeyRef:
+              key: database-key
+              name: pl-db-secrets
+        - name: PL_POSTGRES_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: PL_POSTGRES_USERNAME
+              name: pl-db-secrets
+        - name: PL_POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: PL_POSTGRES_PASSWORD
+              name: pl-db-secrets
+        - name: PL_PROJECT_MANAGER_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              key: PL_PROJECT_MANAGER_SERVICE
+              name: pl-service-config
+        envFrom:
+        - configMapRef:
+            name: pl-db-config
+        - configMapRef:
+            name: pl-tls-config
+        - configMapRef:
+            name: pl-domain-config
+        - configMapRef:
+            name: pl-ory-service-config
+        - configMapRef:
+            name: pl-errors-config
+            optional: true
+        image: gcr.io/pixie-oss/pixie-prod/cloud-profile_server_image:latest
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 51500
+            scheme: HTTPS
+        name: profile-server
+        ports:
+        - containerPort: 51500
+          name: http2
+        - containerPort: 51501
+          name: metrics-http
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 51500
+            scheme: HTTPS
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 10100
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /certs
+          name: certs
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10100
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+      - name: certs
+        secret:
+          secretName: service-tls-certs
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: pl-cloud
+    db: pgsql
+  name: project-manager-server
+  namespace: plc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pl-cloud
+      name: project-manager-server
+  template:
+    metadata:
+      labels:
+        app: pl-cloud
+        name: project-manager-server
+    spec:
+      containers:
+      - env:
+        - name: PL_JWT_SIGNING_KEY
+          valueFrom:
+            secretKeyRef:
+              key: jwt-signing-key
+              name: cloud-auth-secrets
+        - name: PL_POSTGRES_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: PL_POSTGRES_USERNAME
+              name: pl-db-secrets
+        - name: PL_POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: PL_POSTGRES_PASSWORD
+              name: pl-db-secrets
+        envFrom:
+        - configMapRef:
+            name: pl-db-config
+        - configMapRef:
+            name: pl-tls-config
+        - configMapRef:
+            name: pl-domain-config
+        image: gcr.io/pixie-oss/pixie-prod/cloud-project_manager_server_image:latest
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 50300
+            scheme: HTTPS
+        name: project-manager-server
+        ports:
+        - containerPort: 50300
+          name: http2
+        - containerPort: 50301
+          name: metrics-http
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 50300
+            scheme: HTTPS
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 10100
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /certs
+          name: certs
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10100
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+      - name: certs
+        secret:
+          secretName: service-tls-certs
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: pl-cloud
+  name: scriptmgr-server
+  namespace: plc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pl-cloud
+      name: scriptmgr-server
+  template:
+    metadata:
+      labels:
+        app: pl-cloud
+        name: scriptmgr-server
+    spec:
+      containers:
+      - env:
+        - name: PL_JWT_SIGNING_KEY
+          valueFrom:
+            secretKeyRef:
+              key: jwt-signing-key
+              name: cloud-auth-secrets
+        envFrom:
+        - configMapRef:
+            name: pl-tls-config
+        - configMapRef:
+            name: pl-scriptmgr-config
+        - configMapRef:
+            name: pl-domain-config
+        image: gcr.io/pixie-oss/pixie-prod/cloud-scriptmgr_server_image:latest
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 52000
+            scheme: HTTPS
+        name: scriptmgr-server
+        ports:
+        - containerPort: 52000
+          name: http2
+        - containerPort: 52001
+          name: metrics-http
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 52000
+            scheme: HTTPS
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 10100
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /certs
+          name: certs
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10100
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+      - name: certs
+        secret:
+          secretName: service-tls-certs
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: pl-cloud
+  name: vzconn-server
+  namespace: plc
+spec:
+  selector:
+    matchLabels:
+      app: pl-cloud
+      name: vzconn-server
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "51601"
+        prometheus.io/scheme: http
+        prometheus.io/scrape: "true"
+      labels:
+        app: pl-cloud
+        monitoring.gke.io/scrape: "true"
+        name: vzconn-server
+    spec:
+      containers:
+      - env:
+        - name: PL_SERVER_TLS_CERT
+          value: /proxycerts/tls.crt
+        - name: PL_SERVER_TLS_KEY
+          value: /proxycerts/tls.key
+        - name: PL_JWT_SIGNING_KEY
+          valueFrom:
+            secretKeyRef:
+              key: jwt-signing-key
+              name: cloud-auth-secrets
+        - name: PL_VZMGR_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              key: PL_VZMGR_SERVICE
+              name: pl-service-config
+        - name: PL_POSTGRES_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: PL_POSTGRES_USERNAME
+              name: pl-db-secrets
+        - name: PL_POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: PL_POSTGRES_PASSWORD
+              name: pl-db-secrets
+        envFrom:
+        - configMapRef:
+            name: pl-db-config
+        - configMapRef:
+            name: pl-tls-config
+        - configMapRef:
+            name: pl-domain-config
+        - configMapRef:
+            name: pl-jetstream-config
+        - configMapRef:
+            name: pl-errors-config
+            optional: true
+        image: gcr.io/pixie-oss/pixie-prod/cloud-vzconn_server_image:latest
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 51600
+            scheme: HTTPS
+        name: vzconn-server
+        ports:
+        - containerPort: 51600
+          name: http2
+        - containerPort: 51601
+          name: metrics-http
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 51600
+            scheme: HTTPS
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 10100
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /certs
+          name: certs
+        - mountPath: /proxycerts
+          name: proxycerts
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10100
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+      - name: certs
+        secret:
+          secretName: service-tls-certs
+      - name: proxycerts
+        secret:
+          secretName: cloud-proxy-tls-certs
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: pl-cloud
+    db: pgsql
+  name: vzmgr-server
+  namespace: plc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pl-cloud
+      name: vzmgr-server
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "51801"
+        prometheus.io/scheme: http
+        prometheus.io/scrape: "true"
+      labels:
+        app: pl-cloud
+        monitoring.gke.io/scrape: "true"
+        name: vzmgr-server
+    spec:
+      containers:
+      - env:
+        - name: PL_JWT_SIGNING_KEY
+          valueFrom:
+            secretKeyRef:
+              key: jwt-signing-key
+              name: cloud-auth-secrets
+        - name: PL_DATABASE_KEY
+          valueFrom:
+            secretKeyRef:
+              key: database-key
+              name: pl-db-secrets
+        - name: PL_ARTIFACT_TRACKER_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              key: PL_ARTIFACT_TRACKER_SERVICE
+              name: pl-service-config
+        - name: PL_POSTGRES_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: PL_POSTGRES_USERNAME
+              name: pl-db-secrets
+        - name: PL_POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: PL_POSTGRES_PASSWORD
+              name: pl-db-secrets
+        - name: PL_SEGMENT_WRITE_KEY
+          valueFrom:
+            configMapKeyRef:
+              key: write-key
+              name: segment-config
+        envFrom:
+        - configMapRef:
+            name: pl-db-config
+        - configMapRef:
+            name: pl-tls-config
+        - configMapRef:
+            name: pl-domain-config
+        - configMapRef:
+            name: pl-jetstream-config
+        - configMapRef:
+            name: pl-errors-config
+            optional: true
+        image: gcr.io/pixie-oss/pixie-prod/cloud-vzmgr_server_image:latest
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 51800
+            scheme: HTTPS
+        name: vzmgr-server
+        ports:
+        - containerPort: 51800
+          name: http2
+        - containerPort: 51801
+          name: metrics-http
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 51800
+            scheme: HTTPS
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 10100
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /certs
+          name: certs
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10100
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+      - name: certs
+        secret:
+          secretName: service-tls-certs
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    app: pl-cloud
+    jobgroup: plugin-db-updater
+  name: plugin-db-updater-job
+  namespace: plc
+spec:
+  backoffLimit: 1
+  completions: 1
+  parallelism: 1
+  template:
+    metadata:
+      labels:
+        app: pl-cloud
+        jobgroup: plugin-db-updater
+      name: plugin-db-updater-job
+    spec:
+      containers:
+      - env:
+        - name: PL_POSTGRES_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: PL_POSTGRES_USERNAME
+              name: pl-db-secrets
+        - name: PL_POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: PL_POSTGRES_PASSWORD
+              name: pl-db-secrets
+        - name: PL_JWT_SIGNING_KEY
+          valueFrom:
+            secretKeyRef:
+              key: jwt-signing-key
+              name: cloud-auth-secrets
+        - name: PL_PLUGIN_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              key: PL_PLUGIN_SERVICE
+              name: pl-service-config
+        - name: PL_PLUGIN_REPO
+          value: pixie-io/pixie-plugin
+        envFrom:
+        - configMapRef:
+            name: pl-db-config
+        - configMapRef:
+            name: pl-domain-config
+        - configMapRef:
+            name: pl-tls-config
+        image: gcr.io/pixie-oss/pixie-prod/cloud-plugin-load_db:latest
+        name: updater
+        volumeMounts:
+        - mountPath: /certs
+          name: certs
+      initContainers:
+      - command:
+        - sh
+        - -c
+        - until pg_isready -h ${PL_POSTGRES_HOSTNAME} -p ${PL_POSTGRES_PORT}; do echo
+          "waiting for postgres"; sleep 2; done;
+        envFrom:
+        - configMapRef:
+            name: pl-db-config
+        image: postgres:14-alpine@sha256:446abaf8831c54f57212c0ae52f5df84e69eeb2767e2376d07bed9c9742b1243
+        name: postgres-wait
+      restartPolicy: Never
+      volumes:
+      - name: pl-db-secrets
+        secret:
+          secretName: pl-db-secrets
+      - name: certs
+        secret:
+          secretName: service-tls-certs
+  ttlSecondsAfterFinished: 10
