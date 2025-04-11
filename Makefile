@@ -7,6 +7,10 @@ OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 ifeq ($(findstring kind-,$(CURRENT_CONTEXT)),kind-)
     $(eval VALUES := values.yaml)
+else ifeq ($(findstring Default,$(CURRENT_CONTEXT)),Default)
+    $(eval VALUES := values_k0s.yaml)
+else ifeq ($(findstring default,$(CURRENT_CONTEXT)),default)
+    $(eval VALUES := values_k3s.yaml)
 else
     $(eval VALUES := values_gke.yaml)
 endif
@@ -22,6 +26,9 @@ honey-up: tetragon vector redis traces  mongo lighteningrod stixviz kubescape tr
 
 .PHONY: dev
 dev: cluster-up tetragon vector redis traces lighteningrod stixviz kubescape tracee falco dev-ui
+
+.PHONY: k0s
+k0s: storage tetragon vector redis patch traces kubescape dev-ui pixie-cli pixie# add pixie here once you automated the auth0
 
 
 ##@ remove all honeycluster instrumentation from k8s
@@ -73,11 +80,16 @@ kind-pixie-up:
 	-$(HELM) upgrade --install cert-manager jetstack/cert-manager --set installCRDs=true --namespace cert-manager  --create-namespace
 
 
-# .PHONY: speedscale
-# speedscale: 
-# 	-$(HELM) repo add speedscale https://speedscale.github.io/operator-helm/
-# 	-$(HELM) repo update
-# 	-$(HELM) upgrade --install speedscale-operator speedscale/speedscale-operator -n speedscale --create-namespace --values ./honeystack/speedscale/values.yaml
+.PHONY: storage
+storage:
+	kubectl apply -f https://openebs.github.io/charts/openebs-operator-lite.yaml
+	kubectl apply -f https://openebs.github.io/charts/openebs-lite-sc.yaml
+	kubectl apply -f honeystack/openebs/sc.yaml
+	
+.PHONY: patch
+patch:	
+	kubectl patch storageclass local-hostpath -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+	kubectl patch pvc redis-data-redis-master-0 -n storm -p '{"spec": {"storageClassName": "local-hostpath"}}'
 
 
 .PHONY: pixie-cloud
@@ -139,7 +151,6 @@ mongo:
 .PHONY: kubescape
 kubescape:
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
-	-$(HELM) repo add headlamp https://headlamp-k8s.github.io/headlamp/
 	-$(HELM) repo update
 	-$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --values honeystack/kubescape/$(VALUES)
 
@@ -252,7 +263,7 @@ pixie-airgap:
 	mkcert -install
 	kubectl create ns plc
 	./scripts/create_cloud_secrets.sh
-	cd ../honeycluster/honeystack/pixie/pixie_cloud
+	cd ../honeystack/pixie/pixie_cloud
 	# remove job # actually dont, it gives an error
 	kubectl apply -f yamls/cloud_deps_elastic_operator.yaml
 	kubectl apply -f yamls/cloud_deps.yaml
