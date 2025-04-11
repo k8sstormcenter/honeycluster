@@ -9,6 +9,8 @@ ifeq ($(findstring kind-,$(CURRENT_CONTEXT)),kind-)
     $(eval VALUES := values.yaml)
 else ifeq ($(findstring Default,$(CURRENT_CONTEXT)),Default)
     $(eval VALUES := values_k0s.yaml)
+else ifeq ($(findstring default,$(CURRENT_CONTEXT)),default)
+    $(eval VALUES := values_k3s.yaml)
 else
     $(eval VALUES := values_gke.yaml)
 endif
