@@ -248,7 +248,7 @@ pixie-cli:
 .PHONY: pixie-airgap
 pixie-airgap:
 	git clone https://github.com/k8sstormcenter/pixie.git
-	cd pixie
+	cd pixie/
 	mkcert -install
 	kubectl create ns plc
 	./scripts/create_cloud_secrets.sh

@@ -1218,7 +1218,7 @@ spec:
         - configMapRef:
             name: pl-errors-config
             optional: true
-        image: gcr.io/pixie-oss/pixie-prod/cloud-api_server_image:latest
+        image: gcr.io/pixie-oss/pixie-prod/cloud-api_server_image:0.1.9
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -1323,7 +1323,7 @@ spec:
             name: pl-artifact-config
         - configMapRef:
             name: pl-domain-config
-        image: gcr.io/pixie-oss/pixie-prod/cloud-artifact_tracker_server_image:latest
+        image: gcr.io/pixie-oss/pixie-prod/cloud-artifact_tracker_server_image:0.1.9
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -1457,7 +1457,7 @@ spec:
         - configMapRef:
             name: pl-errors-config
             optional: true
-        image: gcr.io/pixie-oss/pixie-prod/cloud-auth_server_image:latest
+        image: gcr.io/pixie-oss/pixie-prod/cloud-auth_server_image:0.1.9
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -1561,7 +1561,7 @@ spec:
             name: pl-contact-config
         - configMapRef:
             name: pl-script-bundles-config
-        image: gcr.io/pixie-oss/pixie-prod/cloud-proxy_server_image:latest
+        image: gcr.io/pixie-oss/pixie-prod/cloud-proxy_server_image:0.1.9
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -1723,7 +1723,7 @@ spec:
             name: pl-tls-config
         - configMapRef:
             name: pl-domain-config
-        image: gcr.io/pixie-oss/pixie-prod/cloud-config_manager_server_image:latest
+        image: gcr.io/pixie-oss/pixie-prod/cloud-config_manager_server_image:0.1.9
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -1816,7 +1816,7 @@ spec:
             name: pl-tls-config
         - configMapRef:
             name: pl-domain-config
-        image: gcr.io/pixie-oss/pixie-prod/cloud-cron_script_server_image:latest
+        image: gcr.io/pixie-oss/pixie-prod/cloud-cron_script_server_image:0.1.9
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -2110,7 +2110,7 @@ spec:
         - configMapRef:
             name: pl-errors-config
             optional: true
-        image: gcr.io/pixie-oss/pixie-prod/cloud-indexer_server_image:latest
+        image: gcr.io/pixie-oss/pixie-prod/cloud-indexer_server_image:0.1.9
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -2406,7 +2406,7 @@ spec:
             name: pl-domain-config
         - configMapRef:
             name: pl-bq-config
-        image: gcr.io/pixie-oss/pixie-prod/cloud-metrics_server_image:latest
+        image: gcr.io/pixie-oss/pixie-prod/cloud-metrics_server_image:0.1.9
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -2511,7 +2511,7 @@ spec:
             name: pl-tls-config
         - configMapRef:
             name: pl-domain-config
-        image: gcr.io/pixie-oss/pixie-prod/cloud-plugin_server_image:latest
+        image: gcr.io/pixie-oss/pixie-prod/cloud-plugin_server_image:0.1.9
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -2610,7 +2610,7 @@ spec:
         - configMapRef:
             name: pl-errors-config
             optional: true
-        image: gcr.io/pixie-oss/pixie-prod/cloud-profile_server_image:latest
+        image: gcr.io/pixie-oss/pixie-prod/cloud-profile_server_image:0.1.9
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -2694,7 +2694,7 @@ spec:
             name: pl-tls-config
         - configMapRef:
             name: pl-domain-config
-        image: gcr.io/pixie-oss/pixie-prod/cloud-project_manager_server_image:latest
+        image: gcr.io/pixie-oss/pixie-prod/cloud-project_manager_server_image:0.1.9
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -2767,7 +2767,7 @@ spec:
             name: pl-scriptmgr-config
         - configMapRef:
             name: pl-domain-config
-        image: gcr.io/pixie-oss/pixie-prod/cloud-scriptmgr_server_image:latest
+        image: gcr.io/pixie-oss/pixie-prod/cloud-scriptmgr_server_image:0.1.9
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -2868,7 +2868,7 @@ spec:
         - configMapRef:
             name: pl-errors-config
             optional: true
-        image: gcr.io/pixie-oss/pixie-prod/cloud-vzconn_server_image:latest
+        image: gcr.io/pixie-oss/pixie-prod/cloud-vzconn_server_image:0.1.9
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -2982,7 +2982,7 @@ spec:
         - configMapRef:
             name: pl-errors-config
             optional: true
-        image: gcr.io/pixie-oss/pixie-prod/cloud-vzmgr_server_image:latest
+        image: gcr.io/pixie-oss/pixie-prod/cloud-vzmgr_server_image:0.1.9
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -3072,7 +3072,7 @@ spec:
             name: pl-domain-config
         - configMapRef:
             name: pl-tls-config
-        image: gcr.io/pixie-oss/pixie-prod/cloud-plugin-load_db:latest
+        image: gcr.io/pixie-oss/pixie-prod/cloud-plugin-load_db:0.1.9
         name: updater
         volumeMounts:
         - mountPath: /certs
