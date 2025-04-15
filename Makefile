@@ -22,13 +22,16 @@ endif
 ##@ Scenario
 
 .PHONY: honey-up
-honey-up: tetragon vector redis traces  mongo lighteningrod stixviz kubescape tracee falco #k8spin 
+honey-up: tetragon vector redis traces  lighteningrod stixviz kubescape tracee falco #k8spin mongo
 
 .PHONY: dev
 dev: cluster-up tetragon vector redis traces lighteningrod stixviz kubescape tracee falco dev-ui
 
 .PHONY: k0s
-k0s: storage tetragon vector redis patch traces kubescape dev-ui pixie-cli pixie# add pixie here once you automated the auth0
+k0s: storage tetragon vector redis patch traces kubescape dev-ui #pixie-cli pixie# add pixie here once you automated the auth0
+
+.PHONY: bob
+k0s: storage tetragon vector redis patch traces kubescape
 
 ##@ remove all honeycluster instrumentation from k8s
 .PHONY: honey-down
@@ -69,6 +72,7 @@ cluster-up: kind ## Create the kind cluster
 .PHONY: cluster-down
 cluster-down: kind  ## Delete the kind cluster
 	$(KIND) delete cluster --name $(CLUSTER_NAME)
+
 
 
 .PHONY: storage
