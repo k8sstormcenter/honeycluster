@@ -26,7 +26,7 @@ logger:
 
 # Targeted scanning
 # If you wish to exclude specific namespaces from scanning, provide the comma-separated list here
-excludeNamespaces: "kubescape,kube-system,kube-public,kube-node-lease,kubeconfig,gmp-system,gmp-public,honey,storm,lightening,cert-manager"
+excludeNamespaces: "kubescape,kube-system,kube-public,kube-node-lease,kubeconfig,gmp-system,gmp-public,honey,storm,lightening,cert-manager,openebs"
 # If you wish to scan only specific namespaces, provide the comma-separated list here (takes precedence over excludeNamespaces)
 includeNamespaces: ""
 
@@ -448,7 +448,7 @@ nodeAgent:
     pullPolicy: IfNotPresent
 
   config:
-    maxLearningPeriod: 60m # duration string
+    maxLearningPeriod: 5m # duration string
     learningPeriod: 10m # duration string
     updatePeriod: 10m # duration string
     nodeProfileInterval: 10m # duration string

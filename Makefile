@@ -28,10 +28,10 @@ honey-up: tetragon vector redis traces  lighteningrod stixviz kubescape tracee f
 dev: cluster-up tetragon vector redis traces lighteningrod stixviz kubescape tracee falco dev-ui
 
 .PHONY: k0s
-k0s: storage tetragon vector redis patch traces kubescape dev-ui #pixie-cli pixie# add pixie here once you automated the auth0
+k0s: storage cert-man tetragon vector redis patch traces kubescape dev-ui #pixie-cli pixie# add pixie here once you automated the auth0
 
 .PHONY: bob
-bob: storage tetragon vector redis patch traces kubescape
+bob: storage cert-man tetragon vector redis patch traces kubescape
 
 ##@ remove all honeycluster instrumentation from k8s
 .PHONY: honey-down
@@ -65,6 +65,9 @@ wipe:
 .PHONY: cluster-up
 cluster-up: kind ## Create the kind cluster
 	$(KIND) create cluster --name $(CLUSTER_NAME)  
+
+.PHONY: cert-man
+cert-man:
 	-$(HELM) repo add jetstack https://charts.jetstack.io
 	-$(HELM) repo update
 	-$(HELM) upgrade --install cert-manager jetstack/cert-manager --set installCRDs=true --namespace cert-manager  --create-namespace
@@ -80,6 +83,7 @@ storage:
 	kubectl apply -f https://openebs.github.io/charts/openebs-operator-lite.yaml
 	kubectl apply -f https://openebs.github.io/charts/openebs-lite-sc.yaml
 	kubectl apply -f honeystack/openebs/sc.yaml
+	kubectl patch storageclass local-hostpath -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 	
 .PHONY: patch
 patch:	
