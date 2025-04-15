@@ -441,26 +441,30 @@ storage:
 
 nodeAgent:
   name: node-agent
-  image:
-    # -- source code: https://github.com/kubescape/node-agent
-    repository: quay.io/kubescape/node-agent
-    tag: v0.2.238
-    pullPolicy: IfNotPresent
+  # image:
+  #   # -- source code: https://github.com/kubescape/node-agent
+  #   repository: quay.io/kubescape/node-agent
+  #   tag: v0.2.238
+  #   pullPolicy: IfNotPresent
 
   config:
     maxLearningPeriod: 5m # duration string
     learningPeriod: 2m # duration string
     updatePeriod: 1m # duration string
-    nodeProfileInterval: 10m # duration string
+    nodeProfileInterval: 1m # duration string
     prometheusExporter: disable
     httpExporterConfig:
       url: http://synchronizer:8089/apis/v1/kubescape.io
       maxAlertsPerMinute: 1000
       method: POST
-    #alertManagerExporterUrls: []
-    #stdoutExporter: true
-    #syslogExporterURL: ""
+    alertManagerExporterUrls: []
+    stdoutExporter: true
+    syslogExporterURL: ""
     skipKernelVersionCheck: false
+    malwareScanAllFiles: false
+    hostMalwareSensor: disable
+    hostNetworkSensor: disable
+
     
 
   # prometheus (operator) service monitor
@@ -569,13 +573,12 @@ nodeAgent:
 
 # +++++++++++++++++++++++++++++++ ClamAV ++++++++++++++++++++++++++++++++++++++++++++++++
 clamav:
-  enabled: false
   name: clamav
-  image:
-    # -- source code: https://github.com/kubescape/node-agent/tree/main/clamav
-    repository: quay.io/kubescape/klamav
-    tag: 1.3.1-34_alpha
-    pullPolicy: IfNotPresent
+  # image:
+  #   # -- source code: https://github.com/kubescape/node-agent/tree/main/clamav
+  #   repository: quay.io/kubescape/klamav
+  #   tag: 1.3.1-34_alpha
+  #   pullPolicy: IfNotPresent
 
   resources:
     limits:
@@ -615,11 +618,11 @@ clamav:
 
 synchronizer:
   name: synchronizer
-  image:
-    # -- source code: https://github.com/kubescape/synchronizer
-    repository: quay.io/kubescape/synchronizer
-    tag: v0.0.98
-    pullPolicy: IfNotPresent
+  # image:
+  #   # -- source code: https://github.com/kubescape/synchronizer
+  #   repository: quay.io/kubescape/synchronizer
+  #   tag: v0.0.98
+  #   pullPolicy: IfNotPresent
   resources:
     requests:
       cpu: 100m
@@ -670,7 +673,7 @@ otelCollector:
 # +++++++++++++++++++++++++++++ GrypeOfflineDB ++++++++++++++++++++++++++++++++++++++++++++++++
 
 grypeOfflineDB:
-  enabled: true
+  enabled: false
 
   name: grype-offline-db
 
@@ -819,11 +822,11 @@ kubescapeScheduler:
   #     * * * * *
   # -- scan schedule frequency
   scanSchedule: "0 8 * * *"
-  image:
-    # -- source code: https://github.com/kubescape/http-request (public repo)
-    repository: quay.io/kubescape/http-request
-    tag: v0.2.9
-    pullPolicy: IfNotPresent
+  # image:
+  #   # -- source code: https://github.com/kubescape/http-request (public repo)
+  #   repository: quay.io/kubescape/http-request
+  #   tag: v0.2.9
+  #   pullPolicy: IfNotPresent
 
   # Skip SSL certificate verification
   insecureSkipTLSVerify: false
@@ -949,5 +952,5 @@ continuousScanning:
       - apiGroups: ["*"]
         apiVersions: ["v1"]
         resources: ["*"]
-    #namespaces:
-    #  - default
+    namespaces:
+      - default
