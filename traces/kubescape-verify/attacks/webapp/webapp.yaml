@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ping-app
+  labels:
+    app: ping-app
+    kubescape.io/max-sniffing-time: "5m"
+spec:
+
+  containers:
+  - name: ping-app
+    image: docker.io/amitschendel/ping-app:latest
+    imagePullPolicy: Always
+    ports:
+    - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ping-app
+  labels:
+    app: ping-app
+spec:
+  selector:
+    app: ping-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  type: LoadBalancer
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: default
+  name: ping-app-role
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: default
+  name: ping-app-role-binding
+subjects:
+- kind: ServiceAccount
+  name: "default"
+  namespace: default
+roleRef:
+  kind: Role
+  name: ping-app-role
+  apiGroup: rbac.authorization.k8s.io
