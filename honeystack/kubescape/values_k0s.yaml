@@ -821,7 +821,7 @@ kubescapeScheduler:
     #     │ │ │ │ │
   #     * * * * *
   # -- scan schedule frequency
-  scanSchedule: "0 8 * * *"
+  scanSchedule: "* * * * *"
   # image:
   #   # -- source code: https://github.com/kubescape/http-request (public repo)
   #   repository: quay.io/kubescape/http-request
