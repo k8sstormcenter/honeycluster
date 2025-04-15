@@ -449,8 +449,8 @@ nodeAgent:
 
   config:
     maxLearningPeriod: 5m # duration string
-    learningPeriod: 10m # duration string
-    updatePeriod: 10m # duration string
+    learningPeriod: 2m # duration string
+    updatePeriod: 1m # duration string
     nodeProfileInterval: 10m # duration string
     prometheusExporter: disable
     httpExporterConfig:
