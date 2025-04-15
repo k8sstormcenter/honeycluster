@@ -302,7 +302,7 @@ operator:
   env: { }
   labels: { }
 
-  podScanGuardTime: "1h"
+  podScanGuardTime: "0h"
 
   # Additional volumes to be mounted on the websocket
   volumes: [ ]
