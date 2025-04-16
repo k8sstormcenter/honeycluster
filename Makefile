@@ -143,7 +143,7 @@ kubescape:
 	#--values honeystack/kubescape/$(VALUES)
 	helm upgrade --install kubescape kubescape/kubescape-operator \
 	-n honey \
-	--create-namespace\
+	--create-namespace \
 	--set nodeAgent.config.maxLearningPeriod=15m \
 	--set nodeAgent.config.learningPeriod=2m \
 	--set nodeAgent.config.updatePeriod=1m \
