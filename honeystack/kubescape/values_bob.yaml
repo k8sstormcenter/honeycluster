@@ -1,0 +1,34 @@
+nodeAgent:
+  config:
+    maxLearningPeriod: 15m
+    learningPeriod: 2m
+    updatePeriod: 1m
+  env:
+    - name: NodeName
+      valueFrom:
+        fieldRef:
+          fieldPath: spec.nodeName
+    - name: RUNTIME_PATH
+      value: /run/k0s/containerd.sock
+capabilities:
+  runtimeDetection: enable
+alertCRD:
+  installDefault: true
+  scopeClustered: true
+clusterName: honeycluster
+ksNamespace: honey
+persistence:
+  storageClass: "local-hostpath"
+excludeNamespaces:
+  - kubescape
+  - kube-system
+  - kube-public
+  - kube-node-lease
+  - kubeconfig
+  - gmp-system
+  - gmp-public
+  - honey
+  - storm
+  - lightening
+  - cert-manager
+  - openebs
