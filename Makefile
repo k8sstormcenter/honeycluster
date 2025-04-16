@@ -156,8 +156,7 @@ kubescape:
 	--set 'nodeAgent.env[1].name=RUNTIME_PATH' \
 	--set 'nodeAgent.env[1].value=/run/k0s/containerd.sock' \
 	--set persistence.storageClass="local-hostpath" \
-	--set excludeNamespaces=honey \
-	--set excludeNamespaces=openebs
+	--set excludeNamespaces=honey
 
 
 .PHONY: redis
