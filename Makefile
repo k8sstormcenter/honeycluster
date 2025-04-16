@@ -31,7 +31,7 @@ dev: cluster-up tetragon vector redis traces lighteningrod stixviz kubescape tra
 k0s: storage cert-man tetragon vector redis patch traces kubescape dev-ui #pixie-cli pixie# add pixie here once you automated the auth0
 
 .PHONY: bob
-bob: storage cert-man tetragon vector redis patch traces kubescape
+bob: storage  tetragon vector redis patch traces kubescape
 
 ##@ remove all honeycluster instrumentation from k8s
 .PHONY: honey-down
@@ -138,7 +138,8 @@ mongo:
 kubescape:
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
-	-$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --values honeystack/kubescape/$(VALUES)
+	-$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --set nodeAgent.config.maxLearningPeriod=15m --set nodeAgent.config.learningPeriod=2m --set nodeAgent.config.updatePeriod=1m --set capabilities.runtimeDetection=enable --set alertCRD.installDefault=true --set alertCRD.scopeClustered=true
+	#--values honeystack/kubescape/$(VALUES)
 
 
 .PHONY: redis
