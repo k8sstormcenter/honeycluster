@@ -31,7 +31,7 @@ dev: cluster-up tetragon vector redis traces lighteningrod stixviz kubescape tra
 k0s: storage cert-man tetragon vector redis patch traces kubescape dev-ui #pixie-cli pixie# add pixie here once you automated the auth0
 
 .PHONY: bob
-bob: storage kubescape tetragon vector redis patch traces 
+bob: storage kubescape #tetragon vector redis patch traces 
 
 ##@ remove all honeycluster instrumentation from k8s
 .PHONY: honey-down
@@ -138,26 +138,26 @@ mongo:
 kubescape:
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
-	-$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --values honeystack/kubescape/values_bob.yaml
-	#-$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --set nodeAgent.config.maxLearningPeriod=15m --set nodeAgent.config.learningPeriod=2m --set nodeAgent.config.updatePeriod=1m --set capabilities.runtimeDetection=enable --set alertCRD.installDefault=true --set alertCRD.scopeClustered=true --set clusterName=honeycluster --set ksNamespace=honey
-	
+	#-$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --values honeystack/kubescape/values_bob.yaml
+	#-$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --set nodeAgent.config.maxLearningPeriod=15m --set nodeAgent.config.learningPeriod=2m --set nodeAgent.config.updatePeriod=1m --set capabilities.runtimeDetection=enable --set alertCRD.installDefault=true --set alertCRD.scopeClustered=true --set clusterName=honeycluster --set ksNamespace=honey	
 	#--values honeystack/kubescape/$(VALUES)
-
-# 	helm upgrade --install kubescape kubescape/kubescape-operator \
-#   -n honey \
-#   --set nodeAgent.config.maxLearningPeriod=15m \
-#   --set nodeAgent.config.learningPeriod=2m \
-#   --set nodeAgent.config.updatePeriod=1m \
-#   --set capabilities.runtimeDetection=enable \
-#   --set alertCRD.installDefault=true \
-#   --set alertCRD.scopeClustered=true \
-#   --set clusterName=honeycluster \
-#   --set ksNamespace=honey \
-#   --set 'nodeAgent.env[0].name=NodeName' \
-#   --set 'nodeAgent.env[0].valueFrom.fieldRef.fieldPath=spec.nodeName' \
-#   --set 'nodeAgent.env[1].name=RUNTIME_PATH' \
-#   --set 'nodeAgent.env[1].value=/run/k0s/containerd.sock'\
-#   --set persistence.storageClass="local-hostpath" --set excludeNamespaces="kubescape,kube-system,kube-public,kube-node-lease,kubeconfig,gmp-system,gmp-public,honey,storm,lightening,cert-manager,openebs"
+	helm upgrade --install kubescape kubescape/kubescape-operator \
+	-n honey \
+	--set nodeAgent.config.maxLearningPeriod=15m \
+	--set nodeAgent.config.learningPeriod=2m \
+	--set nodeAgent.config.updatePeriod=1m \
+	--set capabilities.runtimeDetection=enable \
+	--set alertCRD.installDefault=true \
+	--set alertCRD.scopeClustered=true \
+	--set clusterName=honeycluster \
+	--set ksNamespace=honey \
+	--set 'nodeAgent.env[0].name=NodeName' \
+	--set 'nodeAgent.env[0].valueFrom.fieldRef.fieldPath=spec.nodeName' \
+	--set 'nodeAgent.env[1].name=RUNTIME_PATH' \
+	--set 'nodeAgent.env[1].value=/run/k0s/containerd.sock' \
+	--set persistence.storageClass="local-hostpath" \
+	--set excludeNamespaces=honey \
+	--set excludeNamespaces=openebs
 
 
 .PHONY: redis
