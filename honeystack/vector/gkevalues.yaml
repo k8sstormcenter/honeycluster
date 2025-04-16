@@ -291,7 +291,7 @@ customConfig:
       type: filter
       inputs:
         - tetragon_pre
-      condition: .source_type != "file"
+      condition: .source_type != "file" and !includes(["pl"], .process_exec.process.pod.namespace)
 
     tetragon_create_key:
       type: remap
