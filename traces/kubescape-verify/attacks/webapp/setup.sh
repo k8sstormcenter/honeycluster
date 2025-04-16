@@ -11,11 +11,11 @@ kubectl apply -f ~/honeycluster/traces/kubescape-verify/attacks/webapp/webapp.ya
 
 # Wait for the web app to be ready
 echo "[+] Waiting for the web app to be ready"
-kubectl wait --for=condition=ready pod -l app=ping-app
+kubectl wait --for=condition=ready pod -l app=webapp
 
 # Port forward from port 80 to port localhost:58080
 echo "[+] Port forwarding from port 80 to localhost:58080"
-kubectl port-forward pod/ping-app 58080:80 2>&1 >/dev/null &
+kubectl port-forward pod/webapp 58080:80 2>&1 >/dev/null &
 #sudo socat TCP-LISTEN:58080,bind=172.16.0.2,reuseaddr,fork TCP:127.0.0.1:58080&
 
 

@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: ping-app
+  name: webapp
   labels:
-    app: ping-app
-    kubescape.io/max-sniffing-time: "5m"
+    app: webapp
+    kubescape.io/max-sniffing-time: "2m"
 spec:
 
   containers:
@@ -17,12 +17,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: ping-app
+  name: webapp
   labels:
-    app: ping-app
+    app: webapp
 spec:
   selector:
-    app: ping-app
+    app: webapp
   ports:
   - protocol: TCP
     port: 80
@@ -33,7 +33,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   namespace: default
-  name: ping-app-role
+  name: webapp-role
 rules:
 - apiGroups: [""]
   resources: ["pods"]
@@ -43,12 +43,12 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   namespace: default
-  name: ping-app-role-binding
+  name: webapp-role-binding
 subjects:
 - kind: ServiceAccount
   name: "default"
   namespace: default
 roleRef:
   kind: Role
-  name: ping-app-role
+  name: webapp-role
   apiGroup: rbac.authorization.k8s.io
