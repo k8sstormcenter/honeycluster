@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: custom-pem
+  namespace: honey
+  labels:
+    app: custom-pem
+spec:
+  selector:
+    matchLabels:
+      app: custom-pem
+  template:
+    metadata:
+      labels:
+        app: custom-pem
+    spec:
+      serviceAccountName: default
+      containers:
+        - name: custom-pem
+          image: custom-pixie:dev
+          imagePullPolicy: Never
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: proc
+              mountPath: /host/proc
+              readOnly: true
+            - name: sys
+              mountPath: /host/sys
+              readOnly: true
+            - name: tetragon-log
+              mountPath: /var/run/cilium/tetragon
+              readOnly: true

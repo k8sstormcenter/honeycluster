@@ -12,7 +12,7 @@ tetragon:
   #
   exportDenyList: |-
     {"health_check":true}
-    {"namespace":["", "storm","cert-manager","honey","cilium","kube-system","gmp-system"]}
+    {"namespace":["", "storm","cert-manager","honey","cilium","kube-system","gmp-system", "pl"]}
   # Filters to include or exclude fields from Tetragon events. Without any filters, all
   # fields are included by default. The presence of at least one inclusion filter implies
   # default-exclude (i.e. any fields that don't match an inclusion filter will be

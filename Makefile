@@ -226,6 +226,24 @@ pixie-cli:
 pixie:
 	px deploy kubernetes
 
+.PHONY: dev-pixie
+dev-pixie: build-custom-pixie deploy-custom-pem
+
+.PHONY: build-custom-pixie
+build-custom-pixie:
+	@echo "🔧 Building full Pixie with Bazel..."
+	cd ../pixie && \
+	bazel build //src/... && \
+	cd ../honeycluster && \
+	docker build -t custom-pixie:dev -f pixie/Dockerfile .
+
+.PHONY: deploy-custom-pem
+deploy-custom-pem:
+	@echo "🚀 Deploying custom PEM to cluster..."
+	kubectl -n honey delete pod -l app=custom-pem || true
+	kubectl apply -f development/pem-custom.yaml
+
+
 ## kshark is useful if youre running in a high-stakes environment and you want pcaps
 .PHONY: kshark
 kshark:
