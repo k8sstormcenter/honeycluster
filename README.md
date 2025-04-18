@@ -1,11 +1,13 @@
 # K8sStormCenter: Honey Storm and Lightening
 
 > [!NOTE]
-> This deployment is an opinionated collection of offensive and defensive open-source security and observability tools. It contains destructive elements, and it is NOT to be used in production under any circumstances 
+> This deployment is an opinionated collection of offensive and defensive open-source security and observability tools. It contains destructive elements, and it is NOT to be used in production under any circumstances
 
-Welcome to the K8sStormCenter HoneyCluster repository. Here you will find everything you need to set up your own HoneyCluster: a Kubernetes cluster that is instrumented with bait and tripwires to collect data on the attacks carried out against it. With our complimentary [lightening-rod](https://github.com/k8sstormcenter/cti-stix-visualization) , the `attack paths` can be visualized and are made `shareable` using STIX. You can also use the `lightening`-feature to attack yourself to create a threat-model-starting point or to generally scan your setup. The `storm` feature is the collection of CTI from many `HoneyClusters` into a open shared threat-intel collection.
+What this project is: essentially an open-source SOC for `k8s` built on the most amazing projects out there, so that you can visualize ongoing attacks, post-exploitation. 
 
-We expressely thank the upstream maintainers of our main components: KubeHound, KubeScape, Vector, Tetragon, Falco, Oasis/STIX, Kubesploit
+Welcome to the K8sStormCenter main repository. Here you will find everything you need to set up your own HoneyCluster: a Kubernetes cluster that is instrumented with bait and tripwires to collect data on the attacks carried out against it. With our complimentary [lightening-rod](https://github.com/k8sstormcenter/cti-stix-visualization) , the `attack paths` can be visualized and are made `shareable` using STIX. You can also use the `lightening`-feature to attack yourself to create a threat-model-starting point or to generally scan your setup. The `storm` feature is the collection of CTI from many `HoneyClusters` into a open shared threat-intel collection.
+
+We expressely thank the upstream maintainers of our main components: KubeHound, KubeScape, Vector, Tetragon, Falco, Oasis/STIX, Kubesploit and Pixie
 
 If you like it -> consider leaving a star ⭐
 
