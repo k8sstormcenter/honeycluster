@@ -1,6 +1,6 @@
 nodeAgent:
   config:
-    maxLearningPeriod: 15m
+    maxLearningPeriod: 5m
     learningPeriod: 2m
     updatePeriod: 1m
   env:
