@@ -7,7 +7,8 @@ killall kubectl 2>/dev/null
 
 # Apply the YAML file for the web app
 echo "[+] Applying YAML file for the web app"
-kubectl apply -f ~/honeycluster/traces/kubescape-verify/attacks/webapp/webapp.yaml
+kubectl apply -f ~/honeycluster/traces/kubescape-verify/attacks/webapp_t/webapp.yaml
+kubectl apply -f ~/honeycluster/traces/kubescape-verify/attacks/webapp_t/applicationprofile.yaml
 
 # Wait for the web app to be ready
 echo "[+] Waiting for the web app to be ready"
