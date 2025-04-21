@@ -22,13 +22,16 @@ endif
 ##@ Scenario
 
 .PHONY: honey-up
-honey-up: tetragon vector redis traces  mongo lighteningrod stixviz kubescape tracee falco #k8spin 
+honey-up: tetragon vector redis traces  lighteningrod stixviz kubescape tracee falco #k8spin mongo
 
 .PHONY: dev
 dev: cluster-up tetragon vector redis traces lighteningrod stixviz kubescape tracee falco dev-ui
 
 .PHONY: k0s
-k0s: storage tetragon vector redis patch traces kubescape dev-ui pixie-cli pixie# add pixie here once you automated the auth0
+k0s: storage cert-man tetragon vector redis patch traces kubescape dev-ui #pixie-cli pixie# add pixie here once you automated the auth0
+
+.PHONY: bob
+bob: storage kubescape-bob #tetragon vector redis patch traces 
 
 ##@ remove all honeycluster instrumentation from k8s
 .PHONY: honey-down
@@ -62,6 +65,9 @@ wipe:
 .PHONY: cluster-up
 cluster-up: kind ## Create the kind cluster
 	$(KIND) create cluster --name $(CLUSTER_NAME)  
+
+.PHONY: cert-man
+cert-man:
 	-$(HELM) repo add jetstack https://charts.jetstack.io
 	-$(HELM) repo update
 	-$(HELM) upgrade --install cert-manager jetstack/cert-manager --set installCRDs=true --namespace cert-manager  --create-namespace
@@ -71,11 +77,13 @@ cluster-down: kind  ## Delete the kind cluster
 	$(KIND) delete cluster --name $(CLUSTER_NAME)
 
 
+
 .PHONY: storage
 storage:
 	kubectl apply -f https://openebs.github.io/charts/openebs-operator-lite.yaml
 	kubectl apply -f https://openebs.github.io/charts/openebs-lite-sc.yaml
 	kubectl apply -f honeystack/openebs/sc.yaml
+	kubectl patch storageclass local-hostpath -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 	
 .PHONY: patch
 patch:	
@@ -130,7 +138,28 @@ mongo:
 kubescape:
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
-	-$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --values honeystack/kubescape/$(VALUES)
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --create-namespace --values honeystack/kubescape/$(VALUES)
+
+.PHONY: kubescape-bob
+kubescape-bob:
+	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
+	-$(HELM) repo update
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --values honeystack/kubescape/values_bob.yaml --create-namespace
+	# helm upgrade --install kubescape kubescape/kubescape-operator  -n honey  --create-namespace \
+	# --set nodeAgent.config.maxLearningPeriod=5m \
+	# --set nodeAgent.config.learningPeriod=2m \
+	# --set nodeAgent.config.updatePeriod=1m \
+	# --set capabilities.runtimeDetection=enable \
+	# --set alertCRD.installDefault=true \
+	# --set alertCRD.scopeClustered=true \
+	# --set clusterName=honeycluster \
+	# --set ksNamespace=honey \
+	# --set 'nodeAgent.env[0].name=NodeName' \
+	# --set 'nodeAgent.env[0].valueFrom.fieldRef.fieldPath=spec.nodeName' \
+	# --set 'nodeAgent.env[1].name=RUNTIME_PATH' \
+	# --set 'nodeAgent.env[1].value=/run/k0s/containerd.sock' \
+	# --set persistence.storageClass="local-hostpath" \
+	# --set excludeNamespaces="kubescape,kube-system,kube-public,kube-node-lease,kubeconfig,gmp-system,gmp-public,honey,storm,lightening,cert-manager,openebs"
 
 
 .PHONY: redis
