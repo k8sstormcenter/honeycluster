@@ -4,6 +4,10 @@
 # Kill any existing port forwards
 echo "[+] Killing any existing port forwards"
 killall kubectl 2>/dev/null
+if sudo lsof -i :8080 >/dev/null 2>&1; then
+    echo "[+] Port 8080 is in use. Killing the process using it."
+    sudo kill -9 $(sudo lsof -t -i :8080)
+fi
 
 # Apply the YAML file for the web app
 echo "[+] Applying YAML file for the web app"
