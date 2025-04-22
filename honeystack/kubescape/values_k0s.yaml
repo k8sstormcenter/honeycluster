@@ -28,7 +28,7 @@ logger:
 # If you wish to exclude specific namespaces from scanning, provide the comma-separated list here
 excludeNamespaces: "kubescape,kube-system,kube-public,kube-node-lease,kubeconfig,gmp-system,gmp-public,honey,storm,lightening,cert-manager,openebs"
 # If you wish to scan only specific namespaces, provide the comma-separated list here (takes precedence over excludeNamespaces)
-includeNamespaces: ""
+includeNamespaces: "default"
 
 # Additional volumes applied to all containers
 volumes: [ ]
@@ -302,7 +302,7 @@ operator:
   env: { }
   labels: { }
 
-  podScanGuardTime: "0h"
+  podScanGuardTime: "0.01h"
 
   # Additional volumes to be mounted on the websocket
   volumes: [ ]
