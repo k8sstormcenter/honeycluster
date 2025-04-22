@@ -140,6 +140,16 @@ kubescape:
 	-$(HELM) repo update
 	$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --create-namespace --values honeystack/kubescape/$(VALUES)
 
+.PHONY: kubescape-bob-kind
+kubescape-bob-kind:
+	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
+	-$(HELM) repo update
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --values honeystack/kubescape/values_bob_kind.yaml --create-namespace
+.PHONY: webapp-bob-kind
+webapp-bob-kind:
+	kubectl apply -f traces/kubescape-verify/attacks/webapp/webapp_debug_kind.yaml
+	kubectl wait --for=condition=Available deployment/webapp 
+
 .PHONY: kubescape-bob
 kubescape-bob:
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
