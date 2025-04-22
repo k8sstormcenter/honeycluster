@@ -5,7 +5,7 @@ metadata:
   labels:
     app: webapp
 spec:
-  replicas: 1 # You can adjust the number of replicas as needed
+  replicas: 1 
   selector:
     matchLabels:
       app: webapp
@@ -13,7 +13,7 @@ spec:
     metadata:
       labels:
         app: webapp
-        kubescape.io/max-sniffing-time: "2m"
+        kubescape.io/max-sniffing-time: "2m" #interesting: this setting on k0s leads to kubescape ignoring the entire deployment/pod
     spec:
       containers:
       - name: ping-app
