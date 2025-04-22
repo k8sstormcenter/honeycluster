@@ -146,6 +146,7 @@ kubescape-bob:
 	-$(HELM) repo update
 	$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --values honeystack/kubescape/values_bob.yaml --create-namespace
 	kubectl apply -f honeystack/kubescape/runtimerules.yaml
+	kubectl apply -f honeystack/kubescape/kscloudconfig.yaml
 	# helm upgrade --install kubescape kubescape/kubescape-operator  -n honey  --create-namespace \
 	# --set nodeAgent.config.maxLearningPeriod=5m \
 	# --set nodeAgent.config.learningPeriod=2m \
