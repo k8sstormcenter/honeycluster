@@ -28,6 +28,6 @@ kubectl port-forward svc/webapp 8080:80 2>&1 >/dev/null &
 echo "[+] Waiting for the port forward to be ready"
 sleep 1
 #echo "[+] The web app is ready, you can curl it like so: curl -k 172.16.0.2:$port/
-echo "[+] The web app is ready, you can curl it like so: curl -k localhost:8080/
+echo "[+] The web app is ready, you can curl it like so: curl -k localhost:8080/"
 
 # in zsh curl -k localhost:8080/ping.php\?ip=172.16.0.2
