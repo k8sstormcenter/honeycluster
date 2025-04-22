@@ -12,6 +12,7 @@ kubectl apply -f ~/honeycluster/traces/kubescape-verify/attacks/webapp/webapp.ya
 # Wait for the web app to be ready
 echo "[+] Waiting for the web app to be ready"
 kubectl wait --for=condition=ready pod -l app=webapp
+kubectl wait --for=condition=Available deployment/webapp 
 
 # Port forward from port 80 to port localhost:58080
 echo "[+] Port forwarding from port 80 to localhost:58080"
