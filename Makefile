@@ -145,6 +145,12 @@ kubescape-bob-kind:
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
 	$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --values honeystack/kubescape/values_bob_kind.yaml --create-namespace
+	kubectl apply -f honeystack/kubescape/runtimerules.yaml
+	kubectl apply -f honeystack/kubescape/kscloudconfig.yaml
+	sleep 10
+	kubectl rollout restart -n honey ds node-agent
+
+
 .PHONY: webapp-bob-kind
 webapp-bob-kind:
 	kubectl apply -f traces/kubescape-verify/attacks/webapp/webapp_debug_kind.yaml
