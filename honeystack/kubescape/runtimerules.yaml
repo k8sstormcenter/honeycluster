@@ -25,6 +25,7 @@ spec:
       - cert-manager
       - openebs
       - kube-public
+      - kube-flannel
       - kube-node-lease
       - kubeconfig
       - gmp-system
