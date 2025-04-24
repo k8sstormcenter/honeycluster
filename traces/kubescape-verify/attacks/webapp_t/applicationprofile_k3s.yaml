@@ -18,111 +18,52 @@ spec:
   - amd64
   containers:
   - capabilities:
-    - NET_RAW
+    - DAC_OVERRIDE
+    - SETGID
     - SETUID
-     execs:
+    execs:
     - args:
-      - /bin/sh
-      - -c
-      - ping -c 4 172.16.0.2
-      path: /bin/sh
+      - /bin/mkdir
+      - -p
+      - /var/lock/apache2
+      path: /bin/mkdir
     - args:
-      - /bin/ping
-      - -c
-      - 4
-      - 172.16.0.2
-      path: /bin/ping
-    Image ID:   docker.io/amitschendel/ping-app@sha256:99fe0f297bbaeca1896219486de8d777fa46bd5b0cabe8488de77405149c524d
-    Image Tag:  docker.io/amitschendel/ping-app:latest
-    Name:       ping-app
-    Opens:
-      Flags:
-        O_CLOEXEC
-        O_RDONLY
-      Path:  /usr/lib/x86_64-linux-gnu/libunistring.so.2.1.0
-      Flags:
-        O_RDONLY
-      Path:  /var/www/html/ping.php
-      Flags:
-        O_CLOEXEC
-        O_RDONLY
-      Path:  /etc/ld.so.cache
-      Flags:
-        O_CLOEXEC
-        O_RDONLY
-      Path:  /lib/x86_64-linux-gnu/libc-2.31.so
-      Flags:
-        O_CLOEXEC
-        O_RDONLY
-      Path:  /lib/x86_64-linux-gnu/libcap.so.2.44
-      Flags:
-        O_CLOEXEC
-        O_RDONLY
-      Path:  /usr/lib/x86_64-linux-gnu/libidn2.so.0.3.7
-      Flags:
-        O_CLOEXEC
-        O_RDONLY
-      Path:  /lib/x86_64-linux-gnu/libresolv-2.31.so
-
-    Seccomp Profile:
-      Spec:
-        Default Action:  
-    Syscalls:
-      accept4
-      access
-      arch_prctl
-      brk
-      capget
-      capset
-      chdir
-      clone
-      close
-      connect
-      dup2
-      execve
-      exit_group
-      fcntl
-      fstat
-      getcwd
-      getegid
-      geteuid
-      getgid
-      getpid
-      getppid
-      getrandom
-      getsockname
-      getsockopt
-      getuid
-      ioctl
-      lstat
-      mmap
-      mprotect
-      munmap
-      openat
-      pipe2
-      poll
-      prctl
-      prlimit64
-      read
-      recvmsg
-      rt_sigaction
-      rt_sigprocmask
-      rt_sigreturn
-      select
-      sendto
-      setitimer
-      setsockopt
-      setuid
-      shutdown
-      socket
-      stat
-      times
-      vfork
-      wait4
-      write
-      writev
-
-
+      - /usr/local/bin/docker-php-entrypoint
+      - apache2-foreground
+      path: /usr/local/bin/docker-php-entrypoint
+    - args:
+      - /usr/bin/dirname
+      - /var/log/apache2
+      path: /usr/bin/dirname
+    - args:
+      - /bin/mkdir
+      - -p
+      - /var/run/apache2
+      path: /bin/mkdir
+    - args:
+      - /usr/bin/dirname
+      - /var/lock/apache2
+      path: /usr/bin/dirname
+    - args:
+      - /bin/mkdir
+      - -p
+      - /var/log/apache2
+      path: /bin/mkdir
+    - args:
+      - /usr/bin/dirname
+      - /var/run/apache2
+      path: /usr/bin/dirname
+    - args:
+      - /usr/sbin/apache2
+      - -DFOREGROUND
+      path: /usr/sbin/apache2
+    - args:
+      - /usr/local/bin/apache2-foreground
+      path: /usr/local/bin/apache2-foreground
+    - args:
+      - /bin/rm
+      - -f
+      - /var/run/apache2/apache2.pid
       path: /bin/rm
     imageID: docker.io/amitschendel/ping-app@sha256:99fe0f297bbaeca1896219486de8d777fa46bd5b0cabe8488de77405149c524d
     imageTag: docker.io/amitschendel/ping-app:latest
@@ -788,4 +729,3 @@ spec:
     - wait4
     - write
     - writev
-

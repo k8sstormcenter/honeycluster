@@ -13,7 +13,7 @@ spec:
     metadata:
       labels:
         app: webapp
-       # kubescape.io/max-sniffing-time: "2m" #interesting: this setting on k0s leads to kubescape ignoring the entire deployment/pod
+        kubescape.io/max-sniffing-time: "2m" #interesting: this setting on k0s leads to kubescape ignoring the entire deployment/pod
     spec:
       containers:
       - name: ping-app
