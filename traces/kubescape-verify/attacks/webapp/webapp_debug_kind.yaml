@@ -5,7 +5,7 @@ metadata:
   labels:
     app: webapp
 spec:
-  replicas: 1 # You can adjust the number of replicas as needed
+  replicas: 1 
   selector:
     matchLabels:
       app: webapp
@@ -13,11 +13,11 @@ spec:
     metadata:
       labels:
         app: webapp
-        #kubescape.io/max-sniffing-time: "2m"
+        kubescape.io/max-sniffing-time: "2m" #working fine on kind
     spec:
       containers:
       - name: ping-app
-        image: docker.io/entlein/ping-app:latest
+        image: docker.io/entlein/ping-app:arm
         imagePullPolicy: Always
         ports:
         - containerPort: 80

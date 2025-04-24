@@ -21,10 +21,10 @@ kubectl wait --for=condition=Available deployment/webapp
 
 # Port forward from port 80 to port localhost:58080
 echo "[+] Port forwarding from port 80 to localhost:58080"
-#kubectl port-forward pod/webapp 58080:80 2>&1 >/dev/null &
 export port=$(kubectl describe svc/webapp | grep NodePort | awk '{print $3}' | cut -d '/' -f1)
 echo "NodePort is: $port"
 kubectl port-forward svc/webapp 58080:80 2>&1 >/dev/null &
+# Use the below for the iximiuz-lab browser port-forward (top right of navigation)
 #sudo socat TCP-LISTEN:58080,bind=172.16.0.2,reuseaddr,fork TCP:127.0.0.1:58080&
 
 
@@ -32,6 +32,7 @@ kubectl port-forward svc/webapp 58080:80 2>&1 >/dev/null &
 echo "[+] Waiting for the port forward to be ready"
 sleep 1
 echo "[+] The web app is ready, you can curl it like so: curl -k 172.16.0.2:$port/"
+echo "[+] in zsh, you need to escape like so: curl -k host:port/ping.php\?ip=172.16.0.2"
 # echo "[+] The web app is ready, you can curl it like so: curl -k localhost:8080/"
 
 # in zsh curl -k localhost:8080/ping.php\?ip=172.16.0.2
