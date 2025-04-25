@@ -11,7 +11,7 @@ metadata:
     kubescape.io/workload-kind: Deployment
     kubescape.io/workload-name: webapp
     kubescape.io/workload-namespace: default
-  name: replicaset-webapp-85974bd68f #this is what you need to manually patch
+  name: replicaset-${rs} #this is what you need to manually patch
   namespace: default
 spec:
   architectures:
