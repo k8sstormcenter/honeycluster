@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: ping-app
-        image: docker.io/entlein/ping-app:latest
+        image: ghcr.io/k8sstormcenter/webapp-t:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 80

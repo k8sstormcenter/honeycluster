@@ -1,3 +1,5 @@
+global:
+  overrideRuntimePath: /var/lib/k0s/bin/runc
 nodeAgent:
   config:
     maxLearningPeriod: 5m
@@ -8,8 +10,6 @@ nodeAgent:
       valueFrom:
         fieldRef:
           fieldPath: spec.nodeName
-    - name: RUNTIME_PATH
-      value: /run/k0s/containerd.sock
 capabilities:
   runtimeDetection: enable
 alertCRD:

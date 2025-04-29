@@ -2,8 +2,9 @@ name: Build and push Lightening Rod
 on:
   push:
     branches:
-      - main
-  pull_request:
+      - neo
+  #pull_request:
+
 
 
 env:

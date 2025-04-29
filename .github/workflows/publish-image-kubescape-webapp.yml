@@ -2,7 +2,7 @@ name: Build and push webapp and tampered webapp
 on:
   push:
     branches:
-      - main
+      - neo
   pull_request:
 
 
