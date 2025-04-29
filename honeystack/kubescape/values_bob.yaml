@@ -1,3 +1,5 @@
+global:
+  overrideRuntimePath: /var/lib/k0s/bin/runc
 nodeAgent:
   config:
     maxLearningPeriod: 5m
