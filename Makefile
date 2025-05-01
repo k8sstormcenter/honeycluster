@@ -33,6 +33,9 @@ k0s: storage cert-man tetragon vector redis patch traces kubescape dev-ui #pixie
 .PHONY: bob
 bob: storage kubescape-bob #tetragon vector redis patch traces 
 
+.PHONY: bob-talos
+bob-talos: kubescape-bob-kind selinux-override
+
 ##@ remove all honeycluster instrumentation from k8s
 .PHONY: honey-down
 honey-down: traces-off  wipe
@@ -156,6 +159,14 @@ webapp-bob-kind:
 	kubectl apply -f traces/kubescape-verify/attacks/webapp/webapp_debug_kind.yaml
 	kubectl wait --for=condition=Available deployment/webapp 
 
+.PHONY: selinux-override
+selinux-override:
+	kubectl label namespace openebs pod-security.kubernetes.io/enforce=privileged --overwrite
+	kubectl label namespace honey pod-security.kubernetes.io/enforce=privileged --overwrite
+	kubectl patch ds node-agent -n honey --type='json' -p='[{"op": "add", "path": "/spec/template/spec/containers/0/securityContext/seccompProfile", "value": {"type": "RuntimeDefault"}}]'
+	
+
+# These values are for k0s until the Inspector Gadget PR is merged, as we need to override the socket path
 .PHONY: kubescape-bob
 kubescape-bob:
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
@@ -165,22 +176,6 @@ kubescape-bob:
 	kubectl apply -f honeystack/kubescape/kscloudconfig.yaml
 	sleep 10
 	kubectl rollout restart -n honey ds node-agent
-	# helm upgrade --install kubescape kubescape/kubescape-operator  -n honey  --create-namespace \
-	# --set nodeAgent.config.maxLearningPeriod=5m \
-	# --set nodeAgent.config.learningPeriod=2m \
-	# --set nodeAgent.config.updatePeriod=1m \
-	# --set capabilities.runtimeDetection=enable \
-	# --set alertCRD.installDefault=true \
-	# --set alertCRD.scopeClustered=true \
-	# --set clusterName=honeycluster \
-	# --set ksNamespace=honey \
-	# --set 'nodeAgent.env[0].name=NodeName' \
-	# --set 'nodeAgent.env[0].valueFrom.fieldRef.fieldPath=spec.nodeName' \
-	# --set 'nodeAgent.env[1].name=RUNTIME_PATH' \
-	# --set 'nodeAgent.env[1].value=/run/k0s/containerd.sock' \
-	# --set persistence.storageClass="local-hostpath" \
-	# --set excludeNamespaces="kubescape,kube-system,kube-public,kube-node-lease,kubeconfig,gmp-system,gmp-public,honey,storm,lightening,cert-manager,openebs"
-
 
 .PHONY: redis
 redis:
