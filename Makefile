@@ -34,7 +34,7 @@ k0s: storage cert-man tetragon vector redis patch traces kubescape dev-ui #pixie
 bob: storage kubescape-bob #tetragon vector redis patch traces 
 
 .PHONY: bob-talos
-bob-talos: storage kubescape-bob-kind selinux-override
+bob-talos: kubescape-bob-kind selinux-override
 
 ##@ remove all honeycluster instrumentation from k8s
 .PHONY: honey-down
@@ -153,17 +153,6 @@ kubescape-bob-kind:
 	sleep 10
 	kubectl rollout restart -n honey ds node-agent
 
-# Need to add the selinux/apparmour seccomp annotations/profiles everywhere to do this cleanly
-.PHONY: kubescape-bob-talos 
-kubescape-bob-talos:
-	kubectl apply -f honeystack/openebs/sc-talos.yaml
-	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
-	-$(HELM) repo update
-	$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --values honeystack/kubescape/values_bob_talos.yaml --create-namespace
-	kubectl apply -f honeystack/kubescape/runtimerules.yaml
-	kubectl apply -f honeystack/kubescape/kscloudconfig.yaml
-	sleep 10
-	kubectl rollout restart -n honey ds node-agent
 
 .PHONY: webapp-bob-kind
 webapp-bob-kind:
