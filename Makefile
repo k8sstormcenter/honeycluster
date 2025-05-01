@@ -156,6 +156,7 @@ kubescape-bob-kind:
 # Need to add the selinux/apparmour seccomp annotations/profiles everywhere to do this cleanly
 .PHONY: kubescape-bob-talos 
 kubescape-bob-talos:
+	kubectl apply -f honeystack/openebs/sc-talos.yaml
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
 	$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --values honeystack/kubescape/values_bob_talos.yaml --create-namespace
