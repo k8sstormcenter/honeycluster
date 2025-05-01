@@ -8,4 +8,4 @@ provisioner: openebs.io/local
 reclaimPolicy: Delete
 volumeBindingMode: WaitForFirstConsumer
 parameters:
-  basePath: "/var/openebs/local"
+  basePath: "/tmp/openebs/local"
