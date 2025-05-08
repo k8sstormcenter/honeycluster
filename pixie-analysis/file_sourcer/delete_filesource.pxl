@@ -1,0 +1,5 @@
+import pxtrace
+import pxlog
+
+# Did not work yet, Dom investigating...
+pxlog.DeleteFileSource("test.json")

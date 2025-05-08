@@ -1,0 +1,71 @@
+import px
+
+df = px.DataFrame(table="tetragon.json")
+
+parent = px.pluck(df.payload, 'parent')
+process = px.pluck(df.payload, 'process')
+container_id = px.pluck(px.pluck(px.pluck(process, 'pod'), 'container'), 'id')
+pid = px.pluck(process, 'pid')
+hostname = df.node_name
+timestamp = px.pluck(process, 'start_time')
+
+corr_id = df.node_name 
+"""(
+    px.substring(
+        px.replace(r"containerd://([0-9a-f]+)", container_id, r"\1"),
+        0,
+        12
+    ) +
+    "|" +
+    px.replace(r"^(\d+)$", pid, r"00000000\1") +
+    "|" +
+    px.replace(r"^(.{0,12}).*", hostname, r"\1") +
+    px.replace(r"^.{1,11}$", hostname, "0") +
+    "|" +
+    px.substring(px.replace(r"[-:.]", timestamp, ""), 2, 20)
+)
+"""
+
+stix_id = "process--" + px.substring(corr_id, 0, 36)
+
+df.process_object = (
+    "{" +
+    "\"type\": \"process\", " +
+    "\"id\": \"" + stix_id + "\", " +
+    "\"pid\": \"" + pid + "\", " +
+    "\"command_line\": \"" + px.pluck(process, "binary") + " " + px.pluck(process, "arguments") + "\", " +
+    "\"cwd\": \"" + px.pluck(process, "cwd") + "\", " +
+    "\"created_time\": \"" + timestamp + "\", " +
+    "\"flags\": \"" + px.pluck(process, "flags") + "\", " +
+    "\"image_id\": \"" + px.pluck(px.pluck(px.pluck(px.pluck(process, "pod"), "container"), "image"), "id") + "\", " +
+    "\"container_id\": \"" + container_id + "\", " +
+    "\"pod_name\": \"" + px.pluck(px.pluck(process, "pod"), "name") + "\", " +
+    "\"namespace\": \"" + px.pluck(px.pluck(process, "pod"), "namespace") + "\", " +
+    "\"function_name\": \"" + px.pluck(df.payload, "function_name") + "\", " +
+    "\"parent_pid\": \"" + px.pluck(parent, "exec_id") + "\", " +
+    # "\"parent_command_line\": \"" + px.pluck(parent, "binary") + " " +  px.pluck(parent, "arguments") + "\", " +
+    "\"parent_cwd\": \"" + px.pluck(parent, "cwd") + "\", " +
+    "\"grand_parent_pid\": \"" + px.pluck(parent, "parent_exec_id") + "\" " +
+    "}"
+)
+
+
+df.observed_str = (
+    "{" +
+    "\"type\": \"observed-data\", " +
+    "\"id\": \"" + stix_id + "\", " +
+    "\"created\": \"" + df.time + "\", " +
+    "\"first_observed\": \"" + df.time + "\", " +
+    "\"last_observed\": \"" + df.time + "\", " +
+    "\"number_observed\": 1, " +
+    "\"object_refs\": [\"" + stix_id + "\"], " +
+    "\"alert_name\": \"" + px.pluck(df.payload, "action") + "\", " +
+    "\"correlation\": \"" + corr_id + "\", " +
+    "\"rule_id\": \"" + px.pluck(df.payload, "policy_name") + "\", " +
+    "\"node_name\": \"" + hostname + "\", " +
+    "\"children\": \"\" " +
+    "}"
+)
+
+
+px.display(df)
