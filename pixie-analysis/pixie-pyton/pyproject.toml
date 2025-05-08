@@ -4,7 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["Mehmet Berk Gürçay <mbgurcay@gmail.com>"]
 readme = "README.md"
-packages = [{include = "pixie_pyton", from = "src"}]
+package-mode = false
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.14"
