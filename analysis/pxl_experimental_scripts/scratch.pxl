@@ -1,0 +1,59 @@
+import px
+
+df = px.DataFrame(table="tetragon.json")
+
+parent = px.pluck(df.payload, 'parent')
+process = px.pluck(df.payload, 'process')
+container_id = px.pluck(px.pluck(px.pluck(process, 'pod'), 'container'), 'id')
+hostname = df.node_name
+pid = px.pluck(process, 'pid')
+timestamp = px.pluck(process, 'start_time')
+corr_id = (
+    px.substring(
+        px.replace(r"[-:\.]", timestamp, ""),
+        2,
+        15
+    )+
+    "|"+
+    px.substring(
+        px.replace(r"containerd://([0-9a-f]+)", container_id, r"\1"),
+        0,
+        12
+    ) +
+    "|"+
+    pid+
+    "|"+
+    hostname
+    
+)
+stix_id = "process--" + px.substring(corr_id, 0, 36)
+
+
+df.process_object = (
+    "{" +
+    "\"type\": \"process\", " +
+    "\"id\": \"" + stix_id + "\", " 
+    "\"uuid\": \"" + px.upid_to_string(df.uuid) + "\", "
+    "\"uuid2\": \"" + px.upid_to_string(df.uuid) + "\", "
+    "\"uuid3\": \"" + px.upid_to_string(df.uuid) + "\", "
+    "\"uuid4\": \"" + px.upid_to_string(df.uuid) + "\", "
+    "\"uuid5\": \"" + px.upid_to_string(df.uuid) + "\", "
+    "\"uuid6\": \"" + px.upid_to_string(df.uuid) + "\", "
+    "\"pid\": \"" + pid + "\", " +
+    "\"command_line\": \"" + px.pluck(process, "binary") + " " + px.pluck(process, "arguments") + "\", " +
+    "\"cwd\": \"" + px.pluck(process, "cwd") + "\", " +
+    "\"created_time\": \"" + timestamp + "\", " +
+    "\"flags\": \"" + px.pluck(process, "flags") + "\", " +
+    "\"image_id\": \"" + px.pluck(px.pluck(px.pluck(px.pluck(process, "pod"), "container"), "image"), "id") + "\", " +
+    "\"container_id\": \"" + container_id + "\", " +
+    "\"pod_name\": \"" + px.pluck(px.pluck(process, "pod"), "name") + "\", " +
+    "\"grand_parent_pid\": \"" + px.pluck(parent, "parent_exec_id") + "\" " +
+    +"}"
+)
+
+
+df.stix = {
+  "type": "process",
+  "id": stix_id
+}
+px.display(df)
