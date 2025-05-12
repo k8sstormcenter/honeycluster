@@ -2,14 +2,18 @@ name: Build and push webapp and tampered webapp
 on:
   push:
     branches:
-      - neo
-  pull_request:
+      - 162-write-bob-testscript-for-anyone-to-contribute-a-bob-for-the-pingapps
+    
+
 
 
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: k8sstormcenter/webapp
+  IMAGE_NAME_BOB: k8sstormcenter/bobapp
+
+
 
 
 jobs:
@@ -52,20 +56,30 @@ jobs:
       - name: Build and push 
         uses: docker/build-push-action@v6
         with:
-          context: ./traces/kubescape-verify/attacks/webapp
-          file: ./traces/kubescape-verify/attacks/webapp/Dockerfile
+          context: ./traces/kubescape-verify/attacks/bobprofile
+          file: ./traces/kubescape-verify/attacks/bobprofile/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
-      - name: Build and push 
-        uses: docker/build-push-action@v6
-        with:
-          context: ./traces/kubescape-verify/attacks/webapp_t
-          file: ./traces/kubescape-verify/attacks/webapp_t/Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-t:latest
+      # - name: Build and push 
+      #   uses: docker/build-push-action@v6
+      #   with:
+      #     context: ./traces/kubescape-verify/attacks/webapp
+      #     file: ./traces/kubescape-verify/attacks/webapp/Dockerfile
+      #     platforms: linux/amd64,linux/arm64
+      #     push: true
+      #     tags: |
+      #       ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+      # - name: Build and push 
+      #   uses: docker/build-push-action@v6
+      #   with:
+      #     context: ./traces/kubescape-verify/attacks/webapp_t
+      #     file: ./traces/kubescape-verify/attacks/webapp_t/Dockerfile
+      #     platforms: linux/amd64,linux/arm64
+      #     push: true
+      #     tags: |
+      #       ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-t:latest
 
