@@ -45,7 +45,7 @@ spec:
         args:
         - |
           for i in $(seq 1 20); do
-            curl webapp.default.svc.cluster.local:5555/ping.php?ip=172.16.0.2
+            curl webapp.default.svc.cluster.local:8080/ping.php?ip=172.16.0.2
             echo
           done
 ---
@@ -60,7 +60,7 @@ spec:
     app: webapp
   ports:
   - protocol: TCP
-    port: 5555
+    port: 8080
     targetPort: 80
   type: ClusterIP
 ---
