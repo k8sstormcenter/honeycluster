@@ -3,5 +3,8 @@ CIDR=172.16.0.2/30
 #Variables in alllower are substituted, do not mix them
 namespace=default
 name=webapp
-workloadkind=Deployment
-instancekind=Replicaset
+templatehash=d87cdd796
+workloadkind=deployment
+workloadkindcamel=Deployment
+instancekind=replicaset
+instancekindcamel=ReplicaSet

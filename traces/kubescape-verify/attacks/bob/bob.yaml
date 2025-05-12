@@ -3,17 +3,17 @@ kind: ApplicationProfile
 metadata:
   annotations:
     kubescape.io/completion: complete
-    kubescape.io/instance-id: apiVersion-apps/v1/namespace-$values.namespace/kind-$values.instance-kind/name-webapp-d87cdd796
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-$values.namespace/kind-$values.instancekindcamel/name-$values.name-$values.templatehash
     kubescape.io/status: completed
-    kubescape.io/wlid: wlid://cluster-$values.clustername/namespace-$values.namespace/$values.kind-$values.name
+    kubescape.io/wlid: wlid://cluster-$values.clustername/namespace-$values.namespace/$values.workloadkind-$values.name
   labels:
     kubescape.io/workload-api-group: apps
     kubescape.io/workload-api-version: v1
-    kubescape.io/workload-kind: $values.workload-kind
-    kubescape.io/workload-name: webapp
-    kubescape.io/workload-namespace: default
-  name: replicaset-webapp-d87cdd796
-  namespace: default
+    kubescape.io/workload-kind: $values.workloadkindcamel
+    kubescape.io/workload-name: $values.name
+    kubescape.io/workload-namespace: $values.namespace
+  name: $values.instancekind-$values.name-$values.templatehash
+  namespace: $values.namespace
   resourceVersion: "1"
 spec:
   architectures:

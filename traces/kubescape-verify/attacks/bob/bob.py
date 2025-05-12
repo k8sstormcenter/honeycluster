@@ -2,13 +2,6 @@ import yaml
 import ipaddress
 
 def process_yaml(yaml_file, values):
-    """
-    Substitutes values and expands CIDR in a YAML file.
-
-    Args:
-        yaml_file (str): Path to the YAML file.
-        values (dict): Dictionary of values to substitute, including CIDR.
-    """
     with open(yaml_file, "r") as f:
         yaml_content = f.read()
 
