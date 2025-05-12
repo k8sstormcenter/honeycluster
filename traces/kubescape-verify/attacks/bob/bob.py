@@ -14,41 +14,12 @@ def process_yaml(yaml_file, values):
 
     data = yaml.safe_load(yaml_content)
 
-    # Expand CIDR in 'execs' if present
-    if "spec" in data and "containers" in data["spec"]:
-        containers = data["spec"]["containers"]
-        for container in containers:
-            if "execs" in container:
-                expand_cidr_in_execs(container["execs"], values.get("CIDR"))
 
     output_file = "processed_" + yaml_file
     with open(output_file, "w") as f:
         yaml.dump(data, f, indent=2)
     print(f"Processed YAML written to {output_file}")
 
-def expand_cidr_in_execs(exec_blocks, cidr):
-    if not cidr:
-        return
-
-    new_exec_blocks = []
-    for exec_block in exec_blocks:
-        if any(cidr in arg for arg in exec_block.get("args", [])):
-            new_blocks = []
-            for ip in ipaddress.IPv4Network(cidr):
-              new_block = exec_block.copy()
-              new_args = []
-              for arg in new_block.get("args", []):
-                if cidr in arg:
-                  new_args.append(arg.replace(cidr, str(ip)))
-                else:
-                  new_args.append(arg)
-              new_block["args"] = new_args
-              new_blocks.append(new_block)
-            new_exec_blocks.extend(new_blocks)
-        else:
-            new_exec_blocks.append(exec_block)
-    exec_blocks.clear()
-    exec_blocks.extend(new_exec_blocks)
 
 
 def read_values_from_file(values_file):

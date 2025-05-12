@@ -71,12 +71,12 @@ spec:
       - /bin/ping
       - -c
       - "4"
-      - $CIDR
+      - 172.16.0.2
       path: /bin/ping
     - args:
       - /bin/sh
       - -c
-      - ping -c 4 $CIDR
+      - ping -c 4 172.16.0.2
       path: /bin/sh
     - args:
       - /bin/mkdir
