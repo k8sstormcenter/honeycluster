@@ -7,7 +7,7 @@ def process_yaml(yaml_file, values):
 
     # Substitute values in the entire YAML content
     for key, value in values.items():
-        if key.islower():  # Only substitute lowercase keys
+        if key.islower(): 
             yaml_content = yaml_content.replace(f"$values.{key}", str(value))
 
     data = yaml.safe_load(yaml_content)
