@@ -71,6 +71,6 @@ def read_values_from_file(values_file):
                 values[key] = value.strip()  # Remove leading/trailing whitespace
     return values
 
-
+appProfile_to_Bob()
 values = read_values_from_file("bob_generated.values")
 process_yaml("bob_generated.yaml", values)
