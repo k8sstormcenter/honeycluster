@@ -1,0 +1,7 @@
+#Variables in ALLCAPS are treated seperately
+CIDR=172.16.0.2/30
+#Variables in alllower are substituted, do not mix them
+namespace=default
+name=webapp
+workloadkind=Deployment
+instancekind=Replicaset

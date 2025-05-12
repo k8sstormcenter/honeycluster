@@ -1,0 +1,62 @@
+import yaml
+import ipaddress
+
+def process_yaml(yaml_file, values):
+    """
+    Substitutes values and expands CIDR in a YAML file.
+
+    Args:
+        yaml_file (str): Path to the YAML file.
+        values (dict): Dictionary of values to substitute, including CIDR.
+    """
+    with open(yaml_file, "r") as f:
+        yaml_content = f.read()
+
+    # Substitute values in the entire YAML content
+    for key, value in values.items():
+        if key.islower():  # Only substitute lowercase keys
+            yaml_content = yaml_content.replace(f"$values.{key}", str(value))
+
+    data = yaml.safe_load(yaml_content)
+
+    # Expand CIDR in 'execs' if present
+    if "spec" in data and "containers" in data["spec"]:
+        containers = data["spec"]["containers"]
+        for container in containers:
+            if "execs" in container:
+                expand_cidr_in_execs(container["execs"], values.get("CIDR"))
+
+    output_file = "processed_" + yaml_file
+    with open(output_file, "w") as f:
+        yaml.dump(data, f, indent=2)
+    print(f"Processed YAML written to {output_file}")
+
+def expand_cidr_in_execs(exec_blocks, cidr):
+    """
+    Expands the CIDR variable in the 'execs' blocks of the YAML data.
+
+    Args:
+        exec_blocks (list): List of 'exec' blocks.
+        cidr (str): CIDR value to expand.
+    """
+    if not cidr:
+        return
+
+    new_exec_blocks = []
+    for exec_block in exec_blocks:
+        if any(cidr in arg for arg in exec_block.get("args", [])):
+            new_blocks = []
+            for ip in ipaddress.IPv4Network(cidr):
+                new_block = exec_block.copy()
+                new_args = [arg.replace(cidr, str(ip)) for arg in new_block.get("args", [])]
+                new_block["args"] = new_args
+                new_blocks.append(new_block)
+            new_exec_blocks.extend(new_blocks)
+        else:
+            new_exec_blocks.append(exec_block)
+    exec_blocks.clear()
+    exec_blocks.extend(new_exec_blocks)
+
+# Example usage
+values = {"namespace": "default", "name": "webapp", "workloadkind": "Deployment", "instancekind": "Replicaset", "CIDR": "172.16.0.2/30", "CLUSTERNAME": "mycluster"}
+process_yaml("bob.yaml", values)
