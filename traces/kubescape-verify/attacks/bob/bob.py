@@ -7,6 +7,7 @@ def process_yaml(yaml_file, values):
 
     # Substitute values in the entire YAML content
     for key, value in values.items():
+        print(key, value)
         if key.islower(): 
             yaml_content = yaml_content.replace(f"$values.{key}", str(value))
 
@@ -25,13 +26,6 @@ def process_yaml(yaml_file, values):
     print(f"Processed YAML written to {output_file}")
 
 def expand_cidr_in_execs(exec_blocks, cidr):
-    """
-    Expands the CIDR variable in the 'execs' blocks of the YAML data.
-
-    Args:
-        exec_blocks (list): List of 'exec' blocks.
-        cidr (str): CIDR value to expand.
-    """
     if not cidr:
         return
 
@@ -50,6 +44,4 @@ def expand_cidr_in_execs(exec_blocks, cidr):
     exec_blocks.clear()
     exec_blocks.extend(new_exec_blocks)
 
-# Example usage
-values = {"namespace": "default", "name": "webapp", "workloadkind": "Deployment", "instancekind": "Replicaset", "CIDR": "172.16.0.2/30", "CLUSTERNAME": "mycluster"}
-process_yaml("bob.yaml", values)
+
