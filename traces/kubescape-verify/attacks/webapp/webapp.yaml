@@ -17,7 +17,6 @@ spec:
     spec:
       containers:
       - name: ping-app
-        #image: docker.io/amitschendel/ping-app:latest
         image: ghcr.io/k8sstormcenter/webapp@sha256:e323014ec9befb76bc551f8cc3bf158120150e2e277bae11844c2da6c56c0a2b
         imagePullPolicy: Always
         ports:
