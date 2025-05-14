@@ -1,4 +1,4 @@
-name: Build and push webapp and tampered webapp
+name: Build and push the Hive Sentinel
 on:
   push:
     branches:
