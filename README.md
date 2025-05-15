@@ -1,7 +1,8 @@
 # K8sStormCenter: Honey Storm and Lightening
 
 > [!NOTE]
-> This deployment is an opinionated collection of offensive and defensive open-source security and observability tools. It contains destructive elements, and it is NOT to be used in production under any circumstances
+> This deployment is an opinionated collection of offensive and defensive open-source security and observability tools. It contains destructive elements, and it is NOT to be used in production under any circumstances   
+> Currently, we are rewriting the stack a second time with pixie becoming the user-facing component with adapters for data-src and data-sinks. Most of the wiki/Readme should still work
 
 What this project is: essentially an open-source SOC for `k8s` built on the most amazing projects out there, so that you can visualize ongoing attacks, post-exploitation. 
 
