@@ -9,6 +9,9 @@ logonscript.sh
 gke_gcloud_auth_plugin_cache
 proposal
 
+
+localshit/**
+
 # Byte-compiled / optimized / DLL files
 redpanda/**/*.wasm
 *.DS_Store
@@ -55,3 +58,5 @@ pip-log.txt
 .env
 
 attacks/managedidentitygke/deploy-9-beta.yaml
+attacks/lightening/caps-output.txt
+.go-version

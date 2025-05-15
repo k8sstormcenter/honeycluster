@@ -13,7 +13,6 @@ spec:
     metadata:
       labels:
         app: webapp
-       # kubescape.io/max-sniffing-time: "2m" #interesting: this setting on k0s leads to kubescape ignoring the entire deployment/pod
     spec:
       containers:
       - name: ping-app
@@ -21,6 +20,34 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: testapp
+  labels:
+    app: testapp
+spec:
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: testapp
+  template:
+    metadata:
+      labels:
+        app: testapp
+        kubescape.io/ignore: "true"
+    spec:
+      containers:
+      - name: curl-container
+        image: curlimages/curl:latest
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          for i in $(seq 1 20); do
+            curl webapp.default.svc.cluster.local:8080/ping.php?ip=172.16.0.2
+            echo
+          done
 ---
 apiVersion: v1
 kind: Service
@@ -33,9 +60,9 @@ spec:
     app: webapp
   ports:
   - protocol: TCP
-    port: 80
+    port: 8080
     targetPort: 80
-  type: LoadBalancer
+  type: ClusterIP
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
