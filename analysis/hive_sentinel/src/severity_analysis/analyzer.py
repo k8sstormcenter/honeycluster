@@ -39,7 +39,7 @@ def analyze_severity(entry):
     ]
     if successful_dns:
         reasons.append(
-            "ℹ️ One successful DNS resolution confirms pod exists, reducing criticality slightly."
+            "ℹ️ Successful DNS resolution to security.ubuntu.com indicates interactive package installation."
         )
         score -= 1
 
