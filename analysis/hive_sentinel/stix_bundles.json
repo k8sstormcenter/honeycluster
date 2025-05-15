@@ -1,0 +1,682 @@
+[
+  {
+    "id": "bundle--2f6bf650-6705-4b18-9eb2-72d4965d9225",
+    "objects": [
+      {
+        "command_line": "/usr/bin/nsenter -t 1 -a /bin/bash",
+        "created_time": "2025-04-23T10:22:32.050115698Z",
+        "cwd": "/",
+        "extensions": {
+          "container_id": "containerd://88a138a1e320c55cfcc8dd5d8c528523c2f48faf8cf1b87d7723bab968e08664",
+          "flags": "execve rootcwd clone",
+          "function_name": "__x64_sys_setns",
+          "grand_parent_pid": "Z2tlLWs4cy1jYWFzLTAwMDgtYmV0YS11c2VyLXBvb2wtNDBiYWRmYjItZDUydzo1MTI2ODI1ODgwOTY2OToxMjM1OTg=",
+          "image_id": "docker.io/library/ubuntu@sha256:1e622c5f073b4f6bfad6632f2616c7f59ef256e96fe78bf6a595d1dc4376ac02",
+          "kprobe0": "",
+          "kprobe1": "",
+          "kprobe2": "",
+          "kprobe3": "",
+          "kprobe4": "",
+          "namespace": "default",
+          "parent_command_line": "/bin/sh -c \"nsenter -t 1 -a /bin/bash && sleep infinity;\"",
+          "parent_cwd": "/",
+          "parent_pid": "Z2tlLWs4cy1jYWFzLTAwMDgtYmV0YS11c2VyLXBvb2wtNDBiYWRmYjItZDUydzo1MTI3OTYzMjg3NTkzOToxMjM4NTI=",
+          "pod_name": "kh-calibration-ce-1"
+        },
+        "id": "process--250423T1022320588a138a1e32000123865g",
+        "pid": 123865,
+        "type": "process"
+      },
+      {
+        "created": "2025-05-14T13:51:04.481329+00:00Z",
+        "extensions": {
+          "alert_name": "KPROBE_ACTION_POST",
+          "children": "",
+          "correlation": "250423T1022320588a138a1e32000123865gke-k8s-caas",
+          "node_info": {
+            "node_name": "gke-k8s-caas-0008-beta-user-pool-40badfb2-d52w"
+          },
+          "rule_id": "detect-ce-nsenter"
+        },
+        "first_observed": "2025-05-14T13:51:04.481329+00:00Z",
+        "id": "observed-data--a71d0042-eab3-4bc2-9142-18c446a6da49",
+        "last_observed": "2025-05-14T13:51:04.481329+00:00Z",
+        "number_observed": 1,
+        "object_refs": [
+          "process--250423T1022320588a138a1e32000123865g",
+          "indicator--containerescapeplusmount"
+        ],
+        "type": "observed-data"
+      },
+      {
+        "created": "2025-05-14T13:51:04.489943+00:00Z",
+        "id": "relationship--776bddca-b49d-464b-98c0-4bc7cb59af84",
+        "modified": "2025-05-14T13:51:04.489958+00:00Z",
+        "relationship_type": "indicates",
+        "source_ref": "bundle--2f6bf650-6705-4b18-9eb2-72d4965d9225",
+        "spec_version": "2.1",
+        "target_ref": "indicator--containerescapeplusmount",
+        "type": "relationship"
+      },
+      {
+        "description": "nsenter followed by mount",
+        "id": "attack-pattern--containerescapeplusmount",
+        "name": "TREE",
+        "type": "attack-pattern"
+      },
+      {
+        "description": "Detecting containerescapeplusmount",
+        "id": "indicator--containerescapeplusmount",
+        "name": "Container Escape followed by Mount /proc",
+        "pattern": "[process:extensions.function_name MATCHES '__x64_sys_setns' OR process:extensions.function_name MATCHES '__x64_sys_mount']",
+        "pattern_type": "stix",
+        "type": "indicator",
+        "valid_from": "2024-01-01T00:00:00Z"
+      },
+      {
+        "id": "relationship--containerescapeplusmount",
+        "relationship_type": "indicates",
+        "source_ref": "indicator--containerescapeplusmount",
+        "target_ref": "attack-pattern--containerescapeplusmount",
+        "type": "relationship"
+      }
+    ],
+    "spec_version": "2.1",
+    "type": "bundle"
+  },
+  {
+    "id": "bundle--204c9ffc-ef36-42a8-acdf-c18fd32ae8b5",
+    "objects": [
+      {
+        "command_line": "/usr/bin/nsenter -t 1 -a /bin/bash",
+        "created_time": "2025-04-23T10:22:32.050115698Z",
+        "cwd": "/",
+        "extensions": {
+          "container_id": "containerd://88a138a1e320c55cfcc8dd5d8c528523c2f48faf8cf1b87d7723bab968e08664",
+          "flags": "execve rootcwd clone",
+          "function_name": "__x64_sys_setns",
+          "grand_parent_pid": "Z2tlLWs4cy1jYWFzLTAwMDgtYmV0YS11c2VyLXBvb2wtNDBiYWRmYjItZDUydzo1MTI2ODI1ODgwOTY2OToxMjM1OTg=",
+          "image_id": "docker.io/library/ubuntu@sha256:1e622c5f073b4f6bfad6632f2616c7f59ef256e96fe78bf6a595d1dc4376ac02",
+          "kprobe0": "",
+          "kprobe1": "",
+          "kprobe2": "",
+          "kprobe3": "",
+          "kprobe4": "",
+          "namespace": "default",
+          "parent_command_line": "/bin/sh -c \"nsenter -t 1 -a /bin/bash && sleep infinity;\"",
+          "parent_cwd": "/",
+          "parent_pid": "Z2tlLWs4cy1jYWFzLTAwMDgtYmV0YS11c2VyLXBvb2wtNDBiYWRmYjItZDUydzo1MTI3OTYzMjg3NTkzOToxMjM4NTI=",
+          "pod_name": "kh-calibration-ce-1"
+        },
+        "id": "process--250423T1022320588a138a1e32000123865g",
+        "pid": 123865,
+        "type": "process"
+      },
+      {
+        "created": "2025-05-14T13:51:04.490027+00:00Z",
+        "extensions": {
+          "alert_name": "KPROBE_ACTION_POST",
+          "children": "",
+          "correlation": "250423T1022320588a138a1e32000123865gke-k8s-caas",
+          "node_info": {
+            "node_name": "gke-k8s-caas-0008-beta-user-pool-40badfb2-d52w"
+          },
+          "rule_id": "detect-ce-nsenter"
+        },
+        "first_observed": "2025-05-14T13:51:04.490027+00:00Z",
+        "id": "observed-data--7fd6af1c-13fa-45c2-ac4a-d921f2b0e194",
+        "last_observed": "2025-05-14T13:51:04.490027+00:00Z",
+        "number_observed": 1,
+        "object_refs": [
+          "process--250423T1022320588a138a1e32000123865g",
+          "indicator--containerescapeplusmount"
+        ],
+        "type": "observed-data"
+      },
+      {
+        "created": "2025-05-14T13:51:04.498584+00:00Z",
+        "id": "relationship--b82a076a-1320-45d0-8817-b21ae3bf9e29",
+        "modified": "2025-05-14T13:51:04.498598+00:00Z",
+        "relationship_type": "indicates",
+        "source_ref": "bundle--204c9ffc-ef36-42a8-acdf-c18fd32ae8b5",
+        "spec_version": "2.1",
+        "target_ref": "indicator--containerescapeplusmount",
+        "type": "relationship"
+      },
+      {
+        "description": "nsenter followed by mount",
+        "id": "attack-pattern--containerescapeplusmount",
+        "name": "TREE",
+        "type": "attack-pattern"
+      },
+      {
+        "description": "Detecting containerescapeplusmount",
+        "id": "indicator--containerescapeplusmount",
+        "name": "Container Escape followed by Mount /proc",
+        "pattern": "[process:extensions.function_name MATCHES '__x64_sys_setns' OR process:extensions.function_name MATCHES '__x64_sys_mount']",
+        "pattern_type": "stix",
+        "type": "indicator",
+        "valid_from": "2024-01-01T00:00:00Z"
+      },
+      {
+        "id": "relationship--containerescapeplusmount",
+        "relationship_type": "indicates",
+        "source_ref": "indicator--containerescapeplusmount",
+        "target_ref": "attack-pattern--containerescapeplusmount",
+        "type": "relationship"
+      }
+    ],
+    "spec_version": "2.1",
+    "type": "bundle"
+  },
+  {
+    "id": "bundle--3f72af8b-1a00-492f-aa4b-2b4fa20f99e1",
+    "objects": [
+      {
+        "command_line": "/usr/bin/nsenter -t 1 -a /bin/bash",
+        "created_time": "2025-04-23T10:22:32.050115698Z",
+        "cwd": "/",
+        "extensions": {
+          "container_id": "containerd://88a138a1e320c55cfcc8dd5d8c528523c2f48faf8cf1b87d7723bab968e08664",
+          "flags": "execve rootcwd clone",
+          "function_name": "__x64_sys_setns",
+          "grand_parent_pid": "Z2tlLWs4cy1jYWFzLTAwMDgtYmV0YS11c2VyLXBvb2wtNDBiYWRmYjItZDUydzo1MTI2ODI1ODgwOTY2OToxMjM1OTg=",
+          "image_id": "docker.io/library/ubuntu@sha256:1e622c5f073b4f6bfad6632f2616c7f59ef256e96fe78bf6a595d1dc4376ac02",
+          "kprobe0": "",
+          "kprobe1": "",
+          "kprobe2": "",
+          "kprobe3": "",
+          "kprobe4": "",
+          "namespace": "default",
+          "parent_command_line": "/bin/sh -c \"nsenter -t 1 -a /bin/bash && sleep infinity;\"",
+          "parent_cwd": "/",
+          "parent_pid": "Z2tlLWs4cy1jYWFzLTAwMDgtYmV0YS11c2VyLXBvb2wtNDBiYWRmYjItZDUydzo1MTI3OTYzMjg3NTkzOToxMjM4NTI=",
+          "pod_name": "kh-calibration-ce-1"
+        },
+        "id": "process--250423T1022320588a138a1e32000123865g",
+        "pid": 123865,
+        "type": "process"
+      },
+      {
+        "created": "2025-05-14T13:51:04.498668+00:00Z",
+        "extensions": {
+          "alert_name": "KPROBE_ACTION_POST",
+          "children": "",
+          "correlation": "250423T1022320588a138a1e32000123865gke-k8s-caas",
+          "node_info": {
+            "node_name": "gke-k8s-caas-0008-beta-user-pool-40badfb2-d52w"
+          },
+          "rule_id": "detect-ce-nsenter"
+        },
+        "first_observed": "2025-05-14T13:51:04.498668+00:00Z",
+        "id": "observed-data--afd2bbe8-33c6-444a-9e8b-2b4d0ec33913",
+        "last_observed": "2025-05-14T13:51:04.498668+00:00Z",
+        "number_observed": 1,
+        "object_refs": [
+          "process--250423T1022320588a138a1e32000123865g",
+          "indicator--containerescapeplusmount"
+        ],
+        "type": "observed-data"
+      },
+      {
+        "created": "2025-05-14T13:51:04.508056+00:00Z",
+        "id": "relationship--936ce79f-d37d-4095-8f1a-86d168936c8e",
+        "modified": "2025-05-14T13:51:04.508069+00:00Z",
+        "relationship_type": "indicates",
+        "source_ref": "bundle--3f72af8b-1a00-492f-aa4b-2b4fa20f99e1",
+        "spec_version": "2.1",
+        "target_ref": "indicator--containerescapeplusmount",
+        "type": "relationship"
+      },
+      {
+        "description": "nsenter followed by mount",
+        "id": "attack-pattern--containerescapeplusmount",
+        "name": "TREE",
+        "type": "attack-pattern"
+      },
+      {
+        "description": "Detecting containerescapeplusmount",
+        "id": "indicator--containerescapeplusmount",
+        "name": "Container Escape followed by Mount /proc",
+        "pattern": "[process:extensions.function_name MATCHES '__x64_sys_setns' OR process:extensions.function_name MATCHES '__x64_sys_mount']",
+        "pattern_type": "stix",
+        "type": "indicator",
+        "valid_from": "2024-01-01T00:00:00Z"
+      },
+      {
+        "id": "relationship--containerescapeplusmount",
+        "relationship_type": "indicates",
+        "source_ref": "indicator--containerescapeplusmount",
+        "target_ref": "attack-pattern--containerescapeplusmount",
+        "type": "relationship"
+      }
+    ],
+    "spec_version": "2.1",
+    "type": "bundle"
+  },
+  {
+    "id": "bundle--dc1df579-6990-4215-a3fa-261f0d2001e6",
+    "objects": [
+      {
+        "command_line": "/usr/bin/nsenter -t 1 -a /bin/bash",
+        "created_time": "2025-04-23T10:22:32.050115698Z",
+        "cwd": "/",
+        "extensions": {
+          "container_id": "containerd://88a138a1e320c55cfcc8dd5d8c528523c2f48faf8cf1b87d7723bab968e08664",
+          "flags": "execve rootcwd clone",
+          "function_name": "__x64_sys_setns",
+          "grand_parent_pid": "Z2tlLWs4cy1jYWFzLTAwMDgtYmV0YS11c2VyLXBvb2wtNDBiYWRmYjItZDUydzo1MTI2ODI1ODgwOTY2OToxMjM1OTg=",
+          "image_id": "docker.io/library/ubuntu@sha256:1e622c5f073b4f6bfad6632f2616c7f59ef256e96fe78bf6a595d1dc4376ac02",
+          "kprobe0": "",
+          "kprobe1": "",
+          "kprobe2": "",
+          "kprobe3": "",
+          "kprobe4": "",
+          "namespace": "default",
+          "parent_command_line": "/bin/sh -c \"nsenter -t 1 -a /bin/bash && sleep infinity;\"",
+          "parent_cwd": "/",
+          "parent_pid": "Z2tlLWs4cy1jYWFzLTAwMDgtYmV0YS11c2VyLXBvb2wtNDBiYWRmYjItZDUydzo1MTI3OTYzMjg3NTkzOToxMjM4NTI=",
+          "pod_name": "kh-calibration-ce-1"
+        },
+        "id": "process--250423T1022320588a138a1e32000123865g",
+        "pid": 123865,
+        "type": "process"
+      },
+      {
+        "created": "2025-05-14T13:51:04.508154+00:00Z",
+        "extensions": {
+          "alert_name": "KPROBE_ACTION_POST",
+          "children": "",
+          "correlation": "250423T1022320588a138a1e32000123865gke-k8s-caas",
+          "node_info": {
+            "node_name": "gke-k8s-caas-0008-beta-user-pool-40badfb2-d52w"
+          },
+          "rule_id": "detect-ce-nsenter"
+        },
+        "first_observed": "2025-05-14T13:51:04.508154+00:00Z",
+        "id": "observed-data--b97b8ee5-4325-4009-bd6d-7032bf4fe2a2",
+        "last_observed": "2025-05-14T13:51:04.508154+00:00Z",
+        "number_observed": 1,
+        "object_refs": [
+          "process--250423T1022320588a138a1e32000123865g",
+          "indicator--containerescapeplusmount"
+        ],
+        "type": "observed-data"
+      },
+      {
+        "created": "2025-05-14T13:51:04.516278+00:00Z",
+        "id": "relationship--c767641b-cf82-4a28-a0c3-ff344c6f67a5",
+        "modified": "2025-05-14T13:51:04.516288+00:00Z",
+        "relationship_type": "indicates",
+        "source_ref": "bundle--dc1df579-6990-4215-a3fa-261f0d2001e6",
+        "spec_version": "2.1",
+        "target_ref": "indicator--containerescapeplusmount",
+        "type": "relationship"
+      },
+      {
+        "description": "nsenter followed by mount",
+        "id": "attack-pattern--containerescapeplusmount",
+        "name": "TREE",
+        "type": "attack-pattern"
+      },
+      {
+        "description": "Detecting containerescapeplusmount",
+        "id": "indicator--containerescapeplusmount",
+        "name": "Container Escape followed by Mount /proc",
+        "pattern": "[process:extensions.function_name MATCHES '__x64_sys_setns' OR process:extensions.function_name MATCHES '__x64_sys_mount']",
+        "pattern_type": "stix",
+        "type": "indicator",
+        "valid_from": "2024-01-01T00:00:00Z"
+      },
+      {
+        "id": "relationship--containerescapeplusmount",
+        "relationship_type": "indicates",
+        "source_ref": "indicator--containerescapeplusmount",
+        "target_ref": "attack-pattern--containerescapeplusmount",
+        "type": "relationship"
+      }
+    ],
+    "spec_version": "2.1",
+    "type": "bundle"
+  },
+  {
+    "id": "bundle--f7d11194-7468-4b2f-ad6c-d6a9f2873793",
+    "objects": [
+      {
+        "command_line": "/usr/bin/nsenter -t 1 -a /bin/bash",
+        "created_time": "2025-04-23T10:22:32.050115698Z",
+        "cwd": "/",
+        "extensions": {
+          "container_id": "containerd://88a138a1e320c55cfcc8dd5d8c528523c2f48faf8cf1b87d7723bab968e08664",
+          "flags": "execve rootcwd clone",
+          "function_name": "__x64_sys_setns",
+          "grand_parent_pid": "Z2tlLWs4cy1jYWFzLTAwMDgtYmV0YS11c2VyLXBvb2wtNDBiYWRmYjItZDUydzo1MTI2ODI1ODgwOTY2OToxMjM1OTg=",
+          "image_id": "docker.io/library/ubuntu@sha256:1e622c5f073b4f6bfad6632f2616c7f59ef256e96fe78bf6a595d1dc4376ac02",
+          "kprobe0": "",
+          "kprobe1": "",
+          "kprobe2": "",
+          "kprobe3": "",
+          "kprobe4": "",
+          "namespace": "default",
+          "parent_command_line": "/bin/sh -c \"nsenter -t 1 -a /bin/bash && sleep infinity;\"",
+          "parent_cwd": "/",
+          "parent_pid": "Z2tlLWs4cy1jYWFzLTAwMDgtYmV0YS11c2VyLXBvb2wtNDBiYWRmYjItZDUydzo1MTI3OTYzMjg3NTkzOToxMjM4NTI=",
+          "pod_name": "kh-calibration-ce-1"
+        },
+        "id": "process--250423T1022320588a138a1e32000123865g",
+        "pid": 123865,
+        "type": "process"
+      },
+      {
+        "created": "2025-05-14T13:51:04.516358+00:00Z",
+        "extensions": {
+          "alert_name": "KPROBE_ACTION_POST",
+          "children": "",
+          "correlation": "250423T1022320588a138a1e32000123865gke-k8s-caas",
+          "node_info": {
+            "node_name": "gke-k8s-caas-0008-beta-user-pool-40badfb2-d52w"
+          },
+          "rule_id": "detect-ce-nsenter"
+        },
+        "first_observed": "2025-05-14T13:51:04.516358+00:00Z",
+        "id": "observed-data--91685508-0291-488c-9228-bfb9453c7e34",
+        "last_observed": "2025-05-14T13:51:04.516358+00:00Z",
+        "number_observed": 1,
+        "object_refs": [
+          "process--250423T1022320588a138a1e32000123865g",
+          "indicator--containerescapeplusmount"
+        ],
+        "type": "observed-data"
+      },
+      {
+        "created": "2025-05-14T13:51:04.524405+00:00Z",
+        "id": "relationship--d5683d90-d2d9-45cc-a143-ce53821e22eb",
+        "modified": "2025-05-14T13:51:04.524416+00:00Z",
+        "relationship_type": "indicates",
+        "source_ref": "bundle--f7d11194-7468-4b2f-ad6c-d6a9f2873793",
+        "spec_version": "2.1",
+        "target_ref": "indicator--containerescapeplusmount",
+        "type": "relationship"
+      },
+      {
+        "description": "nsenter followed by mount",
+        "id": "attack-pattern--containerescapeplusmount",
+        "name": "TREE",
+        "type": "attack-pattern"
+      },
+      {
+        "description": "Detecting containerescapeplusmount",
+        "id": "indicator--containerescapeplusmount",
+        "name": "Container Escape followed by Mount /proc",
+        "pattern": "[process:extensions.function_name MATCHES '__x64_sys_setns' OR process:extensions.function_name MATCHES '__x64_sys_mount']",
+        "pattern_type": "stix",
+        "type": "indicator",
+        "valid_from": "2024-01-01T00:00:00Z"
+      },
+      {
+        "id": "relationship--containerescapeplusmount",
+        "relationship_type": "indicates",
+        "source_ref": "indicator--containerescapeplusmount",
+        "target_ref": "attack-pattern--containerescapeplusmount",
+        "type": "relationship"
+      }
+    ],
+    "spec_version": "2.1",
+    "type": "bundle"
+  },
+  {
+    "id": "bundle--a9fae6d9-dbe3-4c84-bbb5-31491f34ee3a",
+    "objects": [
+      {
+        "command_line": "/usr/bin/nsenter -t 1 -a /bin/bash",
+        "created_time": "2025-04-23T10:22:32.050115698Z",
+        "cwd": "/",
+        "extensions": {
+          "container_id": "containerd://88a138a1e320c55cfcc8dd5d8c528523c2f48faf8cf1b87d7723bab968e08664",
+          "flags": "execve rootcwd clone",
+          "function_name": "__x64_sys_setns",
+          "grand_parent_pid": "Z2tlLWs4cy1jYWFzLTAwMDgtYmV0YS11c2VyLXBvb2wtNDBiYWRmYjItZDUydzo1MTI2ODI1ODgwOTY2OToxMjM1OTg=",
+          "image_id": "docker.io/library/ubuntu@sha256:1e622c5f073b4f6bfad6632f2616c7f59ef256e96fe78bf6a595d1dc4376ac02",
+          "kprobe0": "",
+          "kprobe1": "",
+          "kprobe2": "",
+          "kprobe3": "",
+          "kprobe4": "",
+          "namespace": "default",
+          "parent_command_line": "/bin/sh -c \"nsenter -t 1 -a /bin/bash && sleep infinity;\"",
+          "parent_cwd": "/",
+          "parent_pid": "Z2tlLWs4cy1jYWFzLTAwMDgtYmV0YS11c2VyLXBvb2wtNDBiYWRmYjItZDUydzo1MTI3OTYzMjg3NTkzOToxMjM4NTI=",
+          "pod_name": "kh-calibration-ce-1"
+        },
+        "id": "process--250423T1022320588a138a1e32000123865g",
+        "pid": 123865,
+        "type": "process"
+      },
+      {
+        "created": "2025-05-14T13:51:04.524482+00:00Z",
+        "extensions": {
+          "alert_name": "KPROBE_ACTION_POST",
+          "children": "",
+          "correlation": "250423T1022320588a138a1e32000123865gke-k8s-caas",
+          "node_info": {
+            "node_name": "gke-k8s-caas-0008-beta-user-pool-40badfb2-d52w"
+          },
+          "rule_id": "detect-ce-nsenter"
+        },
+        "first_observed": "2025-05-14T13:51:04.524482+00:00Z",
+        "id": "observed-data--30d837ff-f653-4f0b-892d-7807aea0f5ed",
+        "last_observed": "2025-05-14T13:51:04.524482+00:00Z",
+        "number_observed": 1,
+        "object_refs": [
+          "process--250423T1022320588a138a1e32000123865g",
+          "indicator--containerescapeplusmount"
+        ],
+        "type": "observed-data"
+      },
+      {
+        "created": "2025-05-14T13:51:04.532922+00:00Z",
+        "id": "relationship--5169a82f-6db1-4d43-b598-927c8ed2078f",
+        "modified": "2025-05-14T13:51:04.532934+00:00Z",
+        "relationship_type": "indicates",
+        "source_ref": "bundle--a9fae6d9-dbe3-4c84-bbb5-31491f34ee3a",
+        "spec_version": "2.1",
+        "target_ref": "indicator--containerescapeplusmount",
+        "type": "relationship"
+      },
+      {
+        "description": "nsenter followed by mount",
+        "id": "attack-pattern--containerescapeplusmount",
+        "name": "TREE",
+        "type": "attack-pattern"
+      },
+      {
+        "description": "Detecting containerescapeplusmount",
+        "id": "indicator--containerescapeplusmount",
+        "name": "Container Escape followed by Mount /proc",
+        "pattern": "[process:extensions.function_name MATCHES '__x64_sys_setns' OR process:extensions.function_name MATCHES '__x64_sys_mount']",
+        "pattern_type": "stix",
+        "type": "indicator",
+        "valid_from": "2024-01-01T00:00:00Z"
+      },
+      {
+        "id": "relationship--containerescapeplusmount",
+        "relationship_type": "indicates",
+        "source_ref": "indicator--containerescapeplusmount",
+        "target_ref": "attack-pattern--containerescapeplusmount",
+        "type": "relationship"
+      }
+    ],
+    "spec_version": "2.1",
+    "type": "bundle"
+  },
+  {
+    "id": "bundle--797823dc-a8c3-46e7-b94c-dbf214fd43c0",
+    "objects": [
+      {
+        "command_line": "/usr/bin/nsenter -t 1 -a /bin/bash",
+        "created_time": "2025-04-23T10:22:32.050115698Z",
+        "cwd": "/",
+        "extensions": {
+          "container_id": "containerd://88a138a1e320c55cfcc8dd5d8c528523c2f48faf8cf1b87d7723bab968e08664",
+          "flags": "execve rootcwd clone",
+          "function_name": "__x64_sys_setns",
+          "grand_parent_pid": "Z2tlLWs4cy1jYWFzLTAwMDgtYmV0YS11c2VyLXBvb2wtNDBiYWRmYjItZDUydzo1MTI2ODI1ODgwOTY2OToxMjM1OTg=",
+          "image_id": "docker.io/library/ubuntu@sha256:1e622c5f073b4f6bfad6632f2616c7f59ef256e96fe78bf6a595d1dc4376ac02",
+          "kprobe0": "",
+          "kprobe1": "",
+          "kprobe2": "",
+          "kprobe3": "",
+          "kprobe4": "",
+          "namespace": "default",
+          "parent_command_line": "/bin/sh -c \"nsenter -t 1 -a /bin/bash && sleep infinity;\"",
+          "parent_cwd": "/",
+          "parent_pid": "Z2tlLWs4cy1jYWFzLTAwMDgtYmV0YS11c2VyLXBvb2wtNDBiYWRmYjItZDUydzo1MTI3OTYzMjg3NTkzOToxMjM4NTI=",
+          "pod_name": "kh-calibration-ce-1"
+        },
+        "id": "process--250423T1022320588a138a1e32000123865g",
+        "pid": 123865,
+        "type": "process"
+      },
+      {
+        "created": "2025-05-14T13:51:04.532998+00:00Z",
+        "extensions": {
+          "alert_name": "KPROBE_ACTION_POST",
+          "children": "",
+          "correlation": "250423T1022320588a138a1e32000123865gke-k8s-caas",
+          "node_info": {
+            "node_name": "gke-k8s-caas-0008-beta-user-pool-40badfb2-d52w"
+          },
+          "rule_id": "detect-ce-nsenter"
+        },
+        "first_observed": "2025-05-14T13:51:04.532998+00:00Z",
+        "id": "observed-data--62285267-9e0f-45d7-9206-54313eef6c0b",
+        "last_observed": "2025-05-14T13:51:04.532998+00:00Z",
+        "number_observed": 1,
+        "object_refs": [
+          "process--250423T1022320588a138a1e32000123865g",
+          "indicator--containerescapeplusmount"
+        ],
+        "type": "observed-data"
+      },
+      {
+        "created": "2025-05-14T13:51:04.541060+00:00Z",
+        "id": "relationship--a1bc96d0-4c2e-4864-85f0-591bf95caec5",
+        "modified": "2025-05-14T13:51:04.541071+00:00Z",
+        "relationship_type": "indicates",
+        "source_ref": "bundle--797823dc-a8c3-46e7-b94c-dbf214fd43c0",
+        "spec_version": "2.1",
+        "target_ref": "indicator--containerescapeplusmount",
+        "type": "relationship"
+      },
+      {
+        "description": "nsenter followed by mount",
+        "id": "attack-pattern--containerescapeplusmount",
+        "name": "TREE",
+        "type": "attack-pattern"
+      },
+      {
+        "description": "Detecting containerescapeplusmount",
+        "id": "indicator--containerescapeplusmount",
+        "name": "Container Escape followed by Mount /proc",
+        "pattern": "[process:extensions.function_name MATCHES '__x64_sys_setns' OR process:extensions.function_name MATCHES '__x64_sys_mount']",
+        "pattern_type": "stix",
+        "type": "indicator",
+        "valid_from": "2024-01-01T00:00:00Z"
+      },
+      {
+        "id": "relationship--containerescapeplusmount",
+        "relationship_type": "indicates",
+        "source_ref": "indicator--containerescapeplusmount",
+        "target_ref": "attack-pattern--containerescapeplusmount",
+        "type": "relationship"
+      }
+    ],
+    "spec_version": "2.1",
+    "type": "bundle"
+  },
+  {
+    "id": "bundle--d9f122a9-666b-4417-8c87-954594ad6683",
+    "objects": [
+      {
+        "command_line": "/setns_test /proc/1/ns/net 0",
+        "created_time": "2025-04-23T10:23:02.953786434Z",
+        "cwd": "/",
+        "extensions": {
+          "container_id": "containerd://3c5993fc4b3d8013dc735b6f137ba2485a3643cf5d33aab64a5fd0a1a7262edd",
+          "flags": "execve rootcwd clone inInitTree",
+          "function_name": "__x64_sys_setns",
+          "grand_parent_pid": "Z2tlLWs4cy1jYWFzLTAwMDgtYmV0YS11c2VyLXBvb2wtNDBiYWRmYjItZDUydzo1MTI2ODI0MTI0MTYyNzoxMjM1ODY=",
+          "image_id": "ghcr.io/k8sstormcenter/lightening-ce-nsenter@sha256:a10b5259d151ea231b52e647aff2959f783762c078baabe28abecb6f0a10f5d9",
+          "kprobe0": "",
+          "kprobe1": "",
+          "kprobe2": "",
+          "kprobe3": "",
+          "kprobe4": "",
+          "namespace": "default",
+          "parent_command_line": "/usr/bin/containerd-shim-runc-v2 -namespace k8s.io -id 00b13c2d77a19fd0acaee9fad016ee173409516ec809b58c5e67ed1869bdc571 -address /run/containerd/containerd.sock",
+          "parent_cwd": "/run/containerd/io.containerd.runtime.v2.task/k8s.io/00b13c2d77a19fd0acaee9fad016ee173409516ec809b58c5e67ed1869bdc571",
+          "parent_pid": "Z2tlLWs4cy1jYWFzLTAwMDgtYmV0YS11c2VyLXBvb2wtNDBiYWRmYjItZDUydzo1MTI2ODI2NjA5MjUxMzoxMjM2MDI=",
+          "pod_name": "kh-calibration-ce-11"
+        },
+        "id": "process--250423T102302953c5993fc4b3d00124114g",
+        "pid": 124114,
+        "type": "process"
+      },
+      {
+        "created": "2025-05-14T13:51:04.565734+00:00Z",
+        "extensions": {
+          "alert_name": "KPROBE_ACTION_POST",
+          "children": "",
+          "correlation": "250423T102302953c5993fc4b3d00124114gke-k8s-caas",
+          "node_info": {
+            "node_name": "gke-k8s-caas-0008-beta-user-pool-40badfb2-d52w"
+          },
+          "rule_id": "detect-ce-nsenter"
+        },
+        "first_observed": "2025-05-14T13:51:04.565734+00:00Z",
+        "id": "observed-data--cf437ffe-3b4a-4111-b421-fd5ee2e7152d",
+        "last_observed": "2025-05-14T13:51:04.565734+00:00Z",
+        "number_observed": 1,
+        "object_refs": [
+          "process--250423T102302953c5993fc4b3d00124114g",
+          "indicator--containerescapeplusmount"
+        ],
+        "type": "observed-data"
+      },
+      {
+        "created": "2025-05-14T13:51:04.573989+00:00Z",
+        "id": "relationship--b633023e-2e53-48e1-a44b-a89d2cea74be",
+        "modified": "2025-05-14T13:51:04.574001+00:00Z",
+        "relationship_type": "indicates",
+        "source_ref": "bundle--d9f122a9-666b-4417-8c87-954594ad6683",
+        "spec_version": "2.1",
+        "target_ref": "indicator--containerescapeplusmount",
+        "type": "relationship"
+      },
+      {
+        "description": "nsenter followed by mount",
+        "id": "attack-pattern--containerescapeplusmount",
+        "name": "TREE",
+        "type": "attack-pattern"
+      },
+      {
+        "description": "Detecting containerescapeplusmount",
+        "id": "indicator--containerescapeplusmount",
+        "name": "Container Escape followed by Mount /proc",
+        "pattern": "[process:extensions.function_name MATCHES '__x64_sys_setns' OR process:extensions.function_name MATCHES '__x64_sys_mount']",
+        "pattern_type": "stix",
+        "type": "indicator",
+        "valid_from": "2024-01-01T00:00:00Z"
+      },
+      {
+        "id": "relationship--containerescapeplusmount",
+        "relationship_type": "indicates",
+        "source_ref": "indicator--containerescapeplusmount",
+        "target_ref": "attack-pattern--containerescapeplusmount",
+        "type": "relationship"
+      }
+    ],
+    "spec_version": "2.1",
+    "type": "bundle"
+  }
+]

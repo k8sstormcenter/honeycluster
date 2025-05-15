@@ -8,11 +8,13 @@ df = px.DataFrame(table="tetragon.json")
 px.display(df, "tetragon")
 """
 
+
 def clean_bstring(val):
-    val = val.decode('utf-8')
+    val = val.decode("utf-8")
     if isinstance(val, str) and val.startswith("b'") and val.endswith("'"):
         return val[2:-1]
     return val
+
 
 def fetch_tetragon_logs():
     conn = get_px_connection()

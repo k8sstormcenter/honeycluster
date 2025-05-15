@@ -1,4 +1,5 @@
 from stix2matcher.matcher import match
+from src.stix.attack_patterns import attack_patterns
 
 STIX_VERSION = "2.1"
 
@@ -16,4 +17,4 @@ def matches(pattern, bundle, stix_version=STIX_VERSION):
         raise
 
 def get_attack_patterns():
-    return []
+  return attack_patterns

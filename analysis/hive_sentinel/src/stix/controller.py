@@ -9,6 +9,6 @@ def fetch_stix():
     try:
         logs = fetch_tetragon_logs()
         stix_objects, bundles = transform_tetragon_to_stix(logs)
-        return jsonify(stix_objects), 200
+        return jsonify(bundles), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
