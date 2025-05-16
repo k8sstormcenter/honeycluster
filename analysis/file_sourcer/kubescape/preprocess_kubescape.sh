@@ -20,8 +20,8 @@ while IFS= read -r line; do
   fi
 
   # Extract fields
-  # time=$(echo "$line" | jq -r '.time')
-  time=$(date -u +"%Y-%m-%dT%H:%M:%S.%NZ") # set to current time for join purpose later in analysis
+  # time=$(echo "$line" | jq -r '.time') 2025-05-16 07:57:34
+  time="2025-05-16T07:57:34.921538614Z" # set to fixed time in previous datetime string format (ISO 8601)
   node_name=$(echo "$line" | jq -r '.node_name')
   payload=$(echo "$line" | jq -c ".\"$type\"")
 

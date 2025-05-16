@@ -1,58 +1,60 @@
 import json
-from datetime import datetime
 
 
 def analyze_severity(entry):
-    reasons = []
+    reasons = set()
     score = 0
 
     # Check for unexpected exec
     exec_id = entry.get("process_exec", {}).get("process", {}).get("exec_id", "")
-    if "unexpected" in exec_id:
-        reasons.append(
-            "⚠️ Unexpected process execution detected: exec_id contains 'unexpected'."
-        )
-        score += 4
+    reason = (
+        "⚠️ Suspicious command execution detected: Marked as 'unexpected' execution."
+    )
+    if "unexpected" in exec_id.lower() and reason not in reasons:
+        reasons.add(reason)
+        score += 3
 
-    # Check for root privilege
+    # Check for root privilege and execution context
     proc = entry.get("process_exec", {}).get("process", {})
-    if (
-        proc.get("uid") == 0
-        and proc.get("auid") == 0
-        and not proc.get("in_init_tree", True)
-    ):
-        reasons.append(
-            "⚠️ Process executed with root privileges (uid=0, auid=0) and is outside the init tree."
-        )
-        score += 2
+    if proc.get("uid") == 0 and proc.get("auid") == 0:
+        if not proc.get("in_init_tree", True):
+            reason = "⚠️ Root-level command executed outside the normal init process tree. Possible direct shell access."
+            if reason not in reasons:
+                reasons.add(reason)
+                score += 2
+        else:
+            reason = "⚠️ Command executed with root privileges."
+            if reason not in reasons:
+                reasons.add(reason)
+                score += 1
 
-    # Check for failed DNS resolutions
+    # Check if arguments indicate apt or update usage
+    args = proc.get("arguments", "").lower()
+    reason = "⚠️ Detected package manager command (e.g., apt update). Could indicate installation attempt."
+    if ("apt" in args or "update" in args) and reason not in reasons:
+        reasons.add(reason)
+        score += 1.3
+
+    # DNS logs analysis
     dns_logs = entry.get("dns_logs", [])
-    failed_dns = [d for d in dns_logs if '"rcode":3' in d.get("resp_header", "")]
-    for d in failed_dns:
+    for d in dns_logs:
         qname = json.loads(d.get("req_body", "{}"))["queries"][0]["name"]
-        reasons.append(f"⚠️ Failed DNS query for {qname}")
-        score += 1
+        if "security.ubuntu.com" in qname:
+            reason = "⚠️ DNS query to security.ubuntu.com detected. Indicates interactive package installation."
+            if reason not in reasons:
+                reasons.add(reason)
+                score += 1.5
 
-    successful_dns = [
-        d for d in dns_logs if '"num_answers":1' in d.get("resp_header", "")
-    ]
-    if successful_dns:
-        reasons.append(
-            "ℹ️ Successful DNS resolution to security.ubuntu.com indicates interactive package installation."
-        )
-        score -= 1
-
-    # Check for spammy /health HTTP calls
+    # HTTP logs: APT-like download patterns
     http_logs = entry.get("http_logs", [])
-    health_requests = [
-        h for h in http_logs if h.get("req_path", "").startswith("/health")
-    ]
-    if len(health_requests) >= 4:
-        reasons.append(
-            "⚠️ High frequency of /health HTTP GET requests (~4+ in short time), possibly health probes or liveness abuse."
-        )
-        score += 1
+    for h in http_logs:
+        if "ubuntu.com" in h.get("req_headers", "") and h.get("req_path", "").endswith(
+            "InRelease"
+        ):
+            reason = "⚠️ HTTP request to Ubuntu archive/security servers for InRelease files. Indicates package list update."
+            if reason not in reasons:
+                reasons.add(reason)
+                score += 1
 
     # Final severity mapping
     if score <= 2:
@@ -69,6 +71,6 @@ def analyze_severity(entry):
         "pid": entry.get("pid"),
         "timestamp": entry.get("time", "N/A"),
         "severity": severity,
-        "reasons": reasons,
+        "reasons": sorted(reasons),
         "score": score,
     }

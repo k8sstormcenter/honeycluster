@@ -49,7 +49,8 @@ jupyterhub/rke2values.yaml
 # Logs and databases #
 ######################
 *.log
-!pixie-analysis/file_sourcer/tetragon.log
+!tetragon.log
+!mockkubescape.log
 *.sqlite
 pip-log.txt
 .env

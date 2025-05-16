@@ -29,7 +29,7 @@ df = px.DataFrame(table="kubescape.json")
 df = df[
     px.contains(
         px.pluck(px.pluck(df.payload, 'process'), 'exec_id'), 
-        "unexpected process launched"
+        "Unexpected process launched"
     )]
 
 df.pid = px.pluck(px.pluck(df.payload, 'process'), 'pid')
