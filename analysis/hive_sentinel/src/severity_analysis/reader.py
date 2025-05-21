@@ -1,6 +1,8 @@
 import json
 from src.pixie_client import get_px_connection
-from src.kubescape_log.reader import fetch_kubescape_logs
+from src.kubescape_log.data.kubescape_reader import (
+    fetch_kubescape_logs,
+)
 
 
 def get_dns_script(event_time_ns):

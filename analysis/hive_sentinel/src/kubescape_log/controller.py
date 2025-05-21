@@ -1,5 +1,7 @@
 from flask import Blueprint, jsonify
-from src.kubescape_log.reader import fetch_kubescape_logs
+from src.kubescape_log.data.kubescape_reader import (
+    fetch_kubescape_logs,
+)
 
 kubescape_bp = Blueprint("kubescape", __name__)
 
