@@ -223,43 +223,37 @@ attack_patterns = [
             },
         ],
     },
-    #
-    # Problematic code snippet
-    # Error matching pattern [process.extensions.function_name MATCHES 'security_file_permission' AND process:extensions.kprobe0.file_arg.path MATCHES '/run/secrets/kubernetes.io/serviceaccount/' ]
-    # to bundle {'objects': [{'type': 'process', 'id': 'process--250423T1022320588a138a1e32000123865g', 'pid': 123865, 'command_line': '/usr/bin/nsenter -t 1 -a /bin/bash', 'cwd': '/', 'created_time': '2025-04-23T10:22:32.050115698Z', 'extensions': {'flags': 'execve rootcwd clone', 'image_id': 'docker.io/library/ubuntu@sha256:1e622c5f073b4f6bfad6632f2616c7f59ef256e96fe78bf6a595d1dc4376ac02', 'container_id': 'containerd://88a138a1e320c55cfcc8dd5d8c528523c2f48faf8cf1b87d7723bab968e08664', 'pod_name': 'kh-calibration-ce-1', 'namespace': 'default', 'function_name': '', 'parent_pid': 'Z2tlLWs4cy1jYWFzLTAwMDgtYmV0YS11c2VyLXBvb2wtNDBiYWRmYjItZDUydzo1MTI3OTYzMjg3NTkzOToxMjM4NTI=', 'parent_command_line': '/bin/sh -c "nsenter -t 1 -a /bin/bash && sleep infinity;"', 'parent_cwd': '/', 'grand_parent_pid': 'Z2tlLWs4cy1jYWFzLTAwMDgtYmV0YS11c2VyLXBvb2wtNDBiYWRmYjItZDUydzo1MTI2ODI1ODgwOTY2OToxMjM1OTg=', 'kprobe0': '', 'kprobe1': '', 'kprobe2': '', 'kprobe3': '', 'kprobe4': ''}}, {'type': 'observed-data', 'id': 'observed-data--96d04fd7-723d-441e-84b3-f04671cd16fa', 'created': '2025-05-14T13:08:32.071214+00:00Z', 'first_observed': '2025-05-14T13:08:32.071214+00:00Z', 'last_observed': '2025-05-14T13:08:32.071214+00:00Z', 'number_observed': 1, 'object_refs': ['process--250423T1022320588a138a1e32000123865g'], 'extensions': {'alert_name': None, 'correlation': '250423T1022320588a138a1e32000123865gke-k8s-caas', 'rule_id': None, 'node_info': {'node_name': 'gke-k8s-caas-0008-beta-user-pool-40badfb2-d52w'}, 'children': ''}}]}:
-    # 1:8: no viable alternative at input 'process.'
-    #   {
-    #     "type": "bundle",
-    #     "id": "3",
-    #     "name": "CE_VAR_LOG_TOKEN",
-    #     "version": "1.0.0",
-    #     "spec_version": "2.1",
-    #     "objects": [
-    #       {
-    #         "type": "attack-pattern",
-    #         "id": "attack-pattern--kh-ce-var-log-TOKEN",
-    #         "name": "CE_VAR_LOG_TOKEN",
-    #         "description": "In order to access the logs, the pods own token must be used"
-    #       },
-    #       {
-    #         "type": "indicator",
-    #         "id": "indicator--kh-ce-var-log-token",
-    #         "name": "pods own token must be used",
-    #         "description": "pod token used",
-    #         "pattern": "[process.extensions.function_name MATCHES 'security_file_permission' AND process:extensions.kprobe0.file_arg.path MATCHES '/run/secrets/kubernetes.io/serviceaccount/' ]",
-    #         "pattern_type": "stix",
-    #         "valid_from": "2024-01-01T00:00:00Z"
-    #       },
-    #       {
-    #         "type": "relationship",
-    #         "id": "relationship--kh-ce-var-log-token",
-    #         "relationship_type": "indicates",
-    #         "source_ref": "indicator--kh-ce-var-log-token",
-    #         "target_ref": "attack-pattern--kh-ce-var-log-token"
-    #       }
-    #     ]
-    #   },
-    #
+    {
+        "type": "bundle",
+        "id": "3",
+        "name": "CE_VAR_LOG_TOKEN",
+        "version": "1.0.0",
+        "spec_version": "2.1",
+        "objects": [
+            {
+                "type": "attack-pattern",
+                "id": "attack-pattern--kh-ce-var-log-TOKEN",
+                "name": "CE_VAR_LOG_TOKEN",
+                "description": "In order to access the logs, the pods own token must be used",
+            },
+            {
+                "type": "indicator",
+                "id": "indicator--kh-ce-var-log-token",
+                "name": "pods own token must be used",
+                "description": "pod token used",
+                "pattern": "[process:extensions.function_name MATCHES 'security_file_permission' AND process:extensions.kprobe0.file_arg.path MATCHES '/run/secrets/kubernetes.io/serviceaccount/' ]",
+                "pattern_type": "stix",
+                "valid_from": "2024-01-01T00:00:00Z",
+            },
+            {
+                "type": "relationship",
+                "id": "relationship--kh-ce-var-log-token",
+                "relationship_type": "indicates",
+                "source_ref": "indicator--kh-ce-var-log-token",
+                "target_ref": "attack-pattern--kh-ce-var-log-token",
+            },
+        ],
+    },
     {
         "type": "bundle",
         "id": "4",
@@ -527,6 +521,37 @@ attack_patterns = [
                 "name": "tracee",
                 "description": "Detecting tracee",
                 "pattern": "[process:extensions.kprobe_arguments.value.name MATCHES 'magic']",
+                "pattern_type": "stix",
+                "valid_from": "2024-01-01T00:00:00Z",
+            },
+            {
+                "type": "relationship",
+                "id": "relationship--tracee",
+                "relationship_type": "indicates",
+                "source_ref": "indicator--tracee",
+                "target_ref": "attack-pattern--tracee",
+            },
+        ],
+    },
+    {
+        "type": "bundle",
+        "id": "16",
+        "name": "DummyForTesting",
+        "version": "1.0.0",
+        "spec_version": "2.1",
+        "objects": [
+            {
+                "type": "attack-pattern",
+                "id": "attack-pattern--tracee",
+                "name": "tracee",
+                "description": "description",
+            },
+            {
+                "type": "indicator",
+                "id": "indicator--tracee",
+                "name": "tracee",
+                "description": "Detecting tracee",
+                "pattern": "[process:extensions.function_name MATCHES 'R0001']",
                 "pattern_type": "stix",
                 "valid_from": "2024-01-01T00:00:00Z",
             },

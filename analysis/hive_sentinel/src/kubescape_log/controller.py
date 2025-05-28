@@ -6,7 +6,7 @@ from src.kubescape_log.data.kubescape_reader import (
 kubescape_bp = Blueprint("kubescape", __name__)
 
 
-@kubescape_bp.route("/fetch-kubescape", methods=["GET"])
+@kubescape_bp.route("/kubescape", methods=["GET"])
 def get_kubescape_logs():
     try:
         logs = fetch_kubescape_logs()

@@ -2,6 +2,19 @@ from src.pixie_client import get_px_connection
 import json
 from datetime import datetime, timezone
 
+PXL_SCRIPT = """
+import px
+df = px.DataFrame(table="kubescape.json")
+df = df[
+    px.contains(
+        df.message, 
+        "Unexpected process launched"
+    )]
+
+    
+px.display(df, "kubescape")
+"""
+
 
 def iso_to_nanoseconds(iso_ts: str) -> int:
     """
@@ -23,21 +36,6 @@ def iso_to_nanoseconds(iso_ts: str) -> int:
     return base_nanos + extra_nanos
 
 
-PXL_SCRIPT = """
-import px
-df = px.DataFrame(table="kubescape.json")
-df = df[
-    px.contains(
-        px.pluck(px.pluck(df.payload, 'process'), 'exec_id'), 
-        "Unexpected process launched"
-    )]
-
-df.pid = px.pluck(px.pluck(df.payload, 'process'), 'pid')
-df.pod_name = px.pluck(px.pluck(px.pluck(df.payload, 'process'), 'pod'), 'name')
-px.display(df[['pid', 'pod_name', 'time', 'payload', 'type']], "kubescape")
-"""
-
-
 def clean_bstring(val):
     val = val.decode("utf-8")
     if isinstance(val, str) and val.startswith("b'") and val.endswith("'"):
@@ -45,21 +43,52 @@ def clean_bstring(val):
     return val
 
 
+def try_json_parse(val):
+    if isinstance(val, bytes):
+        val = val.decode("utf-8")
+
+    if val == "null":
+        return None
+
+    if not isinstance(val, str):
+        return val
+
+    try:
+        return json.loads(val)
+    except (json.JSONDecodeError, TypeError):
+        return val
+
+
+ROOT_KEYS = [
+    "BaseRuntimeMetadata",
+    "CloudMetadata",
+    "RuleID",
+    "RuntimeK8sDetails",
+    "RuntimeProcessDetails",
+    "event",
+    "level",
+    "message",
+    "msg",
+    "time",
+]
+
+
 def fetch_kubescape_logs():
     conn = get_px_connection()
-
     script = conn.prepare_script(PXL_SCRIPT)
+    results = script.results("kubescape")
+
     kubescape_logs = []
 
-    for row in script.results("kubescape"):
+    for row in results:
         log = {}
-        log["pid"] = clean_bstring(row["pid"])
-        log["pod_name"] = clean_bstring(row["pod_name"])
-        log["time"] = clean_bstring(row["time"])
-        log["time_ns"] = iso_to_nanoseconds(clean_bstring(row["time"]))
-        raw_payload = row["payload"]
-        parsed_payload = json.loads(raw_payload)
-        log[clean_bstring(row["type"])] = parsed_payload
+
+        for key in ROOT_KEYS:
+            val = row[key]
+            parsed = try_json_parse(val)
+            log[key] = parsed
+
+        log["time_ns"] = iso_to_nanoseconds(log["time"])
         kubescape_logs.append(log)
 
     return kubescape_logs

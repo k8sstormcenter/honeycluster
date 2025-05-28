@@ -1,5 +1,9 @@
-from src.stix.core import generate_stix_id, _get_current_time_iso_format
-from src.stix.tetra.id_generator import create_process_stix_id, generate_unique_log_id
+from src.stix.core import (
+    generate_stix_id,
+    _get_current_time_iso_format,
+    create_process_stix_id,
+    generate_unique_log_id,
+)
 
 
 def kprobe(k, element):

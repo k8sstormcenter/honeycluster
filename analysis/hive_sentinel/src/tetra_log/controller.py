@@ -3,7 +3,8 @@ from src.tetra_log.reader import fetch_tetragon_logs
 
 tetra_bp = Blueprint("tetragon", __name__)
 
-@tetra_bp.route("/fetch-tetra", methods=["GET"])
+
+@tetra_bp.route("/tetragon", methods=["GET"])
 def get_tetragon_logs():
     try:
         logs = fetch_tetragon_logs()
