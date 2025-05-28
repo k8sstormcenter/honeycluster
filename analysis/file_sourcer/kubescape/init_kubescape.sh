@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Defaults
-input_file="example_kubescape_schema.json"
+input_file="kubescape_schema_init.json"
 output_file="kubescape.json"
 
 print_help() {

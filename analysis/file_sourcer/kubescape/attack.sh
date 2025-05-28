@@ -41,7 +41,7 @@ ENDSSH
 # Step 4: Preprocess Kubescape logs
 echo ""
 echo "🛠️ Step 3: Preprocessing kubescape logs using current time..."
-bash "$SCRIPT_DIR/preprocess_kubescape.sh" "$SCRIPT_DIR/mockkubescape.log" "$SCRIPT_DIR/kubescape.json" --time=now
+bash "$SCRIPT_DIR/preprocess_kubescape.sh" "$SCRIPT_DIR/kubescape.log" "$SCRIPT_DIR/kubescape.json" --time=now
 
 # Done
 echo ""

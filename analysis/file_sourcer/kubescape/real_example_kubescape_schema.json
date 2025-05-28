@@ -1,1 +1,0 @@
-{"BaseRuntimeMetadata":{"init": true},"CloudMetadata":"null","RuleID":"R0002","RuntimeK8sDetails":{"init": true},"RuntimeProcessDetails":{"init": true},"event":{"init": true},"level":"error","message":"Unexpected file access: /etc/hosts.deny with flags O_RDONLY","msg":"Unexpected file access","time":"2025-05-15T10:00:16Z"}
