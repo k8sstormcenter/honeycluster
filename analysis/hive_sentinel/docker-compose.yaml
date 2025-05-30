@@ -1,0 +1,12 @@
+version: '3.9'
+
+services:
+  hive-sentinel:
+    build: .
+    container_name: hive-sentinel
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    restart: unless-stopped
+    command: python main.py
