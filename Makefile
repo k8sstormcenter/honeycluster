@@ -93,10 +93,10 @@ storage:
 	kubectl apply -f https://openebs.github.io/charts/openebs-operator-lite.yaml
 	kubectl apply -f https://openebs.github.io/charts/openebs-lite-sc.yaml
 	kubectl apply -f honeystack/openebs/sc.yaml
+	kubectl patch storageclass local-hostpath -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 	
 .PHONY: patch
 patch:	
-	kubectl patch storageclass local-hostpath -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 	kubectl patch pvc redis-data-redis-master-0 -n storm -p '{"spec": {"storageClassName": "local-hostpath"}}'
 
 
