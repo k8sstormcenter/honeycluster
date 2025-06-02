@@ -22,14 +22,24 @@ endif
 ##@ Scenario
 
 .PHONY: honey-up
-honey-up: tetragon vector redis traces  mongo lighteningrod stixviz kubescape tracee falco #k8spin 
+honey-up: tetragon vector redis traces  lighteningrod stixviz kubescape tracee falco #k8spin mongo
 
 .PHONY: dev
 dev: cluster-up tetragon vector redis traces lighteningrod stixviz kubescape tracee falco dev-ui
 
 .PHONY: k0s
+<<<<<<< HEAD
 k0s: storage tetragon vector redis patch traces kubescape dev-ui pixie-cli pixie# add pixie here once you automated the auth0
 
+=======
+k0s: storage cert-man tetragon vector redis patch traces kubescape dev-ui #pixie-cli pixie# add pixie here once you automated the auth0
+
+.PHONY: bob
+bob: storage kubescape-bob #tetragon vector redis patch traces 
+
+.PHONY: bob-talos
+bob-talos: kubescape-bob-kind selinux-override
+>>>>>>> main
 
 ##@ remove all honeycluster instrumentation from k8s
 .PHONY: honey-down
@@ -63,6 +73,9 @@ wipe:
 .PHONY: cluster-up
 cluster-up: kind ## Create the kind cluster
 	$(KIND) create cluster --name $(CLUSTER_NAME)  
+
+.PHONY: cert-man
+cert-man:
 	-$(HELM) repo add jetstack https://charts.jetstack.io
 	-$(HELM) repo update
 	-$(HELM) upgrade --install cert-manager jetstack/cert-manager --set installCRDs=true --namespace cert-manager  --create-namespace
@@ -102,7 +115,7 @@ pixie-cloud:
 	-kustomize build k8s/cloud_deps/public | kubectl apply -f -
 	-kustomize build k8s/cloud/public/ | kubectl apply -f -
 
-
+	
 .PHONY: k8spin
 k8spin:
 	-$(HELM) repo add kwasm http://kwasm.sh/kwasm-operator/
@@ -128,12 +141,6 @@ falco:
 	-$(HELM) repo update
 	-$(HELM) upgrade --install falco falcosecurity/falco --namespace honey --create-namespace --values honeystack/falco/values.yaml		
 
-.PHONY: deepfence
-deepfence:
-	-$(HELM) repo add deepfence https://deepfence-helm-charts.s3.amazonaws.com/threatmapper
-	-$(HELM) repo update
-	-$(HELM) upgrade --install deepfence-console deepfence/deepfence-console --namespace honey --create-namespace --values honeystack/deepfence/console-values.yaml
-	-$(HELM) upgrade --install  deepfence-agent deepfence/deepfence-agent --namespace honey --create-namespace --values honeystack/deepfence/values.yaml	
 
 
 .PHONY: tracee
@@ -152,7 +159,41 @@ mongo:
 kubescape:
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
-	-$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --values honeystack/kubescape/$(VALUES)
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --create-namespace --values honeystack/kubescape/$(VALUES)
+
+.PHONY: kubescape-bob-kind
+kubescape-bob-kind:
+	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
+	-$(HELM) repo update
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --values honeystack/kubescape/values_bob_kind.yaml --create-namespace
+	kubectl apply -f honeystack/kubescape/runtimerules.yaml
+	kubectl apply -f honeystack/kubescape/kscloudconfig.yaml
+	sleep 10
+	kubectl rollout restart -n honey ds node-agent
+
+
+.PHONY: webapp-bob-kind
+webapp-bob-kind:
+	kubectl apply -f traces/kubescape-verify/attacks/webapp/webapp_debug_kind.yaml
+	kubectl wait --for=condition=Available deployment/webapp 
+
+.PHONY: selinux-override
+selinux-override:
+	kubectl label namespace openebs pod-security.kubernetes.io/enforce=privileged --overwrite
+	kubectl label namespace honey pod-security.kubernetes.io/enforce=privileged --overwrite
+	kubectl patch ds node-agent -n honey --type='json' -p='[{"op": "add", "path": "/spec/template/spec/containers/0/securityContext/seccompProfile", "value": {"type": "RuntimeDefault"}}]'
+	
+
+# These values are for k0s until the Inspector Gadget PR is merged, as we need to override the socket path
+.PHONY: kubescape-bob
+kubescape-bob:
+	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
+	-$(HELM) repo update
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --values honeystack/kubescape/values_bob.yaml --create-namespace
+	kubectl apply -f honeystack/kubescape/runtimerules.yaml
+	kubectl apply -f honeystack/kubescape/kscloudconfig.yaml
+	sleep 10
+	kubectl rollout restart -n honey ds node-agent
 
 .PHONY: redis
 redis:

@@ -1,0 +1,72 @@
+import px
+
+# Load data
+
+# Load the data from the table
+df = px.DataFrame(table='tetragon.json')
+
+# Extract fields from payload
+df.process_json = px.pluck(df.payload, 'process')
+df.binary = px.pluck(df.process_json, 'binary')
+df.arguments = px.pluck(df.process_json, 'arguments')
+df.pid = px.pluck(df.process_json, 'pid')
+df.cwd = px.pluck(df.process_json, 'cwd')
+df.flags = px.pluck(df.process_json, 'flags')
+df.parent_exec_id = px.pluck(df.process_json, 'parent_exec_id')
+
+# Fake STIX ID generator
+def fake_stix_id(obj_type, ts, unique_val):
+    return obj_type + "--" + ts + "-" + unique_val
+
+# Create process object
+df.process_stix = (
+    "{"
+    + "\"type\": \"process\", "
+    + "\"id\": \"" + fake_stix_id("process", df.time, df.pid) + "\", "
+    + "\"created\": \"" + df.time + "\", "
+    + "\"binary\": \"" + df.binary + "\", "
+    + "\"arguments\": \"" + df.arguments + "\", "
+    + "\"pid\": \"" + df.pid + "\", "
+    + "\"cwd\": \"" + df.cwd + "\", "
+    + "\"flags\": \"" + df.flags + "\""
+    + "}"
+)
+
+# Create observed-data object
+df.observed_stix = (
+    "{"
+    + "\"type\": \"observed-data\", "
+    + "\"id\": \"" + fake_stix_id("observed-data", df.time, df.pid) + "\", "
+    + "\"created\": \"" + df.time + "\", "
+    + "\"first_observed\": \"" + df.time + "\", "
+    + "\"last_observed\": \"" + df.time + "\", "
+    + "\"number_observed\": 1, "
+    + "\"object_refs\": [\"" + fake_stix_id("process", df.time, df.pid) + "\"]"
+    + "}"
+)
+
+# Create relationship object
+df.relationship_stix = (
+    "{"
+    + "\"type\": \"relationship\", "
+    + "\"id\": \"" + fake_stix_id("relationship", df.time, df.pid) + "\", "
+    + "\"created\": \"" + df.time + "\", "
+    + "\"modified\": \"" + df.time + "\", "
+    + "\"relationship_type\": \"observed\", "
+    + "\"source_ref\": \"" + fake_stix_id("observed-data", df.time, df.pid) + "\", "
+    + "\"target_ref\": \"" + fake_stix_id("process", df.time, df.pid) + "\""
+    + "}"
+)
+
+# Create bundle object
+df.bundle_stix = (
+    "{"
+    + "\"type\": \"bundle\", "
+    + "\"id\": \"" + fake_stix_id("bundle", df.time, df.pid) + "\", "
+    + "\"spec_version\": \"2.1\", "
+    + "\"objects\": [" + df.process_stix + "," + df.observed_stix + "," + df.relationship_stix + "]"
+    + "}"
+)
+
+# Display full bundle
+px.display(df[['time', 'node_name', 'type', 'bundle_stix']])

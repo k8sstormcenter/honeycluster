@@ -1,0 +1,6 @@
+import px
+
+df = px.DataFrame(table="tetragon.json")
+
+px.display(df)
+

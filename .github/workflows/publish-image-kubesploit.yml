@@ -2,8 +2,8 @@ name: Build and push Kubesploit
 on:
   push:
     branches:
-      - main
-  pull_request:
+      - neo
+  #pull_request:
 
 
 

@@ -1,0 +1,12 @@
+import px
+import pxlog
+import pxtrace
+
+glob = "/home/docker/kubescape.json"
+table = "kubescape.json"
+
+pxlog.FileSource(glob, table, "4h")
+
+df = px.DataFrame(table)
+
+px.display(df)
