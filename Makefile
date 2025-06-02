@@ -28,10 +28,6 @@ honey-up: tetragon vector redis traces  lighteningrod stixviz kubescape tracee f
 dev: cluster-up tetragon vector redis traces lighteningrod stixviz kubescape tracee falco dev-ui
 
 .PHONY: k0s
-<<<<<<< HEAD
-k0s: storage tetragon vector redis patch traces kubescape dev-ui pixie-cli pixie# add pixie here once you automated the auth0
-
-=======
 k0s: storage cert-man tetragon vector redis patch traces kubescape dev-ui #pixie-cli pixie# add pixie here once you automated the auth0
 
 .PHONY: bob
@@ -39,7 +35,6 @@ bob: storage kubescape-bob #tetragon vector redis patch traces
 
 .PHONY: bob-talos
 bob-talos: kubescape-bob-kind selinux-override
->>>>>>> main
 
 ##@ remove all honeycluster instrumentation from k8s
 .PHONY: honey-down
