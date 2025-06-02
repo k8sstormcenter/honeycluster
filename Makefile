@@ -80,6 +80,13 @@ cluster-down: kind  ## Delete the kind cluster
 	$(KIND) delete cluster --name $(CLUSTER_NAME)
 
 
+.PHONY: kind-pixie-up
+kind-pixie-up: 
+	$(KIND) create cluster --name pixie-cloud 
+	-$(HELM) repo add jetstack https://charts.jetstack.io
+	-$(HELM) repo update
+	-$(HELM) upgrade --install cert-manager jetstack/cert-manager --set installCRDs=true --namespace cert-manager  --create-namespace
+
 
 .PHONY: storage
 storage:
@@ -92,6 +99,18 @@ storage:
 patch:	
 	kubectl patch pvc redis-data-redis-master-0 -n storm -p '{"spec": {"storageClassName": "local-hostpath"}}'
 
+
+.PHONY: pixie-cloud
+pixie-cloud:
+	-kubectl config use-context kind-pixie-cloud
+	cd ../pixie/
+	-kubectl create namespace plc
+	-./scripts/create_cloud_secrets.sh
+	-kustomize build k8s/cloud_deps/base/elastic/operator | kubectl apply -f -
+	-kustomize build k8s/cloud_deps/public | kubectl apply -f -
+	-kustomize build k8s/cloud/public/ | kubectl apply -f -
+
+	
 .PHONY: k8spin
 k8spin:
 	-$(HELM) repo add kwasm http://kwasm.sh/kwasm-operator/
@@ -117,12 +136,6 @@ falco:
 	-$(HELM) repo update
 	-$(HELM) upgrade --install falco falcosecurity/falco --namespace honey --create-namespace --values honeystack/falco/values.yaml		
 
-.PHONY: deepfence
-deepfence:
-	-$(HELM) repo add deepfence https://deepfence-helm-charts.s3.amazonaws.com/threatmapper
-	-$(HELM) repo update
-	-$(HELM) upgrade --install deepfence-console deepfence/deepfence-console --namespace honey --create-namespace --values honeystack/deepfence/console-values.yaml
-	-$(HELM) upgrade --install  deepfence-agent deepfence/deepfence-agent --namespace honey --create-namespace --values honeystack/deepfence/values.yaml	
 
 
 .PHONY: tracee
@@ -257,18 +270,41 @@ sample-app-off:
 	$(MAKE) --makefile=cncf/harbor/Makefile clean
 
 ## Experiments
-## curretly candidate #1 for the network observability
-# the cli install is interactive
-.PHONY: pixie-cli
-pixie-cli:
-	sudo bash -c "$(curl -fsSL https://getcosmic.ai/install.sh)"
-	export PX_CLOUD_ADDR=getcosmic.ai
-	px auth login
-	#px deploy --pem-memory_limit=1Gi
-
+## curretly candidate #1 for the network observability 
+# the 1Gi limit is important on GKE else the scheduler gets confused, even if there s tons of RAM avail
 .PHONY: pixie
 pixie:
-	px deploy kubernetes
+	px deploy --pem_memory_limit=1Gi 
+	#-$(HELM) repo add pixie-operator https://artifacts.px.dev/helm_charts/operator 
+	#-$(HELM) repo update
+	#-$(HELM) upgrade --install  pixie pixie-operator/pixie-operator-chart --set cloudAddr=getcosmic.ai --set deployKey= --set clusterName=$(CLUSTER_NAME) --namespace pl --create-namespace 
+	#helm repo add pixie-vizier https://artifacts.px.dev/helm_charts/vizier
+	#helm repo update
+	#helm install pixie pixie-vizier/vizier-chart --set deployKey= --set clusterName=$(CLUSTER_NAME) --namespace pl --create-namespace 
+
+.PHONY: pixie-cli
+pixie-cli:
+	#bash -c "$(curl -fsSL https://getcosmic.ai/install.sh)"
+	chmod +x ./honeystack/pixie/install.sh
+	./honeystack/pixie/install.sh
+	export PX_CLOUD_ADDR=getcosmic.ai
+	#export PATH= $(PATH):/home/laborant/bin
+	#/home/laborant/bin/px auth login
+	#/home/laborant/bin/px deploy --pem-memory_limit=1Gi
+
+.PHONY: pixie-airgap
+pixie-airgap:
+	git clone https://github.com/k8sstormcenter/pixie.git
+	cd pixie/
+	mkcert -install
+	kubectl create ns plc
+	./scripts/create_cloud_secrets.sh
+	cd ../honeystack/pixie/pixie_cloud
+	# remove job # actually dont, it gives an error
+	kubectl apply -f yamls/cloud_deps_elastic_operator.yaml
+	kubectl apply -f yamls/cloud_deps.yaml
+	kubectl apply -f yamls/cloud.yaml
+
 
 ## kshark is useful if youre running in a high-stakes environment and you want pcaps
 .PHONY: kshark
