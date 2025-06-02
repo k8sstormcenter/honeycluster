@@ -288,7 +288,7 @@ pixie-cli:
 	./honeystack/pixie/install.sh
 	export PX_CLOUD_ADDR=getcosmic.ai
 	px auth login
-	px deploy --pem-memory_limit=1Gi
+	px deploy -p=1Gi
 
 .PHONY: pixie-airgap
 pixie-airgap:
