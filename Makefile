@@ -285,7 +285,7 @@ pixie:
 .PHONY: pixie-cli
 pixie-cli:
 	chmod +x ./honeystack/pixie/install.sh
-	sudo ./honeystack/pixie/install.sh
+	./honeystack/pixie/install.sh
 	export PX_CLOUD_ADDR=getcosmic.ai
 	px auth login
 	px deploy --pem-memory_limit=1Gi
