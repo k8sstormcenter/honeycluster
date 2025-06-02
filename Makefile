@@ -284,13 +284,11 @@ pixie:
 
 .PHONY: pixie-cli
 pixie-cli:
-	#bash -c "$(curl -fsSL https://getcosmic.ai/install.sh)"
 	chmod +x ./honeystack/pixie/install.sh
-	./honeystack/pixie/install.sh
+	sudo ./honeystack/pixie/install.sh
 	export PX_CLOUD_ADDR=getcosmic.ai
-	#export PATH= $(PATH):/home/laborant/bin
-	#/home/laborant/bin/px auth login
-	#/home/laborant/bin/px deploy --pem-memory_limit=1Gi
+	px auth login
+	px deploy --pem-memory_limit=1Gi
 
 .PHONY: pixie-airgap
 pixie-airgap:
