@@ -1,0 +1,5 @@
+import px
+
+df = px.DataFrame(table="kubescape.json")
+
+px.display(df)
