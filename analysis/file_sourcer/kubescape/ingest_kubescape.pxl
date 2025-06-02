@@ -2,7 +2,7 @@ import px
 import pxlog
 import pxtrace
 
-glob = "/home/laborant/honeycluster/analysis/file_sourcer/kubescape/kubescape.json"
+glob = "/home/laborant/honeycluster/analysis/file_sourcer/kubescape/kubescape_schema_init.json"
 table = "kubescape.json"
 
 pxlog.FileSource(glob, table, "4h")
