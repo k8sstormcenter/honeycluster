@@ -482,7 +482,7 @@ customConfig:
          - kubescape-create_key
       encoding:
         codec: json
-      path: "home/laborant/kubescape.json"
+      path: "/home/laborant/kubescape.json"
 
 
 
