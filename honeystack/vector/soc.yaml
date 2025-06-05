@@ -373,7 +373,7 @@ customConfig:
         .field4 = if exists(.BaseRuntimeMetadata.arguments.capability) { .BaseRuntimeMetadata.arguments.capability } else { if exists(.BaseRuntimeMetadata.arguments.path) { .BaseRuntimeMetadata.arguments.path } else { if exists(.BaseRuntimeMetadata.arguments.exec) { .BaseRuntimeMetadata.arguments.exec } else { "1" } } }
         .field5 = if exists(.RuntimeProcessDetails.processTree.cmdline) { .RuntimeProcessDetails.processTree.cmdline} else {""}
         .field6 = if exists(.BaseRuntimeMetadata.infectedPID) { .BaseRuntimeMetadata.infectedPID } else { "1" }
-        .key, err = to_string(.field1) + to_string(.field2) + to_string(.field3) + to_string(.field4) + to_string(.field5) + to_string(.field6) 
+        .key = to_string(.field1) + to_string(.field2) + to_string(.field3) + to_string(.field4) + to_string(.field5) + to_string(.field6) 
         .md5_hash = to_string(md5(.key))
         del(.field1)
         del(.field2)
@@ -420,7 +420,7 @@ customConfig:
        .field6 = if exists(.interesting."user.uid") { .interesting."user.uid" } else { "1" }
        .field7 = if exists(.interesting."evt.arg.flags") { .interesting."evt.arg.flags" } else { "1" }
        .field8 = if exists(.interesting."proc.exepath") { .interesting."proc.exepath" } else { "1" }
-       .key, err = to_string(.field1) + to_string(.field2) + to_string(.field3) + to_string(.field4) + to_string(.field5) + to_string(.field6) + to_string(.field7) + to_string(.field8)
+       .key = to_string(.field1) + to_string(.field2) + to_string(.field3) + to_string(.field4) + to_string(.field5) + to_string(.field6) + to_string(.field7) + to_string(.field8)
        .md5_hash = to_string(md5(.key))
         del(.field1)
         del(.field2)
