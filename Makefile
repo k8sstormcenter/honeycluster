@@ -208,7 +208,7 @@ tetragon: helm check-context
 .PHONY: vector
 vector: helm 
 	-$(HELM) repo add vector https://helm.vector.dev
-	-$(HELM) upgrade --install vector vector/vector --namespace honey --create-namespace --values honeystack/vector/gkevalues.yaml
+	-$(HELM) upgrade --install vector vector/vector --namespace honey --create-namespace --values honeystack/vector/soc.yaml
 	-kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=vector  -n honey --timeout=5m 
 
 .PHONY: traces
