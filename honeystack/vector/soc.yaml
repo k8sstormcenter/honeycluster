@@ -132,7 +132,8 @@ podHostNetwork: false
 podSecurityContext: {}
 
 # securityContext -- Specify securityContext on Vector containers.
-securityContext: {}
+securityContext: 
+  privileged: true
 
 # command -- Override Vector's default command.
 command: []
@@ -482,7 +483,7 @@ customConfig:
          - kubescape-create_key
       encoding:
         codec: json
-      path: "/home/laborant/kubescape.json"
+      path: "/tmp/kubescape.json"
 
 
 
@@ -499,6 +500,20 @@ extraVolumeMounts:
   - name: tetra-log
     mountPath: "/var/run/cilium/tetragon/"
     readOnly: true
+
+# extraVolumes -- Additional Volumes to use with Vector Pods.
+extraVolumes:
+  - name: kubescape-log
+    hostPath:
+      path: "/tmp"
+      type: DirectoryOrCreate
+
+
+# extraVolumeMounts -- Additional Volume to mount into Vector Containers.
+extraVolumeMounts: 
+  - name: kubescape-log
+    mountPath: "/tmp"
+    readOnly: false
 
 # initContainers -- Init Containers to be added to the Vector Pods.
 initContainers: []
