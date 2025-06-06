@@ -24,7 +24,7 @@ set -u
 
 DEFAULT_INSTALL_PATH=/usr/local/bin
 ARTIFACT_NAME=cli_darwin_universal
-USER_INSTALL_PATH="$HOME/bin"
+USER_INSTALL_PATH="/usr/local/bin"
 GITHUB_REPO="pixie-io/pixie"
 
 PIXIE_BANNER="

@@ -154,7 +154,8 @@ mongo:
 kubescape:
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
-	$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --create-namespace --values honeystack/kubescape/$(VALUES)
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --create-namespace --values honeystack/kubescape/values_soc.yaml
+	#$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --create-namespace --values honeystack/kubescape/$(VALUES)
 
 .PHONY: kubescape-bob-kind
 kubescape-bob-kind:
@@ -208,7 +209,7 @@ tetragon: helm check-context
 .PHONY: vector
 vector: helm 
 	-$(HELM) repo add vector https://helm.vector.dev
-	-$(HELM) upgrade --install vector vector/vector --namespace honey --create-namespace --values honeystack/vector/gkevalues.yaml
+	-$(HELM) upgrade --install vector vector/vector --namespace honey --create-namespace --values honeystack/vector/soc.yaml
 	-kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=vector  -n honey --timeout=5m 
 
 .PHONY: traces
@@ -284,13 +285,11 @@ pixie:
 
 .PHONY: pixie-cli
 pixie-cli:
-	#bash -c "$(curl -fsSL https://getcosmic.ai/install.sh)"
 	chmod +x ./honeystack/pixie/install.sh
-	./honeystack/pixie/install.sh
+	sudo bash -c "$(curl -fsSL https://getcosmic.ai/install.sh)"
 	export PX_CLOUD_ADDR=getcosmic.ai
-	#export PATH= $(PATH):/home/laborant/bin
-	#/home/laborant/bin/px auth login
-	#/home/laborant/bin/px deploy --pem-memory_limit=1Gi
+	px auth login
+	px deploy -p=1Gi
 
 .PHONY: pixie-airgap
 pixie-airgap:
