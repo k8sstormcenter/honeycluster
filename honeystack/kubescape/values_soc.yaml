@@ -1,0 +1,13 @@
+nodeAgent:
+  config:
+    maxLearningPeriod: 5m
+    learningPeriod: 2m
+    updatePeriod: 1m
+capabilities:
+  runtimeDetection: enable
+alertCRD:
+  installDefault: true
+  scopeClustered: true
+clusterName: soccluster
+ksNamespace: honey
+excludeNamespaces: "kubescape,kube-system,kube-public,kube-node-lease,kubeconfig,gmp-system,gmp-public,honey,storm,lightening,cert-manager,openebs,kube-flannel,ingress-nginx,olm,pl,px-operator"

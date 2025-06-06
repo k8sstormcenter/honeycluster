@@ -129,11 +129,12 @@ podHostNetwork: false
 
 # podSecurityContext -- Allows you to overwrite the default [PodSecurityContext](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/)
 # for Vector Pods.
-podSecurityContext: {}
+podSecurityContext: 
+  fsGroup: 1000
 
-# securityContext -- Specify securityContext on Vector containers.
-securityContext: 
-  privileged: true
+# securityContext -- TODO get rid off this once you figure out the correct fsGroup for tmp or even better to write to clickhouse
+securityContext: {}
+#  privileged: true
 
 # command -- Override Vector's default command.
 command: []
@@ -368,6 +369,7 @@ customConfig:
       inputs:
         - kubescape-nodeagent
       source: |
+        .CloudMetadata = "empty" 
         .field1 = .BaseRuntimeMetadata.alertName
         .field2 = .RuntimeK8sDetails.containerID
         .field3 = .RuntimeK8sDetails.podName
@@ -494,26 +496,20 @@ extraVolumes:
   - name: tetra-log
     hostPath:
       path: "/var/run/cilium/tetragon/"
+  - name: kubescape-log
+    hostPath:
+      path: "/tmp"
+      type: DirectoryOrCreate
 
 # extraVolumeMounts -- Additional Volume to mount into Vector Containers.
 extraVolumeMounts: 
   - name: tetra-log
     mountPath: "/var/run/cilium/tetragon/"
     readOnly: true
-
-# extraVolumes -- Additional Volumes to use with Vector Pods.
-extraVolumes:
-  - name: kubescape-log
-    hostPath:
-      path: "/tmp"
-      type: DirectoryOrCreate
-
-
-# extraVolumeMounts -- Additional Volume to mount into Vector Containers.
-extraVolumeMounts: 
   - name: kubescape-log
     mountPath: "/tmp"
     readOnly: false
+
 
 # initContainers -- Init Containers to be added to the Vector Pods.
 initContainers: []
