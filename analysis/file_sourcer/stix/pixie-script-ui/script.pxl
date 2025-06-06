@@ -1,0 +1,11 @@
+import px
+
+
+def fetch_stix():
+    df = px.DataFrame(table="stix.json")
+    return df[["stix_bundle"]]
+
+
+def fetch_all_stix():
+    df = px.DataFrame(table="stix.json")
+    return df

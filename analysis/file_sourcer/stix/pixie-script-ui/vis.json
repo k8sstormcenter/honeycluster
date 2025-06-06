@@ -1,0 +1,38 @@
+{
+  "variables": [],
+  "widgets": [
+    {
+      "name": "Stix Bundle Graph",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 5
+      },
+      "func": {
+        "name": "fetch_stix",
+        "args": []
+      },
+      "displaySpec": {
+        "@type": "types.px.dev/px.vispb.RequestGraph"
+      }
+    },
+    {
+      "name": "Stix Bundles",
+      "position": {
+        "x": 0,
+        "y": 3,
+        "w": 12,
+        "h": 3
+      },
+      "func": {
+        "name": "fetch_all_stix",
+        "args": []
+      },
+      "displaySpec": {
+        "@type": "types.px.dev/px.vispb.Table"
+      }
+    }
+  ],
+  "globalFuncs": []
+}

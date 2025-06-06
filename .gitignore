@@ -54,6 +54,7 @@ jupyterhub/rke2values.yaml
 *.log
 !tetragon.log
 !kubescape.log
+!stix.log
 *.sqlite
 pip-log.txt
 .env
