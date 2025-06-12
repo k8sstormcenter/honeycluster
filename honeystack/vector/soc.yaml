@@ -347,7 +347,7 @@ customConfig:
           .time=.time
           .node_name=.node_name
           .type = .keys[0]
-          .payload = get!(., .type)
+          .payload = get!(., array!(.type))
           . = { "time": .time, "node_name": .node_name, "type": .type, "payload": .payload }
 
 
