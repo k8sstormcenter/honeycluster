@@ -357,11 +357,11 @@ customConfig:
         - tetragon_logs
       source: |
               . = parse_json!(.message)
-              .kprobe0= if exists(.process_kprobe.args[0]) { .process_kprobe.args[0] } else { "null" }
-              .kprobe1= if exists(.process_kprobe.args[1]) { .process_kprobe.args[1] } else { "null" }
-              .kprobe2= if exists(.process_kprobe.args[2]) { .process_kprobe.args[2] } else { "null" }
-              .kprobe3= if exists(.process_kprobe.args[3]) { .process_kprobe.args[3] } else { "null" }
-              .kprobe4= if exists(.process_kprobe.args[4]) { .process_kprobe.args[4] } else { "null" }
+              .kprobe0= if exists(.process_kprobe.args[0]) { .process_kprobe.args[0] } else { "empty"  }
+              .kprobe1= if exists(.process_kprobe.args[1]) { .process_kprobe.args[1] } else { "empty"  }
+              .kprobe2= if exists(.process_kprobe.args[2]) { .process_kprobe.args[2] } else { "empty"  }
+              .kprobe3= if exists(.process_kprobe.args[3]) { .process_kprobe.args[3] } else { "empty"  }
+              .kprobe4= if exists(.process_kprobe.args[4]) { .process_kprobe.args[4] } else { "empty"  }
 
 
     kubescape-nodeagent_pre:
