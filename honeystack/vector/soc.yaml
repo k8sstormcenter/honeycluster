@@ -338,6 +338,20 @@ customConfig:
       fields :
         match: [.dedup]
 
+    tetragon_pixie:
+      type: remap
+      inputs:
+        - tetragon_create_key
+      source: |
+          .keys = keys!(.)
+          .extra_keys = filter(.keys) -> |k| k != "time" && k != "node_name"
+          .time=.time
+          .node_name=.node_name
+          .type = .extra_keys[0]
+          .payload = get!(., .type)
+          . = { "time": .time, "node_name": .node_name, "type": .type, "payload": .payload }
+
+
     tetragon_pre:
       type: remap
       inputs:
@@ -486,6 +500,13 @@ customConfig:
       encoding:
         codec: json
       path: "/tmp/kubescape.json"
+    tetragon: 
+      type: file
+      inputs:
+         - tetragon_pixie
+      encoding:
+        codec: json
+      path: "/tmp/tetragon.json"
 
 
 
@@ -509,6 +530,7 @@ extraVolumeMounts:
   - name: kubescape-log
     mountPath: "/tmp"
     readOnly: false
+
 
 
 # initContainers -- Init Containers to be added to the Vector Pods.
