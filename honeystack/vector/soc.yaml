@@ -344,10 +344,9 @@ customConfig:
         - tetragon_create_key
       source: |
           .keys = keys!(.)
-          .extra_keys = filter(.keys) -> |k| k != "time" && k != "node_name"
           .time=.time
           .node_name=.node_name
-          .type = .extra_keys[0]
+          .type = .keys[0]
           .payload = get!(., .type)
           . = { "time": .time, "node_name": .node_name, "type": .type, "payload": .payload }
 
