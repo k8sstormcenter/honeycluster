@@ -350,6 +350,8 @@ customConfig:
           del(.process_exit)
           del(.process_kprobe)
           del(.md5_hash)
+          del(.dedup)
+ 
 
 
     # tetragon_pre:
