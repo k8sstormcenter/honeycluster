@@ -292,7 +292,7 @@ customConfig:
     tetragon_filter:
       type: filter
       inputs:
-        - tetragon_pre
+        - tetragon_logs
       condition: .source_type != "file"
 
     tetragon_create_key:
