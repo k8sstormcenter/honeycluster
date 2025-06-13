@@ -367,7 +367,7 @@ customConfig:
     tetragon_pre:
       type: remap
       inputs:
-        - tetragon_logs
+        - tetragon_filter
       source: |
         .keys = keys!(.)
         .time=.time
