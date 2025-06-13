@@ -318,7 +318,8 @@ customConfig:
         .fieldk21 = if exists(.process_kprobe.args) { if exists(.process_kprobe.args[1].sock_arg.state)     { .process_kprobe.args[1].sock_arg.state      } else { if exists(.process_kprobe.args[1].int_arg) { .process_kprobe.args[1].int_arg } else { if exists(.process_kprobe.args[1].string_arg) { .process_kprobe.args[1].string_arg } else { "1" } } } } else { "1" }
         .fieldk22 = if exists(.process_kprobe.args) { if exists(.process_kprobe.args[1].truncated_bytes_arg.bytes_arg)     { .process_kprobe.args[1].truncated_bytes_arg.bytes_arg     } else { if exists(.process_kprobe.args[1].truncated_bytes_arg.orig_size) { .process_kprobe.args[1].truncated_bytes_arg.orig_size } else { if exists(.process_kprobe.args[1].size_arg) { .process_kprobe.args[1].size_arg } else { "1" } } } } else { "1" }
         .fieldf  = if exists(.process_kprobe.function_name) { .process_kprobe.function_name } else { "1" }
-        .pre     = if exists(.process_exec) { "exec" } else { if exists(.process_exit) { "exit" } else { if exists(.process_kprobe){ "kpro" }  else { "1" } } }
+        .pre     =  if exists(.process_exec) { "exec" } else { if exists(.process_exit) { "exit" } else { if exists(.process_kprobe){ "kpro" }  else { "1" } } }
+        .type     = if exists(.process_exec) { "process_exec" } else { if exists(.process_exit) { "process_exit" } else { if exists(.process_kprobe){ "process_kprobe" }  else { "1" } } }
         .key, err = to_string(.field1) + to_string(.field2) + to_string(.field3) + to_string(.field11) + to_string(.field22) + to_string(.field33) + to_string(.fieldf) + to_string(.fieldk1) + to_string(.fieldk2) + to_string(.fieldk21)
         .md5_hash = to_string(md5(.key))
         .dedup    = .md5_hash + to_string(.pre)
@@ -334,6 +335,7 @@ customConfig:
         del(.fieldk21)
         del(.fieldk22)
         del(.key)
+        del(.pre)
         del(.process_kprobe.args)
          
 
@@ -344,7 +346,7 @@ customConfig:
       source: |
           .time=.time
           .node_name=.node_name
-          .type = .pre
+          .type = .type
           .payload = get!(., array!(.type))
           . = { "time": .time, "node_name": .node_name, "type": .type, "payload": .payload }
 
