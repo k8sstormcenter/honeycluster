@@ -343,6 +343,7 @@ customConfig:
       inputs:
         - tetragon_create_key
       source: |
+          . = parse_json!(.message)
           .keys = keys!(.)
           .time=.time
           .node_name=.node_name
@@ -351,18 +352,29 @@ customConfig:
           . = { "time": .time, "node_name": .node_name, "type": .type, "payload": .payload }
 
 
+    # tetragon_pre:
+    #   type: remap
+    #   inputs:
+    #     - tetragon_logs
+    #   source: |
+    #           . = parse_json!(.message)
+    #           .kprobe0= if exists(.process_kprobe.args[0]) { .process_kprobe.args[0] } else { "empty"  }
+    #           .kprobe1= if exists(.process_kprobe.args[1]) { .process_kprobe.args[1] } else { "empty"  }
+    #           .kprobe2= if exists(.process_kprobe.args[2]) { .process_kprobe.args[2] } else { "empty"  }
+    #           .kprobe3= if exists(.process_kprobe.args[3]) { .process_kprobe.args[3] } else { "empty"  }
+    #           .kprobe4= if exists(.process_kprobe.args[4]) { .process_kprobe.args[4] } else { "empty"  }
+
     tetragon_pre:
       type: remap
       inputs:
         - tetragon_logs
       source: |
-              . = parse_json!(.message)
-              .kprobe0= if exists(.process_kprobe.args[0]) { .process_kprobe.args[0] } else { "empty"  }
-              .kprobe1= if exists(.process_kprobe.args[1]) { .process_kprobe.args[1] } else { "empty"  }
-              .kprobe2= if exists(.process_kprobe.args[2]) { .process_kprobe.args[2] } else { "empty"  }
-              .kprobe3= if exists(.process_kprobe.args[3]) { .process_kprobe.args[3] } else { "empty"  }
-              .kprobe4= if exists(.process_kprobe.args[4]) { .process_kprobe.args[4] } else { "empty"  }
-
+        .keys = keys!(.)
+        .time=.time
+        .node_name=.node_name
+        .type = .keys[0]
+        .payload = get!(., array!(.type))
+        . = { "time": .time, "node_name": .node_name, "type": .type, "payload": .payload }
 
     kubescape-nodeagent_pre:
        type: remap
@@ -502,7 +514,7 @@ customConfig:
     tetragon: 
       type: file
       inputs:
-         - tetragon_pixie
+         - tetragon_pre
       encoding:
         codec: json
       path: "/tmp/tetragon.json"
