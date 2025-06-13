@@ -333,27 +333,18 @@ customConfig:
         del(.fieldk2)
         del(.fieldk21)
         del(.fieldk22)
-        del(.pre)
         del(.key)
         del(.process_kprobe.args)
          
-
-    # tetragon_dedupe:
-    #   type: dedupe
-    #   inputs:
-    #     - tetragon_create_key
-    #   fields :
-    #     match: [.dedup]
 
     tetragon_pixie:
       type: remap
       inputs:
         - tetragon_create_key
       source: |
-          .keys = keys!(.)
           .time=.time
           .node_name=.node_name
-          .type = .keys[0]
+          .type = .pre
           .payload = get!(., array!(.type))
           . = { "time": .time, "node_name": .node_name, "type": .type, "payload": .payload }
 
