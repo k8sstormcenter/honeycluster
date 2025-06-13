@@ -289,10 +289,17 @@ dataDir: ""
 customConfig:
   transforms:
 
+    tetragon_pre:
+      type: remap
+      inputs:
+        - tetragon_logs
+      source: |
+          . = parse_json!(.message)
+
     tetragon_filter:
       type: filter
       inputs:
-        - tetragon_logs
+        - tetragon_pre
       condition: .source_type != "file"
 
     tetragon_create_key:
@@ -331,19 +338,18 @@ customConfig:
         del(.process_kprobe.args)
          
 
-    tetragon_dedupe:
-      type: dedupe
-      inputs:
-        - tetragon_create_key
-      fields :
-        match: [.dedup]
+    # tetragon_dedupe:
+    #   type: dedupe
+    #   inputs:
+    #     - tetragon_create_key
+    #   fields :
+    #     match: [.dedup]
 
     tetragon_pixie:
       type: remap
       inputs:
         - tetragon_create_key
       source: |
-          . = parse_json!(.message)
           .keys = keys!(.)
           .time=.time
           .node_name=.node_name
@@ -364,17 +370,7 @@ customConfig:
     #           .kprobe3= if exists(.process_kprobe.args[3]) { .process_kprobe.args[3] } else { "empty"  }
     #           .kprobe4= if exists(.process_kprobe.args[4]) { .process_kprobe.args[4] } else { "empty"  }
 
-    tetragon_pre:
-      type: remap
-      inputs:
-        - tetragon_filter
-      source: |
-        .keys = keys!(.)
-        .time=.time
-        .node_name=.node_name
-        .type = .keys[0]
-        .payload = get!(., array!(.type))
-        . = { "time": .time, "node_name": .node_name, "type": .type, "payload": .payload }
+
 
     kubescape-nodeagent_pre:
        type: remap
@@ -514,7 +510,7 @@ customConfig:
     tetragon: 
       type: file
       inputs:
-         - tetragon_pre
+         - tetragon_pixie
       encoding:
         codec: json
       path: "/tmp/tetragon.json"
