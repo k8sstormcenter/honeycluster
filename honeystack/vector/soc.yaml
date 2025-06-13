@@ -344,11 +344,12 @@ customConfig:
       inputs:
         - tetragon_create_key
       source: |
-          .time=.time
-          .node_name=.node_name
-          .type = .type
-          .payload = get!(., array!(.type))
-          . = { "time": .time, "node_name": .node_name, "type": .type, "payload": .payload }
+          .payload = if exists(.process_exec) { .process_exec } else { if exists(.process_exit) { .process_exit } else { if exists(.process_kprobe){ .process_kprobe }  else { "empty" } } }
+          .payload.dedup = .dedup
+          del(.process_exec)
+          del(.process_exit)
+          del(.process_kprobe)
+          del(.md5_hash)
 
 
     # tetragon_pre:
