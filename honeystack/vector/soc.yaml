@@ -351,8 +351,6 @@ customConfig:
           del(.process_kprobe)
           del(.md5_hash)
           del(.dedup)
- 
-
 
     # tetragon_pre:
     #   type: remap
@@ -403,61 +401,6 @@ customConfig:
         del(.field6)
         del(.key)
 
-    falco_pre:
-       type: remap
-       inputs:
-          - falco_logs 
-       source: |
-         .interesting = parse_json!(.message).output_fields
-         .rule= parse_json!(.message).rule
-         .source= parse_json!(.message).source
-         .priority= parse_json!(.message).priority
-         .tags= parse_json!(.message).tags
-         .hostname= parse_json!(.message).hostname
-         del(.file)
-         del(.kubernetes)
-         del(.message)
-         del(.stream)
-         del(.source_type)
-
-    falco_filter:
-      type: filter
-      inputs:
-        - falco_pre
-      condition: |
-        !includes(["honey","storm"], .k8s_ns) 
-    
-    falco:
-      type: remap
-      inputs:
-        - falco_filter
-      source: |
-       .field1 = if exists( .interesting."container.id") { .interesting."container.id" } else { "1" }
-       .field2 = if exists( .interesting."container.name") { .interesting."container.name" } else { "1" }
-       .field3 = if exists(.interesting."proc.cmdline") { .interesting."proc.cmdline" } else { "1" }
-       .field4 = if exists(.interesting."proc.pname") { .interesting."proc.pname" } else { "1" }
-       .field5 = if exists(.interesting."evt.type") { .interesting."evt.type" } else { "1" }
-       .field6 = if exists(.interesting."user.uid") { .interesting."user.uid" } else { "1" }
-       .field7 = if exists(.interesting."evt.arg.flags") { .interesting."evt.arg.flags" } else { "1" }
-       .field8 = if exists(.interesting."proc.exepath") { .interesting."proc.exepath" } else { "1" }
-       .key, err = to_string(.field1) + to_string(.field2) + to_string(.field3) + to_string(.field4) + to_string(.field5) + to_string(.field6) + to_string(.field7) + to_string(.field8)
-       .md5_hash = to_string(md5(.key))
-        del(.field1)
-        del(.field2)
-        del(.field3)
-        del(.field4)
-        del(.field5)
-        del(.field6)
-        del(.field7)
-        del(.field8)
-        del(.key)
-
-    falco_dedupe:
-      type: dedupe
-      inputs:
-        - falco
-      fields :
-        match: [.md5_hash]     
 
   data_dir: /vector-data-dir
   api:
