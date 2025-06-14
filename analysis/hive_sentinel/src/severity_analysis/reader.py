@@ -6,6 +6,7 @@ from src.kubescape_log.data.kubescape_reader import (
 
 
 def get_dns_script(event_time_ns):
+    print(event_time_ns)
     return f"""
 import px
 
