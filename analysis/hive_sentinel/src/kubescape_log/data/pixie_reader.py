@@ -22,17 +22,25 @@ def iso_to_nanoseconds(iso_ts: str) -> int:
 
     Example: "2025-05-15T10:19:35.195123920Z" -> 1747304375195123920
     """
-    # Trim the 'Z' and parse up to microseconds (first 26 chars)
-    dt = datetime.strptime(iso_ts[:26], "%Y-%m-%dT%H:%M:%S.%f").replace(
-        tzinfo=timezone.utc
-    )
+    # Remove the trailing 'Z' for UTC
+    if iso_ts.endswith("Z"):
+        iso_ts_no_z = iso_ts[:-1]
+    else:
+        iso_ts_no_z = iso_ts
+
+    try:
+        # Try parsing with microseconds
+        dt = datetime.strptime(iso_ts_no_z, "%Y-%m-%dT%H:%M:%S.%f").replace(tzinfo=timezone.utc)
+        # Extract nanoseconds beyond microsecond precision if present
+        extra_nanos_str = iso_ts_no_z[26:] if len(iso_ts_no_z) > 26 else "0"
+        extra_nanos = int(extra_nanos_str.ljust(3, '0')[:3]) # Ensure 3 digits for nano, pad with 0 if needed
+    except ValueError:
+        # If parsing with microseconds fails, try without
+        dt = datetime.strptime(iso_ts_no_z, "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc)
+        extra_nanos = 0
 
     # Convert to nanoseconds
     base_nanos = int(dt.timestamp() * 1_000_000_000)
-
-    # Add extra nanoseconds beyond microsecond precision
-    extra_nanos = int(iso_ts[26:29]) if len(iso_ts) >= 29 else 0
-
     return base_nanos + extra_nanos
 
 
