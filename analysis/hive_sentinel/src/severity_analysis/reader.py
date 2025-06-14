@@ -55,7 +55,7 @@ def add_source_dest_columns(df):
 df = px.DataFrame(table='http_events')
 df = add_source_dest_columns(df)
 df = df[px.abs(px.time_to_int64(df.time_) - {event_time_ns}) < px.parse_duration("15s")]
-df = df[df.source == "ssh/{pod_name}"]
+df = df[df.source == "webapp/{pod_name}"]
 df = df['time_', 'latency', 'major_version', 'req_path',
         'req_method', 'req_headers', 'req_body', 'req_body_size', 'resp_status',
         'resp_message', 'resp_headers', 'resp_body', 'resp_body_size']
