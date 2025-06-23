@@ -289,6 +289,13 @@ dataDir: ""
 customConfig:
   transforms:
 
+    tetragon_pre:
+      type: remap
+      inputs:
+        - tetragon_logs
+      source: |
+          . = parse_json!(.message)
+
     tetragon_filter:
       type: filter
       inputs:
@@ -311,7 +318,8 @@ customConfig:
         .fieldk21 = if exists(.process_kprobe.args) { if exists(.process_kprobe.args[1].sock_arg.state)     { .process_kprobe.args[1].sock_arg.state      } else { if exists(.process_kprobe.args[1].int_arg) { .process_kprobe.args[1].int_arg } else { if exists(.process_kprobe.args[1].string_arg) { .process_kprobe.args[1].string_arg } else { "1" } } } } else { "1" }
         .fieldk22 = if exists(.process_kprobe.args) { if exists(.process_kprobe.args[1].truncated_bytes_arg.bytes_arg)     { .process_kprobe.args[1].truncated_bytes_arg.bytes_arg     } else { if exists(.process_kprobe.args[1].truncated_bytes_arg.orig_size) { .process_kprobe.args[1].truncated_bytes_arg.orig_size } else { if exists(.process_kprobe.args[1].size_arg) { .process_kprobe.args[1].size_arg } else { "1" } } } } else { "1" }
         .fieldf  = if exists(.process_kprobe.function_name) { .process_kprobe.function_name } else { "1" }
-        .pre     = if exists(.process_exec) { "exec" } else { if exists(.process_exit) { "exit" } else { if exists(.process_kprobe){ "kpro" }  else { "1" } } }
+        .pre     =  if exists(.process_exec) { "exec" } else { if exists(.process_exit) { "exit" } else { if exists(.process_kprobe){ "kpro" }  else { "1" } } }
+        .type     = if exists(.process_exec) { "process_exec" } else { if exists(.process_exit) { "process_exit" } else { if exists(.process_kprobe){ "process_kprobe" }  else { "1" } } }
         .key, err = to_string(.field1) + to_string(.field2) + to_string(.field3) + to_string(.field11) + to_string(.field22) + to_string(.field33) + to_string(.fieldf) + to_string(.fieldk1) + to_string(.fieldk2) + to_string(.fieldk21)
         .md5_hash = to_string(md5(.key))
         .dedup    = .md5_hash + to_string(.pre)
@@ -326,29 +334,36 @@ customConfig:
         del(.fieldk2)
         del(.fieldk21)
         del(.fieldk22)
-        del(.pre)
         del(.key)
+        del(.pre)
         del(.process_kprobe.args)
          
 
-    tetragon_dedupe:
-      type: dedupe
-      inputs:
-        - tetragon_create_key
-      fields :
-        match: [.dedup]
-
-    tetragon_pre:
+    tetragon_pixie:
       type: remap
       inputs:
-        - tetragon_logs
+        - tetragon_create_key
       source: |
-              . = parse_json!(.message)
-              .kprobe0= if exists(.process_kprobe.args[0]) { .process_kprobe.args[0] } else { "null" }
-              .kprobe1= if exists(.process_kprobe.args[1]) { .process_kprobe.args[1] } else { "null" }
-              .kprobe2= if exists(.process_kprobe.args[2]) { .process_kprobe.args[2] } else { "null" }
-              .kprobe3= if exists(.process_kprobe.args[3]) { .process_kprobe.args[3] } else { "null" }
-              .kprobe4= if exists(.process_kprobe.args[4]) { .process_kprobe.args[4] } else { "null" }
+          .payload = if exists(.process_exec) { .process_exec } else { if exists(.process_exit) { .process_exit } else { if exists(.process_kprobe){ .process_kprobe }  else { "empty" } } }
+          .payload.dedup = .dedup
+          del(.process_exec)
+          del(.process_exit)
+          del(.process_kprobe)
+          del(.md5_hash)
+          del(.dedup)
+
+    # tetragon_pre:
+    #   type: remap
+    #   inputs:
+    #     - tetragon_logs
+    #   source: |
+    #           . = parse_json!(.message)
+    #           .kprobe0= if exists(.process_kprobe.args[0]) { .process_kprobe.args[0] } else { "empty"  }
+    #           .kprobe1= if exists(.process_kprobe.args[1]) { .process_kprobe.args[1] } else { "empty"  }
+    #           .kprobe2= if exists(.process_kprobe.args[2]) { .process_kprobe.args[2] } else { "empty"  }
+    #           .kprobe3= if exists(.process_kprobe.args[3]) { .process_kprobe.args[3] } else { "empty"  }
+    #           .kprobe4= if exists(.process_kprobe.args[4]) { .process_kprobe.args[4] } else { "empty"  }
+
 
 
     kubescape-nodeagent_pre:
@@ -386,61 +401,6 @@ customConfig:
         del(.field6)
         del(.key)
 
-    falco_pre:
-       type: remap
-       inputs:
-          - falco_logs 
-       source: |
-         .interesting = parse_json!(.message).output_fields
-         .rule= parse_json!(.message).rule
-         .source= parse_json!(.message).source
-         .priority= parse_json!(.message).priority
-         .tags= parse_json!(.message).tags
-         .hostname= parse_json!(.message).hostname
-         del(.file)
-         del(.kubernetes)
-         del(.message)
-         del(.stream)
-         del(.source_type)
-
-    falco_filter:
-      type: filter
-      inputs:
-        - falco_pre
-      condition: |
-        !includes(["honey","storm"], .k8s_ns) 
-    
-    falco:
-      type: remap
-      inputs:
-        - falco_filter
-      source: |
-       .field1 = if exists( .interesting."container.id") { .interesting."container.id" } else { "1" }
-       .field2 = if exists( .interesting."container.name") { .interesting."container.name" } else { "1" }
-       .field3 = if exists(.interesting."proc.cmdline") { .interesting."proc.cmdline" } else { "1" }
-       .field4 = if exists(.interesting."proc.pname") { .interesting."proc.pname" } else { "1" }
-       .field5 = if exists(.interesting."evt.type") { .interesting."evt.type" } else { "1" }
-       .field6 = if exists(.interesting."user.uid") { .interesting."user.uid" } else { "1" }
-       .field7 = if exists(.interesting."evt.arg.flags") { .interesting."evt.arg.flags" } else { "1" }
-       .field8 = if exists(.interesting."proc.exepath") { .interesting."proc.exepath" } else { "1" }
-       .key, err = to_string(.field1) + to_string(.field2) + to_string(.field3) + to_string(.field4) + to_string(.field5) + to_string(.field6) + to_string(.field7) + to_string(.field8)
-       .md5_hash = to_string(md5(.key))
-        del(.field1)
-        del(.field2)
-        del(.field3)
-        del(.field4)
-        del(.field5)
-        del(.field6)
-        del(.field7)
-        del(.field8)
-        del(.key)
-
-    falco_dedupe:
-      type: dedupe
-      inputs:
-        - falco
-      fields :
-        match: [.md5_hash]     
 
   data_dir: /vector-data-dir
   api:
@@ -486,6 +446,13 @@ customConfig:
       encoding:
         codec: json
       path: "/tmp/kubescape.json"
+    tetragon: 
+      type: file
+      inputs:
+         - tetragon_pixie
+      encoding:
+        codec: json
+      path: "/tmp/tetragon.json"
 
 
 
@@ -509,6 +476,7 @@ extraVolumeMounts:
   - name: kubescape-log
     mountPath: "/tmp"
     readOnly: false
+
 
 
 # initContainers -- Init Containers to be added to the Vector Pods.
