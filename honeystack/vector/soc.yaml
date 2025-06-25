@@ -346,7 +346,7 @@ customConfig:
       source: |
           .payload = if exists(.process_exec) { .process_exec } else { if exists(.process_exit) { .process_exit } else { if exists(.process_kprobe){ .process_kprobe }  else { "empty" } } }
           .payload.dedup = .dedup
-          .time = if exists(.time) { to_unix_timestamp!(parse_timestamp(.time, format: "%+"), unit: "nanoseconds") } else { to_unix_timestamp(now(), unit: "nanoseconds") }
+          .time = if exists(.time) { to_unix_timestamp!(parse_timestamp!(.time, format: "%+"), unit: "nanoseconds") } else { to_unix_timestamp(now(), unit: "nanoseconds") }
           del(.process_exec)
           del(.process_exit)
           del(.process_kprobe)
@@ -385,7 +385,7 @@ customConfig:
       inputs:
         - kubescape-nodeagent
       source: |
-        .time = if exists(.time) { to_unix_timestamp!(parse_timestamp(.time, format: "%+"), unit: "nanoseconds") } else { to_unix_timestamp(now(), unit: "nanoseconds") }
+        .time = if exists(.time) { to_unix_timestamp!(parse_timestamp!(.time, format: "%+"), unit: "nanoseconds") } else { to_unix_timestamp(now(), unit: "nanoseconds") }
         .CloudMetadata = "empty" 
         .field1 = .BaseRuntimeMetadata.alertName
         .field2 = .RuntimeK8sDetails.containerID
