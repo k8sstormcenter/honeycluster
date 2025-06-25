@@ -346,11 +346,12 @@ customConfig:
       source: |
           .payload = if exists(.process_exec) { .process_exec } else { if exists(.process_exit) { .process_exit } else { if exists(.process_kprobe){ .process_kprobe }  else { "empty" } } }
           .payload.dedup = .dedup
-          .time = if exists(.time) { to_unix_timestamp(.time, unit: "nanoseconds") } else { to_unix_timestamp(now(), unit: "nanoseconds") }
+          .time_ns = if exists(.time) { to_unix_timestamp(.time, unit: "nanoseconds") } else { to_unix_timestamp(now(), unit: "nanoseconds") }
           del(.process_exec)
           del(.process_exit)
           del(.process_kprobe)
           del(.md5_hash)
+          del(.time)
           del(.dedup)
 
     # tetragon_pre:
@@ -385,7 +386,7 @@ customConfig:
       inputs:
         - kubescape-nodeagent
       source: |
-        .time = if exists(.time) { to_unix_timestamp(.time, unit: "nanoseconds") } else { to_unix_timestamp(now(), unit: "nanoseconds") }
+        .time_ns = if exists(.time) { to_unix_timestamp(.time, unit: "nanoseconds") } else { to_unix_timestamp(now(), unit: "nanoseconds") }
         .CloudMetadata = "empty" 
         .field1 = .BaseRuntimeMetadata.alertName
         .field2 = .RuntimeK8sDetails.containerID
@@ -400,6 +401,7 @@ customConfig:
         del(.field3)
         del(.field4)
         del(.field5)
+        del(.time)
         del(.field6)
         del(.key)
 
@@ -448,17 +450,17 @@ customConfig:
       encoding:
         codec: json
       path: "/tmp/kubescape.json"
-      kubescape_clickhouse:
-        type: clickhouse
-        inputs:
-          - kubescape-create_key
-        database: ${CLICKHOUSE_DB}
-        table: kubescape_logs
-        endpoint: "${CLICKHOUSE_ENDPOINT}"
-        auth:
-          strategy: "basic"
-          user: ${CLICKHOUSE_USER}
-          password: ${CLICKHOUSE_PASSWORD}
+    kubescape_clickhouse:
+      type: clickhouse
+      inputs:
+        - kubescape-create_key
+      database: ${CLICKHOUSE_DB}
+      table: kubescape_logs
+      endpoint: "${CLICKHOUSE_ENDPOINT}"
+      auth:
+        strategy: "basic"
+        user: ${CLICKHOUSE_USER}
+        password: ${CLICKHOUSE_PASSWORD}
     tetragon: 
       type: file
       inputs:
