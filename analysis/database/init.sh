@@ -30,7 +30,7 @@ PASSWORD=$(kubectl get secret --namespace "$NAMESPACE" "$RELEASE_NAME" -o jsonpa
 export CLICKHOUSE_DB="default"
 export CLICKHOUSE_USER="$USERNAME"
 export CLICKHOUSE_PASSWORD="$PASSWORD"
-export CLICKHOUSE_ENDPOINT="tcp://${RELEASE_NAME}.${NAMESPACE}.svc.cluster.local:9000"
+export CLICKHOUSE_ENDPOINT="http://127.0.0.1:8123"
 
 echo ""
 echo "✅ ClickHouse installed and credentials fetched!"
@@ -43,6 +43,16 @@ else
   PORT_FORWARD_PID=$!
   sleep 5
   echo "🔗 Port-forward PID: $PORT_FORWARD_PID"
+fi
+
+
+if lsof -i :8123 >/dev/null; then
+  echo "⚠️  Port 8123 already in use — assuming existing port-forward."
+else
+  kubectl port-forward --namespace "$NAMESPACE" svc/$RELEASE_NAME 8123:8123 &
+  PORT_FORWARD_8123_PID=$!
+  echo "🔗 Port-forward for 8123 started (PID: $PORT_FORWARD_8123_PID)"
+  sleep 3
 fi
 
 echo "👉 Creating kubescape_logs with local clickhouse-client..."
@@ -85,7 +95,7 @@ echo ""
 echo "export CLICKHOUSE_DB=\"default\""
 echo "export CLICKHOUSE_USER=\"$USERNAME\""
 echo "export CLICKHOUSE_PASSWORD=\"$PASSWORD\""
-echo "export CLICKHOUSE_ENDPOINT=\"tcp://${RELEASE_NAME}.${NAMESPACE}.svc.cluster.local:9000\""
+echo "export CLICKHOUSE_ENDPOINT=\"http://127.0.0.1:8123"\""
 echo ""
 echo "👉 To update honeystack/vector/soc.yaml again later, run:"
 echo "envsubst < honeystack/vector/soc.yaml > honeystack/vector/soc.yaml.tmp && mv honeystack/vector/soc.yaml.tmp honeystack/vector/soc.yaml"
