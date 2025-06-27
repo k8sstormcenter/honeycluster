@@ -346,6 +346,7 @@ customConfig:
       source: |
           .payload = if exists(.process_exec) { .process_exec } else { if exists(.process_exit) { .process_exit } else { if exists(.process_kprobe){ .process_kprobe }  else { "empty" } } }
           .payload.dedup = .dedup
+          .time = if exists(.time) { to_unix_timestamp!(parse_timestamp!(.time, format: "%+"), unit: "nanoseconds") } else { to_unix_timestamp(now(), unit: "nanoseconds") }
           del(.process_exec)
           del(.process_exit)
           del(.process_kprobe)
@@ -384,6 +385,7 @@ customConfig:
       inputs:
         - kubescape-nodeagent
       source: |
+        .time = if exists(.time) { to_unix_timestamp!(parse_timestamp!(.time, format: "%+"), unit: "nanoseconds") } else { to_unix_timestamp(now(), unit: "nanoseconds") }
         .CloudMetadata = "empty" 
         .field1 = .BaseRuntimeMetadata.alertName
         .field2 = .RuntimeK8sDetails.containerID
@@ -446,6 +448,17 @@ customConfig:
       encoding:
         codec: json
       path: "/tmp/kubescape.json"
+    kubescape_clickhouse:
+      type: clickhouse
+      inputs:
+        - kubescape-create_key
+      database: default
+      table: kubescape_logs
+      endpoint: "http://clickhouse.honey.svc.cluster.local:8123"
+      auth:
+        strategy: "basic"
+        user: ${CLICKHOUSE_USER}
+        password: ${CLICKHOUSE_PASSWORD}
     tetragon: 
       type: file
       inputs:
@@ -453,6 +466,17 @@ customConfig:
       encoding:
         codec: json
       path: "/tmp/tetragon.json"
+    tetragon_clickhouse:
+      type: clickhouse
+      inputs:
+        - tetragon_pixie
+      database: default
+      table: tetragon_logs
+      endpoint: "http://clickhouse.honey.svc.cluster.local:8123"
+      auth:
+        strategy: "basic"
+        user: ${CLICKHOUSE_USER}
+        password: ${CLICKHOUSE_PASSWORD}
 
 
 
