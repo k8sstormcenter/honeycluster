@@ -452,9 +452,9 @@ customConfig:
       type: clickhouse
       inputs:
         - kubescape-create_key
-      database: ${CLICKHOUSE_DB}
+      database: default
       table: kubescape_logs
-      endpoint: "${CLICKHOUSE_ENDPOINT}"
+      endpoint: "http://clickhouse.honey.svc.cluster.local:8123"
       auth:
         strategy: "basic"
         user: ${CLICKHOUSE_USER}
@@ -470,9 +470,9 @@ customConfig:
       type: clickhouse
       inputs:
         - tetragon_pixie
-      database: ${CLICKHOUSE_DB}
+      database: default
       table: tetragon_logs
-      endpoint: "${CLICKHOUSE_ENDPOINT}"
+      endpoint: "http://clickhouse.honey.svc.cluster.local:8123"
       auth:
         strategy: "basic"
         user: ${CLICKHOUSE_USER}
