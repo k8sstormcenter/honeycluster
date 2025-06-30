@@ -457,8 +457,8 @@ customConfig:
       endpoint: "http://clickhouse.honey.svc.cluster.local:8123"
       auth:
         strategy: "basic"
-        user: ${CLICKHOUSE_USER}
-        password: ${CLICKHOUSE_PASSWORD}
+        user: default
+        password: sAEYJAh7st
     tetragon: 
       type: file
       inputs:
@@ -475,8 +475,8 @@ customConfig:
       endpoint: "http://clickhouse.honey.svc.cluster.local:8123"
       auth:
         strategy: "basic"
-        user: ${CLICKHOUSE_USER}
-        password: ${CLICKHOUSE_PASSWORD}
+        user: default
+        password: sAEYJAh7st
 
 
 

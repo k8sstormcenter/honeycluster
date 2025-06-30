@@ -100,6 +100,19 @@ clickhouse:
 	export CLICKHOUSE_USER CLICKHOUSE_PASSWORD; \
 	envsubst < honeystack/vector/soc.yaml > honeystack/vector/soc.yaml.tmp && mv honeystack/vector/soc.yaml.tmp honeystack/vector/soc.yaml
 
+.PHONY: clickhouse-init
+clickhouse-init:
+	@echo "⚙️ Initializing ClickHouse tables via temporary pod..."
+	kubectl run clickhouse-init-job \
+	  --rm -i --restart=Never \
+	  --image=curlimages/curl:8.8.0 \
+	  --namespace honey \
+	  --command -- /bin/sh -c "\
+	    CLICKHOUSE_PASSWORD=$$(kubectl get secret --namespace honey clickhouse -o jsonpath=\"{.data.admin-password}\" | base64 -d) && \
+	    echo '🚀 Running initialization SQL...' && \
+	    curl -v -u default:$$CLICKHOUSE_PASSWORD -d @- http://clickhouse:8123/ < clickhouse-init.sql && \
+	    echo '✅ ClickHouse tables initialized.' "
+
 .PHONY: storage
 storage:
 	kubectl apply -f https://openebs.github.io/charts/openebs-operator-lite.yaml
