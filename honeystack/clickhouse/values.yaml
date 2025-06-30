@@ -1,0 +1,26 @@
+
+initdbScripts: {}
+## @param initdbScriptsSecret ConfigMap with the initdb scripts (Note: Overrides `initdbScripts`)
+##
+initdbScriptsSecret: ""
+## @param startdbScripts Dictionary of startdb scripts
+## Specify dictionary of scripts to be run on every start
+## Example:
+startdbScripts:
+  my_start_script.sh: |
+    #!/bin/bash
+    echo "Do something."
+##
+#startdbScripts: {}
+## @param startdbScriptsSecret ConfigMap with the startdb scripts (Note: Overrides `startdbScripts`)
+##
+startdbScriptsSecret: ""
+## @param shards Number of ClickHouse shards to deploy
+##
+shards: 1
+## @param replicaCount Number of ClickHouse replicas per shard to deploy
+## if keeper enable, same as keeper count, keeper cluster by shards.
+##
+replicaCount: 1
+## @param distributeReplicasByZone Schedules replicas of the same shard to different availability zones
+##
