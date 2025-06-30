@@ -91,7 +91,7 @@ kind-pixie-up:
 .PHONY: clickhouse
 clickhouse:
 	echo "📦 Installing ClickHouse..."
-	$(HELM) upgrade --install clickhouse oci://registry-1.docker.io/bitnamicharts/clickhouse  --namespace honey --create-namespace
+	$(HELM) upgrade --install clickhouse oci://registry-1.docker.io/bitnamicharts/clickhouse  --namespace honey --create-namespace --values honeystack/clickhouse/values.yaml
 	@echo "⏳ Waiting for ClickHouse pods to be ready..."
 	kubectl wait --namespace honey --for=condition=Ready pod -l app.kubernetes.io/name=clickhouse --timeout=180s
 	@echo "🔐 Fetching credentials..."
