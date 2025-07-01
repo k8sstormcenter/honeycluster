@@ -3,6 +3,10 @@ import threading
 from apscheduler.schedulers.background import BackgroundScheduler
 from src.clickhouse_client import ClickHouseClient
 from src.pixie_client import get_px_connection
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class PixieETL:
     def __init__(self, table_name, processed_table, column_names, poll_interval=5):
@@ -30,22 +34,26 @@ class PixieETL:
             start_time_clause = f", start_time={self.last_seen_ns}"
 
         pxl_script = f"""
-        import px
-        df = px.DataFrame(table="{self.table_name}"{start_time_clause})
-        px.display(df, "{self.table_name}")
-        """
+import px
+df = px.DataFrame(table="{self.table_name}"{start_time_clause})
+px.display(df, "{self.table_name}")
+"""
 
         script = conn.prepare_script(pxl_script)
         logs = []
 
         for row in script.results(self.table_name):
             log = {}
-            for col_name in row.keys():
-                val = row[col_name]
-                if isinstance(val, bytes):
-                    val = self.clean_bstring(val)
+            for col_name, val in zip(self.column_names, row):
                 log[col_name] = val
+
+            log["upid"]=str(log["upid"])
+            log["encrypted"]=int(log["encrypted"])
             logs.append(log)
+
+        logger.info(f"[{self.table_name} ETL] Fetched {len(logs)} rows")
+        if logs:
+            logger.debug(f"Example row: {logs[0]}")
 
         return logs
 
@@ -67,7 +75,7 @@ class PixieETL:
                     column_names=self.column_names
                 )
 
-                self.last_seen_ns = max(int(row['time']) for row in rows if 'time' in row)
+                self.last_seen_ns = max(int(row['time_']) for row in rows if 'time_' in row)
 
             except Exception as e:
                 print(f"[{self.table_name} ETL] Error: {e}")
