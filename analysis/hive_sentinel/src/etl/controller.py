@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from src.etl.pixie_etl import PixieETL
 import json
+from datetime import datetime
 from src.etl.stix_etl import StixETL
 from src.stix.kubescape.orchestrator import transform_kubescape_logs_to_stix
 from src.stix.tetra.orchestrator import transform_tetragon_to_stix
@@ -87,35 +88,37 @@ def stop_etl():
 def process_tetragon_row(row):
     # ClickHouse returns rows as tuples; map columns:
     log = {
-        "time_": row[0],
-        "uuid": row[1],
-        "time": row[2],
-        "node_name": row[3],
-        "type": row[4],
-        "payload": row[5],
+        "time": ns_to_iso8601(row[0]),
+        "node_name": row[1],
+        f"{row[2]}": json.loads(row[3]),
     }
     stix_objects, bundles = transform_tetragon_to_stix([log])
     timestamp = int(row[0])  # assuming 'time_' is your nanoseconds timestamp
-    data = json.dumps(bundles)
+    data = json.dumps(stix_objects)
     return [timestamp, data]
+
+
+def ns_to_iso8601(ns):
+    """Convert nanoseconds since epoch to ISO8601 string."""
+    return datetime.utcfromtimestamp(ns / 1e9).isoformat() + 'Z'
 
 # Process Kubescape logs to STIX row
 def process_kubescape_row(row):
     log = {
-        "BaseRuntimeMetadata": row[0],
-        "CloudMetadata": row[1],
+        "BaseRuntimeMetadata": json.loads(row[0]),
+        "CloudMetadata": json.loads(row[1]) if row[1] != "empty" else {},
         "RuleID": row[2],
-        "RuntimeK8sDetails": row[3],
-        "RuntimeProcessDetails": row[4],
-        "event": row[5],
+        "RuntimeK8sDetails": json.loads(row[3]),
+        "RuntimeProcessDetails": json.loads(row[4]),
+        "event": json.loads(row[5]),
         "level": row[6],
         "message": row[7],
         "msg": row[8],
-        "time": row[9],
+        "time": ns_to_iso8601(row[9]),
     }
     stix_objects, bundles = transform_kubescape_logs_to_stix([log])
-    timestamp = int(row[9])  # assuming 'time' is nanoseconds timestamp
-    data = json.dumps(bundles)
+    timestamp = int(row[9])
+    data = json.dumps(stix_objects)
     return [timestamp, data]
 
 # STIX table columns

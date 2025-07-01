@@ -34,9 +34,7 @@ configdFiles:
             <scripts>
                 <query>
                     CREATE TABLE IF NOT EXISTS default.tetragon_logs (
-                        time_ UInt64,
-                        uuid String,
-                        time String,
+                        time UInt64,
                         node_name String,
                         type String,
                         payload String

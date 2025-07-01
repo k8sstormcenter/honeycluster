@@ -16,6 +16,7 @@ stix2-matcher = "^3.0.0"
 dotenv = "^0.9.9"
 stix2-validator = "^3.2.0"
 clickhouse-connect = "^0.8.17"
+apscheduler = "^3.11.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.5"

@@ -1,7 +1,7 @@
 import json
 import threading
 from apscheduler.schedulers.background import BackgroundScheduler
-from clickhouse_connect import get_client
+from src.clickhouse_client import ClickHouseClient
 from src.pixie_client import get_px_connection
 
 class PixieETL:
@@ -11,7 +11,7 @@ class PixieETL:
         self.column_names = column_names
         self.poll_interval = poll_interval
 
-        self.client = get_clickhouse_client()
+        self.client = ClickHouseClient().get_client()
         self.scheduler = BackgroundScheduler()
         self.lock = threading.Lock()
         self.last_seen_ns = 0  # nanoseconds since epoch
