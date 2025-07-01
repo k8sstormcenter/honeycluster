@@ -1,20 +1,108 @@
 
-initdbScripts: {}
-## @param initdbScriptsSecret ConfigMap with the initdb scripts (Note: Overrides `initdbScripts`)
-##
-initdbScriptsSecret: ""
-## @param startdbScripts Dictionary of startdb scripts
-## Specify dictionary of scripts to be run on every start
-## Example:
-startdbScripts:
-  my_start_script.sh: |
-    #!/bin/bash
-    echo "Do something."
-##
-#startdbScripts: {}
-## @param startdbScriptsSecret ConfigMap with the startdb scripts (Note: Overrides `startdbScripts`)
-##
-startdbScriptsSecret: ""
+configdFiles:
+  01-startup-scripts.xml: |-
+    <clickhouse>
+        <startup_scripts>
+            <throw_on_error>false</throw_on_error>
+
+            <scripts>
+                <query>
+                    CREATE TABLE IF NOT EXISTS default.kubescape_logs (
+                        BaseRuntimeMetadata String,
+                        CloudMetadata String,
+                        RuleID String,
+                        RuntimeK8sDetails String,
+                        RuntimeProcessDetails String,
+                        event String,
+                        level String,
+                        message String,
+                        msg String,
+                        time UInt64
+                    ) ENGINE = MergeTree() ORDER BY time;
+                </query>
+            </scripts>
+
+            <scripts>
+                <query>
+                    CREATE TABLE IF NOT EXISTS default.kubescape_stix (
+                        timestamp UInt64,
+                        data String
+                    ) ENGINE = MergeTree() ORDER BY timestamp;
+                </query>
+            </scripts>
+
+            <scripts>
+                <query>
+                    CREATE TABLE IF NOT EXISTS default.tetragon_logs (
+                        time UInt64,
+                        node_name String,
+                        type String,
+                        payload String
+                    ) ENGINE = MergeTree() ORDER BY time_;
+                </query>
+            </scripts>
+
+            <scripts>
+                <query>
+                    CREATE TABLE IF NOT EXISTS default.tetragon_stix (
+                        timestamp UInt64,
+                        data String
+                    ) ENGINE = MergeTree() ORDER BY timestamp;
+                </query>
+            </scripts>
+
+            <scripts>
+                <query>
+                    CREATE TABLE IF NOT EXISTS default.http_events (
+                        time_ UInt64,
+                        upid String,
+                        remote_addr String,
+                        remote_port Int32,
+                        local_addr String,
+                        local_port Int32,
+                        trace_role UInt8,
+                        encrypted UInt8,
+                        major_version UInt16,
+                        minor_version UInt16,
+                        content_type UInt16,
+                        req_headers String,
+                        req_method String,
+                        req_path String,
+                        req_body String,
+                        req_body_size UInt64,
+                        resp_headers String,
+                        resp_status UInt16,
+                        resp_message String,
+                        resp_body String,
+                        resp_body_size UInt64,
+                        latency UInt64
+                    ) ENGINE = MergeTree() ORDER BY time_;
+                </query>
+            </scripts>
+
+            <scripts>
+                <query>
+                    CREATE TABLE IF NOT EXISTS default.dns_events (
+                        time_ UInt64,
+                        upid String,
+                        remote_addr String,
+                        remote_port Int32,
+                        local_addr String,
+                        local_port Int32,
+                        trace_role UInt8,
+                        encrypted UInt8,
+                        req_header String,
+                        req_body String,
+                        resp_header String,
+                        resp_body String,
+                        latency UInt64
+                    ) ENGINE = MergeTree() ORDER BY time_;
+                </query>
+            </scripts>
+
+        </startup_scripts>
+    </clickhouse>
+
 ## @param shards Number of ClickHouse shards to deploy
 ##
 shards: 1
