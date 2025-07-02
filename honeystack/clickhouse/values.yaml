@@ -38,7 +38,7 @@ configdFiles:
                         node_name String,
                         type String,
                         payload String
-                    ) ENGINE = MergeTree() ORDER BY time_;
+                    ) ENGINE = MergeTree() ORDER BY time;
                 </query>
             </scripts>
 
