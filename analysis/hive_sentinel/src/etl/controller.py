@@ -9,6 +9,8 @@ from src.stix.tetra.orchestrator import transform_tetragon_to_stix
 
 pixie_bp = Blueprint('pixie_etl', __name__, url_prefix='/pixie-etl')
 
+running_etls = {}
+
 # Columns for HTTP_EVENTS
 http_columns = [
     'time_',
@@ -51,21 +53,6 @@ dns_columns = [
     'resp_body',
     'latency',
 ]
-
-# Instantiate ETLs but do not start immediately
-http_etl = PixieETL(
-    table_name='http_events',
-    processed_table='http_events',
-    column_names=http_columns,
-    poll_interval=10
-)
-
-dns_etl = PixieETL(
-    table_name='dns_events',
-    processed_table='dns_events',
-    column_names=dns_columns,
-    poll_interval=10
-)
 
 @pixie_bp.route('/start', methods=['POST'])
 def start_pixie_etl():

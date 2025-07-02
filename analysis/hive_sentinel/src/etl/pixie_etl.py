@@ -55,9 +55,12 @@ class PixieETL:
         if self.podname:
             filters.append(f'df.pod == "{self.podname}"')
 
-        filter_clause = ""
-        if filters:
-            filter_clause = f"df = df[{ ' & '.join(filters) }]\n"
+        filter_lines = ""
+
+        if self.namespace:
+            filter_lines += f'df = df[df.namespace == "{self.namespace}"]\n'
+        if self.podname:
+            filter_lines += f'df = df[df.pod == "{self.podname}"]\n'
 
         pxl_script = f"""
 import px
@@ -66,10 +69,10 @@ df = px.DataFrame(table="{self.table_name}", {start_time_arg})
 df.pod = df.ctx['pod']
 df.namespace = df.ctx['namespace']
 
-{filter_clause}
-
+{filter_lines}
 px.display(df, "{self.table_name}")
 """
+        print(pxl_script)
 
         script = conn.prepare_script(pxl_script)
         logs = []
