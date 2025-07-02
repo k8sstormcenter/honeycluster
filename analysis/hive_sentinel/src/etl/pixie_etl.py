@@ -26,16 +26,48 @@ class PixieETL:
             return val[2:-1]
         return val
 
+    def set_filters(self, timestamp=None, podname=None, namespace=None):
+        self.timestamp = timestamp
+        self.podname = podname
+        self.namespace = namespace
+
     def fetch_px_logs(self):
         conn = get_px_connection()
 
-        start_time_clause = ""
-        if self.last_seen_ns > 0:
-            start_time_clause = f", start_time={self.last_seen_ns}"
+        # Determine effective lower bound for start_time in nanoseconds
+        lower_bounds = []
+        if self.last_seen_ns:
+            lower_bounds.append(self.last_seen_ns)
+        if self.timestamp:
+            lower_bounds.append(int(self.timestamp))
+
+        if lower_bounds:
+            effective_start_ns = max(lower_bounds)
+            start_time_arg = f"start_time={effective_start_ns}"
+        else:
+            start_time_arg = 'start_time="-5m"'
+
+        filters = []
+
+        if self.namespace:
+            filters.append(f'df.namespace == "{self.namespace}"')
+
+        if self.podname:
+            filters.append(f'df.pod == "{self.podname}"')
+
+        filter_clause = ""
+        if filters:
+            filter_clause = f"df = df[{ ' & '.join(filters) }]\n"
 
         pxl_script = f"""
 import px
-df = px.DataFrame(table="{self.table_name}"{start_time_clause})
+
+df = px.DataFrame(table="{self.table_name}", {start_time_arg})
+df.pod = df.ctx['pod']
+df.namespace = df.ctx['namespace']
+
+{filter_clause}
+
 px.display(df, "{self.table_name}")
 """
 
@@ -47,8 +79,8 @@ px.display(df, "{self.table_name}")
             for col_name, val in zip(self.column_names, row):
                 log[col_name] = val
 
-            log["upid"]=str(log["upid"])
-            log["encrypted"]=int(log["encrypted"])
+            log["upid"] = str(log["upid"])
+            log["encrypted"] = int(log["encrypted"])
             logs.append(log)
 
         logger.info(f"[{self.table_name} ETL] Fetched {len(logs)} rows")
