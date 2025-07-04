@@ -75,6 +75,7 @@ df.namespace = df.ctx['namespace']
 {filter_lines}
 px.display(df, "{self.table_name}")
 """
+        print(pxl_script)
 
         script = conn.prepare_script(pxl_script)
         logs = []
