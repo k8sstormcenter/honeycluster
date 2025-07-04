@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+from dateutil import parser as date_parser
 from uuid import uuid4
 from src.etl.pixie_etl import PixieETL
 import json
@@ -59,20 +60,37 @@ def start_pixie_etl():
     data = request.json
 
     tablename = data.get("tablename")
-    timestamp = data.get("timestamp")
+    time_value = data.get("timestamp")
     podname = data.get("podname")
     namespace = data.get("namespace")
     poll_interval = data.get("poll_interval", 10)
+    poll_interval = data.get("poll_interval", 10)
 
     try:
-        if tablename == "http":
+        # Process timestamp
+        timestamp_ns = None
+        if time_value:
+            if isinstance(time_value, str):
+                dt = date_parser.isoparse(time_value)
+                timestamp_ns = int(dt.timestamp() * 1_000_000_000)
+            elif isinstance(time_value, int):
+                if time_value < 1e12:  # ms
+                    timestamp_ns = time_value * 1_000_000
+                elif time_value < 1e15:  # µs
+                    timestamp_ns = time_value * 1_000
+                else:  # ns
+                    timestamp_ns = time_value
+            else:
+                return jsonify({"status": "error", "message": "Invalid timestamp type, must be string or int"}), 400
+
+        if tablename == "http_events":
             etl = PixieETL(
                 table_name='http_events',
                 processed_table='http_events',
                 column_names=http_columns,
                 poll_interval=poll_interval
             )
-        elif tablename == "dns":
+        elif tablename == "dns_events":
             etl = PixieETL(
                 table_name='dns_events',
                 processed_table='dns_events',
@@ -82,14 +100,14 @@ def start_pixie_etl():
         else:
             return jsonify({"status": "error", "message": f"Feature for {tablename} not implemented"}), 400
 
-        etl.set_filters(timestamp=timestamp, podname=podname, namespace=namespace)
+        etl.set_filters(timestamp=timestamp_ns, podname=podname, namespace=namespace)
 
         etl_id = str(uuid4())
         running_etls[etl_id] = {
             "etl": etl,
             "tablename": tablename,
             "filters": {
-                "timestamp": timestamp,
+                "timestamp": timestamp_ns,
                 "podname": podname,
                 "namespace": namespace
             },
@@ -103,7 +121,7 @@ def start_pixie_etl():
             "uuid": etl_id,
             "tablename": tablename,
             "filters": {
-                "timestamp": timestamp,
+                "timestamp": timestamp_ns,
                 "podname": podname,
                 "namespace": namespace
             },
@@ -150,7 +168,7 @@ def status_pixie_etls():
 def process_tetragon_row(row):
     # ClickHouse returns rows as tuples; map columns:
     log = {
-        "time": ns_to_iso8601(row[0]),
+        "timestamp": ns_to_iso8601(row[0]),
         "node_name": row[1],
         f"{row[2]}": json.loads(row[3]),
     }
@@ -176,7 +194,7 @@ def process_kubescape_row(row):
         "level": row[6],
         "message": row[7],
         "msg": row[8],
-        "time": ns_to_iso8601(row[9]),
+        "timestamp": ns_to_iso8601(row[9]),
     }
     stix_objects, bundles = transform_kubescape_logs_to_stix([log])
     timestamp = int(row[9])
@@ -201,7 +219,7 @@ kubescape_stix_etl = StixETL(
     table="kubescape_logs",
     processed_table="kubescape_stix",
     column_names=stix_columns,
-    time_column_index=9,  # 'time' column index
+    time_column_index=9,  # 'timestamp' column index
     process_func=process_kubescape_row,
     poll_interval=10
 )
