@@ -14,6 +14,9 @@ class PixieETL:
         self.processed_table = processed_table
         self.column_names = column_names
         self.poll_interval = poll_interval
+        self.timestamp = None
+        self.namespace = None
+        self.podname = None
 
         self.client = ClickHouseClient().get_client()
         self.scheduler = BackgroundScheduler()
