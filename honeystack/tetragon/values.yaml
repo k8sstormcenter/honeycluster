@@ -1,6 +1,6 @@
 tetragon:
   exportAllowList: |
-    {"event_set":["PROCESS_KPROBE","PROCESS_EXEC"]}
+    {"event_set":["PROCESS_KPROBE"]}
   #exportAllowList: |-
   #  {"event_set":["PROCESS_EXEC", "PROCESS_EXIT", "PROCESS_KPROBE", "PROCESS_UPROBE", "PROCESS_TRACEPOINT"]}
   # Denylist for JSON export. For example, to exclude exec events that look similar to
