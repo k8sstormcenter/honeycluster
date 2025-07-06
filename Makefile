@@ -88,6 +88,18 @@ kind-pixie-up:
 	-$(HELM) upgrade --install cert-manager jetstack/cert-manager --set installCRDs=true --namespace cert-manager  --create-namespace
 
 
+.PHONY: clickhouse
+clickhouse:
+	echo "📦 Installing ClickHouse..."
+	$(HELM) upgrade --install clickhouse oci://registry-1.docker.io/bitnamicharts/clickhouse  --namespace honey --create-namespace --values honeystack/clickhouse/values.yaml
+	@echo "⏳ Waiting for ClickHouse pods to be ready..."
+	kubectl wait --namespace honey --for=condition=Ready pod -l app.kubernetes.io/name=clickhouse --timeout=180s
+	@echo "🔐 Fetching credentials..."
+	@CLICKHOUSE_USER="default"; \
+	CLICKHOUSE_PASSWORD=$$(kubectl get secret --namespace honey clickhouse -o jsonpath="{.data.admin-password}" | base64 -d); \
+	export CLICKHOUSE_USER CLICKHOUSE_PASSWORD; \
+	envsubst < honeystack/vector/soc.yaml > honeystack/vector/soc.yaml.tmp && mv honeystack/vector/soc.yaml.tmp honeystack/vector/soc.yaml
+
 .PHONY: storage
 storage:
 	kubectl apply -f https://openebs.github.io/charts/openebs-operator-lite.yaml
@@ -118,17 +130,7 @@ k8spin:
 	-$(HELM) upgrade --install kwasm-operator kwasm/kwasm-operator --namespace storm --create-namespace --set kwasmOperator.installerImage=ghcr.io/spinkube/containerd-shim-spin/node-installer:v0.16.0
 	-kubectl annotate node --all kwasm.sh/kwasm-node=true
 
-.PHONY: stixviz
-stixviz:
-	-kubectl apply -f lightening-rod/cti-stix-visualizer-deployment.yaml 
-	
-.PHONY: lighteningrod
-lighteningrod:
-	-kubectl apply -f lightening-rod/deployment.yaml	
 
-.PHONY: dev-ui
-dev-ui:
-	-kubectl apply -f development/redis-insight.yaml
 
 .PHONY: falco
 falco:
@@ -190,12 +192,6 @@ kubescape-bob:
 	kubectl apply -f honeystack/kubescape/kscloudconfig.yaml
 	sleep 10
 	kubectl rollout restart -n honey ds node-agent
-
-.PHONY: redis
-redis:
-	-$(HELM) repo add bitnami https://charts.bitnami.com/bitnami
-	-$(HELM) repo update
-	$(HELM) upgrade --install redis bitnami/redis -n storm --create-namespace --values lightening-rod/redis/values.yaml
 
 
 .PHONY: tetragon
@@ -262,9 +258,7 @@ lightening-off:
 .PHONY: sample-app
 sample-app:
 	$(MAKE) --makefile=cncf/harbor/Makefile install-helm install-harbor
-	#-kubectl create ns pets
-	#-kubectl apply -f https://raw.githubusercontent.com/Azure-Samples/aks-store-demo/main/aks-store-all-in-one.yaml -n pets
-	
+
 
 .PHONY: sample-app-off
 sample-app-off:
@@ -276,12 +270,6 @@ sample-app-off:
 .PHONY: pixie
 pixie:
 	px deploy --pem_memory_limit=1Gi 
-	#-$(HELM) repo add pixie-operator https://artifacts.px.dev/helm_charts/operator 
-	#-$(HELM) repo update
-	#-$(HELM) upgrade --install  pixie pixie-operator/pixie-operator-chart --set cloudAddr=getcosmic.ai --set deployKey= --set clusterName=$(CLUSTER_NAME) --namespace pl --create-namespace 
-	#helm repo add pixie-vizier https://artifacts.px.dev/helm_charts/vizier
-	#helm repo update
-	#helm install pixie pixie-vizier/vizier-chart --set deployKey= --set clusterName=$(CLUSTER_NAME) --namespace pl --create-namespace 
 
 .PHONY: pixie-cli
 pixie-cli:
