@@ -3,15 +3,17 @@ import threading
 from apscheduler.schedulers.background import BackgroundScheduler
 from src.clickhouse_client import ClickHouseClient
 from src.pixie_client import get_px_connection
+from src.stix.pixie.orchestrator import transform_pixie_logs_to_stix
 import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class PixieETL:
-    def __init__(self, table_name, processed_table, column_names, poll_interval=5):
+    def __init__(self, table_name, processed_table, stix_table, column_names, poll_interval=5):
         self.table_name = table_name
         self.processed_table = processed_table
+        self.stix_table = stix_table
         self.column_names = column_names
         self.poll_interval = poll_interval
         self.timestamp = None
@@ -75,7 +77,6 @@ df.namespace = df.ctx['namespace']
 {filter_lines}
 px.display(df, "{self.table_name}")
 """
-        print(pxl_script)
 
         script = conn.prepare_script(pxl_script)
         logs = []
@@ -90,9 +91,6 @@ px.display(df, "{self.table_name}")
             logs.append(log)
 
         logger.info(f"[{self.table_name} ETL] Fetched {len(logs)} rows")
-        if logs:
-            logger.debug(f"Example row: {logs[0]}")
-
         return logs
 
     def fetch_and_process(self):
@@ -102,21 +100,18 @@ px.display(df, "{self.table_name}")
                 if not rows:
                     return
 
-                processed_rows = []
+                processed_rows = [[row.get(col, None) for col in self.column_names] for row in rows]
+                self.client.insert(self.processed_table, processed_rows, column_names=self.column_names)
+
                 for row in rows:
-                    processed_row = [row.get(col, None) for col in self.column_names]
-                    processed_rows.append(processed_row)
+                    all_stix_objects, stix_bundles = transform_pixie_logs_to_stix([row], self.stix_table)
+                    self.client.insert(self.stix_table, [[row.get("time_", 0), json.dumps(stix_bundles)]], column_names=["timestamp", "data"])
 
-                self.client.insert(
-                    self.processed_table,
-                    processed_rows,
-                    column_names=self.column_names
-                )
-
-                self.last_seen_ns = max(int(row['time_']) for row in rows if 'time_' in row)
+                # Update last_seen_ns
+                self.last_seen_ns = max(int(row.get('time_', 0)) for row in rows if 'time_' in row)
 
             except Exception as e:
-                print(f"[{self.table_name} ETL] Error: {e}")
+                logger.error(f"[{self.table_name} ETL] Error: {e}")
 
     def start(self):
         self.scheduler.add_job(self.fetch_and_process, 'interval', seconds=self.poll_interval)
