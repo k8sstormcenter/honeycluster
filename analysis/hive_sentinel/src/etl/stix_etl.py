@@ -16,7 +16,10 @@ class StixETL:
         self.process_func = process_func
         self.poll_interval = poll_interval
 
-        self.last_seen_ns = 0
+        # Track last seen ISO timestamp string
+        # Initialize to earliest possible time to capture all data on first run
+        self.last_seen_ts = '1970-01-01T00:00:00Z'
+
         self.lock = threading.Lock()
         self.scheduler = BackgroundScheduler()
 
@@ -25,14 +28,14 @@ class StixETL:
             logger.info(f"🚀 Running ETL fetch for table {self.table}")
             query = f"""
                 SELECT * FROM {self.table}
-                WHERE time > {self.last_seen_ns}
+                WHERE time > '{self.last_seen_ts}'
                 ORDER BY time ASC
                 LIMIT 10
             """
             try:
                 result = self.client.query(query)
                 rows = result.result_rows
-                logger.info(f"🔍 Fetched {len(rows)} rows after {self.last_seen_ns}")
+                logger.info(f"🔍 Fetched {len(rows)} rows after {self.last_seen_ts}")
 
                 if not rows:
                     return
@@ -47,8 +50,9 @@ class StixETL:
                     )
                     logger.info(f"✅ Inserted {len(processed_rows)} rows into {self.processed_table}")
 
-                    self.last_seen_ns = rows[-1][self.time_column_index]
-                    logger.info(f"⏱️ Updated last_seen_ns to {self.last_seen_ns}")
+                    # Update last_seen_ts to the timestamp of the last row fetched
+                    self.last_seen_ts = rows[-1][self.time_column_index]
+                    logger.info(f"⏱️ Updated last_seen_ts to {self.last_seen_ts}")
 
             except Exception as e:
                 logger.error(f"❌ Error during fetch_and_process: {e}", exc_info=True)
