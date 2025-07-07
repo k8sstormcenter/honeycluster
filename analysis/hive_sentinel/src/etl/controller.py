@@ -82,9 +82,11 @@ def start_pixie_etl():
             else:
                 return jsonify({"status": "error", "message": "Invalid timestamp type, must be string or int"}), 400
 
+        if tablename == "http_events":
             etl = PixieETL(
                 table_name='http_events',
                 processed_table='http_events',
+                stix_table='http_stix',
                 column_names=http_columns,
                 poll_interval=poll_interval
             )
@@ -93,6 +95,7 @@ def start_pixie_etl():
             etl = PixieETL(
                 table_name='dns_events',
                 processed_table='dns_events',
+                stix_table='dns_stix',
                 column_names=dns_columns,
                 poll_interval=poll_interval
             )

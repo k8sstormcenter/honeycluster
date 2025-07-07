@@ -105,7 +105,7 @@ px.display(df, "{self.table_name}")
 
                 for row in rows:
                     all_stix_objects, stix_bundles = transform_pixie_logs_to_stix([row], self.stix_table)
-                    self.client.insert(self.stix_table, [[row.get("time_", 0), json.dumps(stix_bundles)]], column_names=["timestamp", "data"])
+                    self.client.insert(self.stix_table, [[row.get("time_", 0), json.dumps(stix_bundles, default=lambda o: o.decode(errors="replace") if isinstance(o, bytes) else str(o))]], column_names=["timestamp", "data"])
 
                 # Update last_seen_ns
                 self.last_seen_ns = max(int(row.get('time_', 0)) for row in rows if 'time_' in row)

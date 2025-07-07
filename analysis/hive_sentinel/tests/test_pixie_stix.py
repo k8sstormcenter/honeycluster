@@ -23,7 +23,15 @@ def test_transform_dns_row_to_stix():
     assert isinstance(stix_objects, list)
     assert any(obj["type"] == "network-traffic" for obj in stix_objects)
     assert any(obj["type"] == "observed-data" for obj in stix_objects)
-    print("DNS STIX Transformation Successful:", json.dumps(stix_objects, indent=2))
+
+    # Check that extracted fields exist
+    net_obj = next(obj for obj in stix_objects if obj["type"] == "network-traffic")
+    ext = net_obj["extensions"]["x-pixie-dns-ext"]
+    assert ext["query_name"] == "test.domain.local"
+    assert ext["query_type"] == "A"
+    assert ext["response_code"] == 3
+
+    print("✅ DNS STIX Transformation Successful:\n", json.dumps(stix_objects, indent=2))
 
 def test_transform_http_row_to_stix():
     http_row = {
@@ -55,8 +63,12 @@ def test_transform_http_row_to_stix():
     assert isinstance(stix_objects, list)
     assert any(obj["type"] == "network-traffic" for obj in stix_objects)
     assert any(obj["type"] == "observed-data" for obj in stix_objects)
-    print("HTTP STIX Transformation Successful:", json.dumps(stix_objects, indent=2))
 
-if __name__ == "__main__":
-    test_transform_dns_row_to_stix()
-    test_transform_http_row_to_stix()
+    # Check that extracted fields exist
+    net_obj = next(obj for obj in stix_objects if obj["type"] == "network-traffic")
+    ext = net_obj["extensions"]["x-pixie-http-ext"]
+    assert ext["method"] == "GET"
+    assert "/ping" in ext["url"]
+    assert ext["status_code"] == 200
+
+    print("✅ HTTP STIX Transformation Successful:\n", json.dumps(stix_objects, indent=2))

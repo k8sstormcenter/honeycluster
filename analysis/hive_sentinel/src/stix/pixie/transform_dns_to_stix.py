@@ -1,27 +1,44 @@
+import json
 from src.stix.core import generate_stix_id, _get_current_time_iso_format
 
 def transform_dns_row_to_stix(row):
     timestamp = _get_current_time_iso_format()
-    corr_id = f"dns-{row.get('src_ip', 'unknown')}-{row.get('query_name', 'unknown')}-{row.get('timestamp', '0')}"
+
+    req_body = json.loads(row.get("req_body", "{}"))
+    query = req_body.get("queries", [{}])[0]
+    query_name = query.get("name")
+    query_type = query.get("type")
+
+    resp_header = json.loads(row.get("resp_header", "{}"))
+    response_code = resp_header.get("rcode")
+
+    resp_body = json.loads(row.get("resp_body", "{}"))
+    answers = resp_body.get("answers", [])
+
+    src_ip = row.get("remote_addr")
+    dst_ip = row.get("local_addr")
+    src_port = row.get("remote_port")
+    dst_port = row.get("local_port")
+
+    corr_id = f"dns-{src_ip or 'unknown'}-{query_name or 'unknown'}-{row.get('time_', '0')}"
 
     stix_objects = []
 
-    # NetworkTraffic with DNS extension
     network_traffic_object = {
         "type": "network-traffic",
         "id": generate_stix_id("network-traffic"),
         "protocols": ["udp"],
         "extensions": {
             "x-pixie-dns-ext": {
-                "query_name": row.get("query_name"),
-                "query_type": row.get("query_type"),
-                "response_code": row.get("response_code"),
-                "answers": row.get("answers", []),
-                "src_ip": row.get("src_ip"),
-                "dst_ip": row.get("dst_ip"),
-                "src_port": row.get("src_port"),
-                "dst_port": row.get("dst_port"),
-                "raw_row": row,
+                "query_name": query_name,
+                "query_type": query_type,
+                "response_code": response_code,
+                "answers": answers,
+                "src_ip": src_ip,
+                "dst_ip": dst_ip,
+                "src_port": src_port,
+                "dst_port": dst_port,
+                "raw_row": row,  # Keep raw for debug
             }
         },
         "start": timestamp,
