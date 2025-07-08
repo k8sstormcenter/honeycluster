@@ -167,14 +167,13 @@ def status_pixie_etls():
 def process_tetragon_row(row):
     # ClickHouse returns rows as tuples; map columns:
     log = {
-        "timestamp": ns_to_iso8601(row[0]),
+        "timestamp": row[0],
         "node_name": row[1],
         f"{row[2]}": json.loads(row[3]),
     }
     stix_objects, bundles = transform_tetragon_to_stix([log])
-    timestamp = int(row[0])  # assuming 'time_' is your nanoseconds timestamp
     data = json.dumps(stix_objects)
-    return [timestamp, data]
+    return [log["timestamp"], data]
 
 
 def ns_to_iso8601(ns):
@@ -193,12 +192,11 @@ def process_kubescape_row(row):
         "level": row[6],
         "message": row[7],
         "msg": row[8],
-        "timestamp": ns_to_iso8601(row[9]),
+        "timestamp": row[9],
     }
     stix_objects, bundles = transform_kubescape_logs_to_stix([log])
-    timestamp = int(row[9])
     data = json.dumps(stix_objects)
-    return [timestamp, data]
+    return [log["timestamp"], data]
 
 # STIX table columns
 stix_columns = ["timestamp", "data"]

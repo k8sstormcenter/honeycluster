@@ -4,17 +4,18 @@ from src.etl.stix_etl import StixETL
 
 @pytest.fixture
 def sample_rows():
-    # Simulate ClickHouse row: (timestamp_ns, data, ...)
+    # Simulate ClickHouse rows with ISO8601 timestamp and data string
     return [
-        [1719923456000000000, '{"key": "value"}'],
-        [1719923456000001000, '{"key": "value2"}']
+        ["2025-07-02T12:34:16Z", '{"key": "value"}'],
+        ["2025-07-02T12:34:17Z", '{"key": "value2"}']
     ]
 
 @pytest.fixture
-def processed_rows():
+def processed_rows(sample_rows):
+    # Return processed rows using the same ISO timestamps
     return [
-        [1719923456000000000, '{"processed": "data1"}'],
-        [1719923456000001000, '{"processed": "data2"}']
+        [sample_rows[0][0], '{"processed": "data1"}'],
+        [sample_rows[1][0], '{"processed": "data2"}']
     ]
 
 @patch("src.etl.stix_etl.ClickHouseClient")
@@ -26,10 +27,9 @@ def test_stix_etl_fetch_and_process(mock_clickhouse_client_cls, sample_rows, pro
     mock_client.query.return_value = mock_result
     mock_clickhouse_client_cls.return_value.get_client.return_value = mock_client
 
-    # Mock process_func to transform rows predictably
+    # Mock process_func to return our processed_rows fixtures
     def mock_process_func(row):
-        index = sample_rows.index(row)
-        return processed_rows[index]
+        return processed_rows[sample_rows.index(row)]
 
     etl = StixETL(
         table="test_table",
@@ -43,13 +43,12 @@ def test_stix_etl_fetch_and_process(mock_clickhouse_client_cls, sample_rows, pro
     # Act
     etl.fetch_and_process()
 
-    # Assert: insert called with correct processed data
+    # Assert: insert called correctly
     mock_client.insert.assert_called_once()
     args, kwargs = mock_client.insert.call_args
-
     assert args[0] == "test_processed_table"
     assert args[1] == processed_rows
     assert kwargs["column_names"] == ["timestamp", "data"]
 
-    # Assert: last_seen_ns is updated to the last row's timestamp
-    assert etl.last_seen_ns == sample_rows[-1][0]
+    # Assert: last_seen_ts is updated to the ISO string of the last row
+    assert etl.last_seen_ts == sample_rows[-1][0]
