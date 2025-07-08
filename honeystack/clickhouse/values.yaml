@@ -54,7 +54,7 @@ configdFiles:
                 <query>
                     CREATE TABLE IF NOT EXISTS default.http_events (
                         time_ UInt64,
-                        upid String,
+                        upid UUID,
                         remote_addr String,
                         remote_port Int32,
                         local_addr String,
@@ -95,7 +95,7 @@ configdFiles:
                 <query>
                     CREATE TABLE IF NOT EXISTS default.dns_events (
                         time_ UInt64,
-                        upid String,
+                        upid UUID,
                         remote_addr String,
                         remote_port Int32,
                         local_addr String,
