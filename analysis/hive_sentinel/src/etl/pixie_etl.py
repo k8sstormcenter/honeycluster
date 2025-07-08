@@ -3,15 +3,18 @@ import threading
 from apscheduler.schedulers.background import BackgroundScheduler
 from src.clickhouse_client import ClickHouseClient
 from src.pixie_client import get_px_connection
+from src.stix.pixie.orchestrator import transform_pixie_logs_to_stix
 import logging
+import traceback
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class PixieETL:
-    def __init__(self, table_name, processed_table, column_names, poll_interval=5):
+    def __init__(self, table_name, processed_table, stix_table, column_names, poll_interval=5):
         self.table_name = table_name
         self.processed_table = processed_table
+        self.stix_table = stix_table
         self.column_names = column_names
         self.poll_interval = poll_interval
         self.timestamp = None
@@ -48,34 +51,28 @@ class PixieETL:
             effective_start_ns = max(lower_bounds)
             start_time_arg = f"start_time={effective_start_ns}"
         else:
-            start_time_arg = 'start_time="-5m"'
-
-        filters = []
-
-        if self.namespace:
-            filters.append(f'df.namespace == "{self.namespace}"')
-
-        if self.podname:
-            filters.append(f'df.pod == "{self.podname}"')
+            start_time_arg = 'start_time="-20m"'
 
         filter_lines = ""
 
         if self.namespace:
             filter_lines += f'df = df[df.namespace == "{self.namespace}"]\n'
         if self.podname:
-            filter_lines += f'df = df[df.pod == "{self.podname}"]\n'
+            filter_lines += f'df = df[df.pod_name == "{self.podname}"]\n'
 
         pxl_script = f"""
 import px
 
 df = px.DataFrame(table="{self.table_name}", {start_time_arg})
-df.pod = df.ctx['pod']
+df.pod_name = df.ctx['pod']
 df.namespace = df.ctx['namespace']
+df.container_id = px.upid_to_container_id(df["upid"])
+df.pid = px.upid_to_pid(df.upid)
+df.node_name = px.upid_to_node_name(df.upid)
 
 {filter_lines}
 px.display(df, "{self.table_name}")
 """
-        print(pxl_script)
 
         script = conn.prepare_script(pxl_script)
         logs = []
@@ -83,16 +80,14 @@ px.display(df, "{self.table_name}")
         for row in script.results(self.table_name):
             log = {}
             for col_name, val in zip(self.column_names, row):
+                # If bytes, decode it
+                if isinstance(val, bytes):
+                    val = val.decode()
                 log[col_name] = val
 
-            log["upid"] = str(log["upid"])
-            log["encrypted"] = int(log["encrypted"])
             logs.append(log)
 
         logger.info(f"[{self.table_name} ETL] Fetched {len(logs)} rows")
-        if logs:
-            logger.debug(f"Example row: {logs[0]}")
-
         return logs
 
     def fetch_and_process(self):
@@ -102,21 +97,19 @@ px.display(df, "{self.table_name}")
                 if not rows:
                     return
 
-                processed_rows = []
+                processed_rows = [[row.get(col, None) for col in self.column_names] for row in rows]
+                self.client.insert(self.processed_table, processed_rows, column_names=self.column_names)
+
                 for row in rows:
-                    processed_row = [row.get(col, None) for col in self.column_names]
-                    processed_rows.append(processed_row)
+                    all_stix_objects, stix_bundles = transform_pixie_logs_to_stix([row], self.stix_table)
+                    self.client.insert(self.stix_table, [[row.get("time_", 0), json.dumps(stix_bundles, default=lambda o: o.decode(errors="replace") if isinstance(o, bytes) else str(o))]], column_names=["timestamp", "data"])
 
-                self.client.insert(
-                    self.processed_table,
-                    processed_rows,
-                    column_names=self.column_names
-                )
-
-                self.last_seen_ns = max(int(row['time_']) for row in rows if 'time_' in row)
+                # Update last_seen_ns
+                self.last_seen_ns = max(int(row.get('time_', 0)) for row in rows if 'time_' in row)
 
             except Exception as e:
-                print(f"[{self.table_name} ETL] Error: {e}")
+                logger.error(f"[{self.table_name} ETL] Error: {e}")
+                traceback.print_exc()
 
     def start(self):
         self.scheduler.add_job(self.fetch_and_process, 'interval', seconds=self.poll_interval)

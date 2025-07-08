@@ -1,4 +1,3 @@
-
 configdFiles:
   01-startup-scripts.xml: |-
     <clickhouse>
@@ -55,7 +54,7 @@ configdFiles:
                 <query>
                     CREATE TABLE IF NOT EXISTS default.http_events (
                         time_ UInt64,
-                        upid String,
+                        upid UUID,
                         remote_addr String,
                         remote_port Int32,
                         local_addr String,
@@ -75,16 +74,28 @@ configdFiles:
                         resp_message String,
                         resp_body String,
                         resp_body_size UInt64,
+                        container_id String,
+                        node_name String,
+                        namespace String,
+                        pod_name String,
+                        pid UInt64,
                         latency UInt64
                     ) ENGINE = MergeTree() ORDER BY time_;
                 </query>
             </scripts>
-
+            <scripts>
+                <query>
+                    CREATE TABLE IF NOT EXISTS default.http_stix (
+                        timestamp UInt64,
+                        data String
+                    ) ENGINE = MergeTree() ORDER BY timestamp;
+                </query>
+            </scripts>
             <scripts>
                 <query>
                     CREATE TABLE IF NOT EXISTS default.dns_events (
                         time_ UInt64,
-                        upid String,
+                        upid UUID,
                         remote_addr String,
                         remote_port Int32,
                         local_addr String,
@@ -95,8 +106,22 @@ configdFiles:
                         req_body String,
                         resp_header String,
                         resp_body String,
+                        container_id String,
+                        node_name String,
+                        namespace String,
+                        pod_name String,
+                        pid UInt64,
                         latency UInt64
                     ) ENGINE = MergeTree() ORDER BY time_;
+                </query>
+            </scripts>
+
+            <scripts>
+                <query>
+                    CREATE TABLE IF NOT EXISTS default.dns_stix (
+                        timestamp UInt64,
+                        data String
+                    ) ENGINE = MergeTree() ORDER BY timestamp;
                 </query>
             </scripts>
 
