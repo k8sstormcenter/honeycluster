@@ -1,31 +1,70 @@
 import pytest
 import json
+import uuid
 from src.etl.pixie_etl import PixieETL
-
-@pytest.fixture
-def sample_http_columns():
-    return ["time_", "upid", "encrypted", "req_path"]
-
-@pytest.fixture
-def sample_dns_columns():
-    return ["time_", "upid", "encrypted", "req_body"]
 
 @pytest.mark.parametrize("table_name,processed_table,stix_table,column_names,row_data,expected_row", [
     (
         "http_events",
         "http_logs",
         "http_stix",
-        ["time_", "upid", "encrypted", "req_path"],
-        [1234567890, "http-upid", 1, "/test"],
-        [1234567890, "http-upid", 1, "/test"]
+        [
+            "time_", "upid", "encrypted", "req_path",
+            "pod_name", "namespace", "container_id", "pid", "node_name"
+        ],
+        [
+            1234567890,
+            uuid.UUID("00000003-0000-c8d4-0000-00000004354b"),
+            1,
+            "/test",
+            "my-pod",
+            "default",
+            "d2eac5a343c067bacd3327b7a457802e314108a228ce0e6cad08c98824f335e2",
+            51412,
+            "node-01"
+        ],
+        [
+            1234567890,
+            uuid.UUID("00000003-0000-c8d4-0000-00000004354b"),
+            1,
+            "/test",
+            "my-pod",
+            "default",
+            "d2eac5a343c067bacd3327b7a457802e314108a228ce0e6cad08c98824f335e2",
+            51412,
+            "node-01"
+        ]
     ),
     (
         "dns_events",
         "dns_logs",
         "dns_stix",
-        ["time_", "upid", "encrypted", "req_body"],
-        [1234567891, "dns-upid", 0, json.dumps({"queries": [{"name": "example.com", "type": "A"}]})],
-        [1234567891, "dns-upid", 0, json.dumps({"queries": [{"name": "example.com", "type": "A"}]})]
+        [
+            "time_", "upid", "encrypted", "req_body",
+            "pod_name", "namespace", "container_id", "pid", "node_name"
+        ],
+        [
+            1234567891,
+            uuid.UUID("00000003-0000-c8d4-0000-00000004354c"),
+            0,
+            json.dumps({"queries": [{"name": "example.com", "type": "A"}]}),
+            "dns-pod",
+            "dns-namespace",
+            "abcd1234ef567890abcd1234ef567890abcd1234ef567890abcd1234ef567890",
+            61413,
+            "node-02"
+        ],
+        [
+            1234567891,
+            uuid.UUID("00000003-0000-c8d4-0000-00000004354c"),
+            0,
+            json.dumps({"queries": [{"name": "example.com", "type": "A"}]}),
+            "dns-pod",
+            "dns-namespace",
+            "abcd1234ef567890abcd1234ef567890abcd1234ef567890abcd1234ef567890",
+            61413,
+            "node-02"
+        ]
     )
 ])
 def test_fetch_and_process_inserts_dual_data(mocker, table_name, processed_table, stix_table, column_names, row_data, expected_row):
