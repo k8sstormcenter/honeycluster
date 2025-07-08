@@ -1141,6 +1141,7 @@ metadata:
   labels:
     app: pl-monitoring
     component: vizier
+    flavour: entlein
   name: vizier-query-broker
   namespace: pl
 spec:
