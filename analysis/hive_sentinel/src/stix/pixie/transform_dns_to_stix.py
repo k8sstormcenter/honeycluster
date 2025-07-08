@@ -1,5 +1,9 @@
 import json
-from src.stix.core import generate_stix_id, _get_current_time_iso_format
+from src.stix.core import (
+    generate_stix_id,
+    _get_current_time_iso_format,
+    generate_unique_log_id,
+)
 
 def transform_dns_row_to_stix(row):
     timestamp = _get_current_time_iso_format()
@@ -20,7 +24,13 @@ def transform_dns_row_to_stix(row):
     src_port = row.get("remote_port")
     dst_port = row.get("local_port")
 
-    corr_id = f"dns-{src_ip or 'unknown'}-{query_name or 'unknown'}-{row.get('time_', '0')}"
+    pid = row.get("pid")
+    container_id = row.get("container_id")
+    pod_name = row.get("pod_name")
+    namespace = row.get("namespace")
+    node_name = row.get("node_name")
+    
+    corr_id = generate_unique_log_id(container_id, pid, node_name, timestamp, "dns_events")
 
     stix_objects = []
 
@@ -30,6 +40,11 @@ def transform_dns_row_to_stix(row):
         "protocols": ["udp"],
         "extensions": {
             "x-pixie-dns-ext": {
+                "pid": pid,
+                "container_id": container_id,
+                "pod_name": pod_name,
+                "namespace": namespace,
+                "node_name": node_name,
                 "query_name": query_name,
                 "query_type": query_type,
                 "response_code": response_code,

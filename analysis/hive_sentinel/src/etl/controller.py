@@ -36,6 +36,11 @@ http_columns = [
     'resp_body',
     'resp_body_size',
     'latency',
+    'pod_name',
+    'namespace',
+    'container_id',
+    'pid',
+    'node_name',
 ]
 
 # Columns for DNS_EVENTS
@@ -53,6 +58,11 @@ dns_columns = [
     'resp_header',
     'resp_body',
     'latency',
+    'pod_name',
+    'namespace',
+    'container_id',
+    'pid',
+    'node_name',
 ]
 
 @pixie_bp.route('/start', methods=['POST'])

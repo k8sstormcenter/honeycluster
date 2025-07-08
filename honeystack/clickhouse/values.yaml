@@ -74,6 +74,11 @@ configdFiles:
                         resp_message String,
                         resp_body String,
                         resp_body_size UInt64,
+                        container_id String,
+                        node_name String,
+                        namespace String,
+                        pod_name String,
+                        pid UInt64,
                         latency UInt64
                     ) ENGINE = MergeTree() ORDER BY time_;
                 </query>
@@ -101,6 +106,11 @@ configdFiles:
                         req_body String,
                         resp_header String,
                         resp_body String,
+                        container_id String,
+                        node_name String,
+                        namespace String,
+                        pod_name String,
+                        pid UInt64,
                         latency UInt64
                     ) ENGINE = MergeTree() ORDER BY time_;
                 </query>

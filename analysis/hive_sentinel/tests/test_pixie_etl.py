@@ -78,5 +78,3 @@ def test_fetch_and_process_inserts_dual_data(mocker, table_name, processed_table
     # ✅ Ensure last_seen_ns updated correctly
     assert etl.last_seen_ns == row_data[0]
 
-    print(f"✅ Test passed for {table_name}: Inserted STIX row preview:", inserted_rows_stix[0])
-
