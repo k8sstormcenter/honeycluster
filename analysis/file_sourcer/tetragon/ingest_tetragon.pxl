@@ -2,9 +2,8 @@ import px
 import pxlog
 import pxtrace
 
-glob = "/home/docker/tetragon.json"
+glob = "/tmp/tetragon.json"
 table = "tetragon.json"
-
 pxlog.FileSource(glob, table, "4h")
 
 df = px.DataFrame(table)
