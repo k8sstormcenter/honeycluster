@@ -56,7 +56,7 @@ echo "✅ Created $output_file with first line from $input_file"
 
 # Copy to Minikube
 echo "Moving $output_file to Minikube..."
-minikube cp "$output_file" "/home/docker/$output_file"
+minikube cp "$output_file" "/tmp/$output_file"
 echo "✅ Moved the file successfully!"
 
 # Run px script
