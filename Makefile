@@ -100,6 +100,24 @@ clickhouse:
 	export CLICKHOUSE_USER CLICKHOUSE_PASSWORD; \
 	envsubst < honeystack/vector/soc.yaml > honeystack/vector/soc.yaml.tmp && mv honeystack/vector/soc.yaml.tmp honeystack/vector/soc.yaml
 
+.PHONY: hive-sentinel
+HIVE_SENTINEL_IMAGE ?= ghcr.io/k8sstormcenter/hivesentinel:latest
+hive-sentinel:
+	@echo "📦 Deploying Hive Sentinel..."
+	@PIXIE_API_TOKEN=$$(px api-key create -s | tail -n 1); \
+	PIXIE_CLUSTER_ID=$$(px get clusters | grep CS_HEALTHY | awk '{print $$2}'); \
+	CLICKHOUSE_PASSWORD=$$(kubectl get secret --namespace honey clickhouse -o jsonpath="{.data.admin-password}" | base64 -d); \
+	CLICKHOUSE_HOST=localhost; \
+	CLICKHOUSE_PORT=8123; \
+	CLICKHOUSE_USER=default; \
+	CLICKHOUSE_DB=default; \
+	USE_PIXIE=False; \
+	HIVE_SENTINEL_IMAGE=$(HIVE_SENTINEL_IMAGE); \
+	export PIXIE_API_TOKEN PIXIE_CLUSTER_ID CLICKHOUSE_PASSWORD CLICKHOUSE_HOST CLICKHOUSE_PORT CLICKHOUSE_USER CLICKHOUSE_DB USE_PIXIE HIVE_SENTINEL_IMAGE; \
+	envsubst < honeystack/hive-sentinel/values.yaml.template > honeystack/hive-sentinel/values.yaml; \
+	$(HELM) upgrade --install hive-sentinel honeystack/hive-sentinel -n hive-sentinel --create-namespace -f honeystack/hive-sentinel/values.yaml
+	@echo "✅ Hive Sentinel deployed."
+
 .PHONY: storage
 storage:
 	kubectl apply -f https://openebs.github.io/charts/openebs-operator-lite.yaml
