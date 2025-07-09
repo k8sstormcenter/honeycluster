@@ -115,7 +115,9 @@ hive-sentinel:
 	HIVE_SENTINEL_IMAGE=$(HIVE_SENTINEL_IMAGE); \
 	export PIXIE_API_TOKEN PIXIE_CLUSTER_ID CLICKHOUSE_PASSWORD CLICKHOUSE_HOST CLICKHOUSE_PORT CLICKHOUSE_USER CLICKHOUSE_DB USE_PIXIE HIVE_SENTINEL_IMAGE; \
 	envsubst < honeystack/hive-sentinel/values.yaml.template > honeystack/hive-sentinel/values.yaml; \
-	kubectl apply -f honeystack/hive-sentinel/values.yaml
+	kubectl apply -f honeystack/hive-sentinel/values.yaml \
+	sleep 25
+	kubectl port-forward -n honey svc/hive-sentinel 8080:80 &
 	@echo "✅ Hive Sentinel deployed."
 
 .PHONY: storage
