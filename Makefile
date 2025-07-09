@@ -107,7 +107,7 @@ hive-sentinel:
 	@PIXIE_API_TOKEN=$$(px api-key create -s | tail -n 1); \
 	PIXIE_CLUSTER_ID=$$(px get clusters | grep CS_HEALTHY | awk '{print $$2}'); \
 	CLICKHOUSE_PASSWORD=$$(kubectl get secret --namespace honey clickhouse -o jsonpath="{.data.admin-password}" | base64 -d); \
-	CLICKHOUSE_HOST=localhost; \
+	CLICKHOUSE_HOST=clickhouse.honey.svc.cluster.local; \
 	CLICKHOUSE_PORT=8123; \
 	CLICKHOUSE_USER=default; \
 	CLICKHOUSE_DB=default; \
