@@ -1,0 +1,13 @@
+import px
+
+df = px.DataFrame(table="kubescape.json")
+
+# Extract podNamespace and podName from the Runtimek8sDetails field
+df.alert=px.pluck(df.message,"message")
+df.namespace = px.pluck(df.RuntimeK8sDetails, "podNamespace")
+df.podName = px.pluck(df.RuntimeK8sDetails, "podName")
+df.timestamp= px.pluck(df.event, "timestamp")
+# Select only the desired columns
+df = df['message','podName','namespace', 'timestamp']
+
+px.display(df, "kubescape_pods")

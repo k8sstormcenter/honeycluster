@@ -899,7 +899,7 @@ spec:
         envFrom:
         - configMapRef:
             name: pl-tls-config
-        image: docker.io/entlein/vizier-kelvin_image:2025-06-19_09-51-27.876_UTC
+        image: docker.io/entlein/vizier-kelvin_image:2025-07-05_12-32-33.467_UTC
         name: app
         ports:
         - containerPort: 59300
@@ -1069,7 +1069,7 @@ spec:
         - configMapRef:
             name: pl-cluster-config
             optional: true
-        image: docker.io/entlein/vizier-cloud_connector_server_image:2025-06-19_09-51-27.876_UTC
+        image: docker.io/entlein/vizier-cloud_connector_server_image:2025-07-05_12-32-33.467_UTC
         livenessProbe:
           httpGet:
             path: /healthz
@@ -1141,7 +1141,6 @@ metadata:
   labels:
     app: pl-monitoring
     component: vizier
-    flavour: entlein
   name: vizier-query-broker
   namespace: pl
 spec:
@@ -1220,7 +1219,7 @@ spec:
         envFrom:
         - configMapRef:
             name: pl-tls-config
-        image: docker.io/entlein/vizier-query_broker_server_image:2025-06-19_09-51-27.876_UTC
+        image: docker.io/entlein/vizier-query_broker_server_image:2025-07-05_12-32-33.468_UTC
         livenessProbe:
           httpGet:
             path: /healthz
@@ -1370,7 +1369,7 @@ spec:
         envFrom:
         - configMapRef:
             name: pl-tls-config
-        image: docker.io/entlein/vizier-metadata_server_image:2025-06-19_09-51-27.876_UTC
+        image: docker.io/entlein/vizier-metadata_server_image:2025-07-05_12-32-33.467_UTC
         livenessProbe:
           httpGet:
             path: /healthz
@@ -1537,7 +1536,7 @@ spec:
               optional: true
         - name: PL_CLOCK_CONVERTER
           value: default
-        image: docker.io/entlein/vizier-pem_image:2025-06-19_09-51-27.876_UTC
+        image: docker.io/entlein/vizier-pem_image:2025-07-05_12-32-33.467_UTC
         name: pem
         resources: {}
         securityContext:
@@ -1644,7 +1643,7 @@ spec:
         - configMapRef:
             name: pl-cluster-config
             optional: true
-        image: docker.io/entlein/vizier-cert_provisioner_image:2025-06-19_09-51-27.876_UTC
+        image: docker.io/entlein/vizier-cert_provisioner_image:2025-07-05_12-32-33.468_UTC
         name: provisioner
         securityContext:
           allowPrivilegeEscalation: false
