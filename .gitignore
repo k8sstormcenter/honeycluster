@@ -58,6 +58,8 @@ jupyterhub/rke2values.yaml
 pip-log.txt
 .env
 
+honeystack/hive-sentinel/values.yaml
+
 attacks/managedidentitygke/deploy-9-beta.yaml
 attacks/lightening/caps-output.txt
 .go-version

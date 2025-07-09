@@ -115,7 +115,7 @@ hive-sentinel:
 	HIVE_SENTINEL_IMAGE=$(HIVE_SENTINEL_IMAGE); \
 	export PIXIE_API_TOKEN PIXIE_CLUSTER_ID CLICKHOUSE_PASSWORD CLICKHOUSE_HOST CLICKHOUSE_PORT CLICKHOUSE_USER CLICKHOUSE_DB USE_PIXIE HIVE_SENTINEL_IMAGE; \
 	envsubst < honeystack/hive-sentinel/values.yaml.template > honeystack/hive-sentinel/values.yaml; \
-	$(HELM) upgrade --install hive-sentinel honeystack/hive-sentinel -n hive-sentinel --create-namespace -f honeystack/hive-sentinel/values.yaml
+	kubectl apply -f honeystack/hive-sentinel/values.yaml
 	@echo "✅ Hive Sentinel deployed."
 
 .PHONY: storage
