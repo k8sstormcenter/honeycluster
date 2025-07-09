@@ -33,7 +33,7 @@ def fetch_kubescape_logs():
     SELECT
         {', '.join(ROOT_KEYS)},
         toUnixTimestamp64Nano(time) AS time_ns
-    FROM kubescape
+    FROM kubescape_logs
     WHERE message LIKE '%Unexpected process launched%'
     """
 
