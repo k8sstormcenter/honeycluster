@@ -16,7 +16,7 @@ configdFiles:
                         level String,
                         message String,
                         msg String,
-                        time UInt64
+                        time String
                     ) ENGINE = MergeTree() ORDER BY time;
                 </query>
             </scripts>
@@ -24,7 +24,7 @@ configdFiles:
             <scripts>
                 <query>
                     CREATE TABLE IF NOT EXISTS default.kubescape_stix (
-                        timestamp UInt64,
+                        timestamp String,
                         data String
                     ) ENGINE = MergeTree() ORDER BY timestamp;
                 </query>
@@ -33,7 +33,7 @@ configdFiles:
             <scripts>
                 <query>
                     CREATE TABLE IF NOT EXISTS default.tetragon_logs (
-                        time UInt64,
+                        time String,
                         node_name String,
                         type String,
                         payload String
@@ -44,7 +44,7 @@ configdFiles:
             <scripts>
                 <query>
                     CREATE TABLE IF NOT EXISTS default.tetragon_stix (
-                        timestamp UInt64,
+                        timestamp String,
                         data String
                     ) ENGINE = MergeTree() ORDER BY timestamp;
                 </query>
