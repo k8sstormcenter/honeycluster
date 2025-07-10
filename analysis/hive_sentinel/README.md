@@ -11,15 +11,31 @@ Hive Sentinel is a microservice that connects to a Pixie observability cluster a
 
   * Tetragon to STIX
   * Kubescape to STIX
+  * Pixie http\_events and dns\_events to Clickhouse tables alongside with their STIX transformations
 * Exposes REST API endpoints to:
 
-  * Fetch raw Tetragon logs
-  * Fetch raw Kubescape logs
-  * Fetch STIX bundles
+  * Fetch raw and STIX-transformed logs
   * Start/stop Pixie ETL pipelines
   * Check ETL status
+  * Query ClickHouse table contents with filters for debugging
 
-## 🚀 How to Run
+## 🚀 Deployment with Makefile
+
+Navigate to the `/honeycluster` directory:
+
+```bash
+make hive-sentinel HIVE_SENTINEL_IMAGE=ghcr.io/<your-org>/hivesentinel:<tag>
+```
+
+This will:
+
+* Generate the Pixie API token automatically.
+* Fetch the Pixie Cluster ID.
+* Retrieve the ClickHouse admin password.
+* Uses the `honey` namespace
+* Deploy Hive Sentinel using the environment variables injected from `honeystack/hive_sentinel/values.yaml.templatefile`.
+
+## How to Run Locally (Development)
 
 Install [Poetry](https://python-poetry.org/) and run:
 
@@ -30,6 +46,19 @@ poetry run python main.py
 
 Configure your Pixie and ClickHouse environment variables before starting.
 
+## Environment Setup
+
+Create a `.env` file:
+
+```
+PIXIE_API_TOKEN=px-api-...
+PIXIE_CLUSTER_ID=...
+CLICKHOUSE_HOST=localhost
+CLICKHOUSE_USER=default
+CLICKHOUSE_PASSWORD=...
+CLICKHOUSE_DB=default
+```
+
 ## 🚀 How to Test
 
 ```bash
@@ -37,72 +66,53 @@ poetry install
 poetry run pytest
 ```
 
-Tests cover Pixie ETL, STIX ETL, and REST endpoints.
+Covers Pixie ETL, STIX ETL, and REST endpoints.
 
-## 🔐 Environment Setup
+## Endpoints
 
-Set your Pixie and ClickHouse credentials in a `.env` file:
+### Pixie ETL Control
 
-```
-PIXIE_API_TOKEN=px-api-...
-PIXIE_CLUSTER_ID=426ee8d4-...
-CLICKHOUSE_HOST=localhost
-CLICKHOUSE_USER=default
-CLICKHOUSE_PASSWORD=
-CLICKHOUSE_DB=default
-```
+* `POST /pixie-etl/start` - Start ETL for a table with filters
+* `POST /pixie-etl/stop` - Stop ETL by UUID
+* `GET /pixie-etl/status` - List running ETLs
 
-These are loaded automatically using `python-dotenv`.
+### Data Fetch Endpoints
 
-## 📡 Endpoints
+Fetch raw logs:
 
-### `GET /tetragon`
+* `GET /http_events`
+* `GET /dns_events`
+* `GET /tetragon_logs`
+* `GET /kubescape_logs`
 
-Fetch raw Tetragon logs.
+Fetch STIX bundles:
 
-### `GET /tetragon/fetch-stix`
+* `GET /http_stix`
+* `GET /dns_stix`
+* `GET /tetragon_stix`
+* `GET /kubescape_stix`
 
-Fetch Tetragon logs transformed as STIX bundles.
+All endpoints support `?limit=` and filters for debugging pipelines.
 
-### `GET /kubescape`
+## Filters
 
-Fetch raw Kubescape logs.
+Use filters to refine data retrieval during testing:
 
-### `GET /kubescape/fetch-stix`
+### `/http_events`, `/dns_events`
 
-Fetch Kubescape logs transformed as STIX bundles.
+* `pod_name`, `node_name`, `namespace`, `container_id`, `remote_addr`
 
-### `POST /pixie-etl/start`
+### `/tetragon_logs`
 
-Start a Pixie ETL pipeline.
+* `node_name`, `type`
 
-#### Request Body Example
+### `/kubescape_logs`
 
-```json
-{
-  "tablename": "http_events",
-  "timestamp": "2025-07-03T11:37:36Z",
-  "podname": "my-pod",
-  "namespace": "default",
-  "poll_interval": 5
-}
-```
+* `event`, `level`, `msg`
 
-### `POST /pixie-etl/stop`
+### `/http_stix`, `/dns_stix`, `/tetragon_stix`, `/kubescape_stix`
 
-Stop a running Pixie ETL pipeline.
-
-#### Request Body Example
-
-```json
-{
-  "uuid": "c5ddc8e8-5f6f-4c2d-8e58-3fd2ea739b2d"
-}
-```
-
-### `GET /pixie-etl/status`
-
-List currently running ETL jobs.
+* Only `limit` supported, no pagination
 
 ## 🛠️ Developer Notes
 
