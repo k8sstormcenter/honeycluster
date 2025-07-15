@@ -1,95 +1,127 @@
 # Hive Sentinel
 
-Hive Sentinel is a microservice that connects to a Pixie observability cluster, fetches Tetragon logs, and transforms them into [STIX 2.1](https://oasis-open.github.io/cti-documentation/stix/intro) bundles for use in security operations and threat detection pipelines.
+Hive Sentinel is a microservice that connects to a Pixie observability cluster and ClickHouse, fetches Tetragon and Kubescape logs, and transforms them into [STIX 2.1](https://oasis-open.github.io/cti-documentation/stix/intro) bundles for security operations and threat detection pipelines.
 
-## 🧠 What It Does
+## 🧬 What It Does
 
-* Connects to Pixie via their Python SDK and retrieves logs from the `tetragon.json` table.
-* Parses and cleans the log data.
-* Converts logs to STIX 2.1 format using custom logic and correlation IDs.
+* Connects to Pixie via their Python SDK to retrieve logs.
+* Connects to ClickHouse to persist processed STIX objects.
+* Parses, cleans, and converts logs to STIX 2.1 format with custom correlation logic.
+* Runs automated ETL pipelines for:
+
+  * Tetragon to STIX
+  * Kubescape to STIX
+  * Pixie http\_events and dns\_events to Clickhouse tables alongside with their STIX transformations
 * Exposes REST API endpoints to:
 
-  * Fetch raw Tetragon logs
-  * Fetch transformed STIX bundles
-  * Accept external STIX bundles (coming soon)
+  * Fetch raw and STIX-transformed logs
+  * Start/stop Pixie ETL pipelines
+  * Check ETL status
+  * Query ClickHouse table contents with filters for debugging
 
-## 🚀 How to Run
+## 🚀 Deployment with Makefile
 
-Make sure you have [Poetry](https://python-poetry.org/) installed, then:
+Navigate to the `/honeycluster` directory:
+
+```bash
+make hive-sentinel HIVE_SENTINEL_IMAGE=ghcr.io/<your-org>/hivesentinel:<tag>
+```
+
+This will:
+
+* Generate the Pixie API token automatically.
+* Fetch the Pixie Cluster ID.
+* Retrieve the ClickHouse admin password.
+* Uses the `honey` namespace
+* Deploy Hive Sentinel using the environment variables injected from `honeystack/hive_sentinel/values.yaml.templatefile`.
+
+## How to Run Locally (Development)
+
+Install [Poetry](https://python-poetry.org/) and run:
 
 ```bash
 poetry install
 poetry run python main.py
 ```
 
-Or enter the shell:
+Configure your Pixie and ClickHouse environment variables before starting.
 
-```bash
-poetry shell
-python main.py
-```
+## Environment Setup
 
-## 📁 Folder Structure
-
-```
-├── main.py                 # Entry point for the Flask app
-├── src/
-│   ├── stix/               # Shared STIX logic
-│   │   ├── core.py         # ID generation, timestamps, sanitizer, relationships
-│   │   ├── matcher.py      # Pattern matching and attack pattern registry
-│   │   └── tetra/          # Tetragon-specific STIX transformation
-│   │       ├── transformer.py
-│   │       ├── id_generator.py
-│   │       └── orchestrator.py
-│   ├── tetra_log/          # App-level modules (Flask routes, Pixie client, etc.)
-│   │   ├── controller.py
-│   │   ├── reader.py
-│   │   ├── routes.py
-│   │   └── pixie_client.py
-│   └── __init__.py         # Application factory
-├── tests/                  # Unit tests and mocks
-│   └── test_routes.py
-├── .env.template           # Example environment config
-├── poetry.lock             # Locked dependency versions
-├── pyproject.toml          # Poetry project configuration
-└── README.md               # You are here
-```
-
-## 🔐 Environment Setup
-
-Set your Pixie credentials in a `.env` file:
+Create a `.env` file:
 
 ```
 PIXIE_API_TOKEN=px-api-...
-PIXIE_CLUSTER_ID=426ee8d4-...
+PIXIE_CLUSTER_ID=...
+CLICKHOUSE_HOST=localhost
+CLICKHOUSE_USER=default
+CLICKHOUSE_PASSWORD=...
+CLICKHOUSE_DB=default
 ```
 
-These are loaded automatically using `python-dotenv`.
-
-Alternatively, you can run the helper script:
-```bash
-bash scripts/pixie-auth-info.sh
-```
-It will create a new Pixie API token. Then print the created token and the first healthy cluster ID to the terminal.
-
-## 🥪 Testing
-
-Unit tests are written with `pytest`. Run them with:
+## 🚀 How to Test
 
 ```bash
+poetry install
 poetry run pytest
 ```
 
-You can mock Tetragon logs to keep tests isolated from Pixie.
+Covers Pixie ETL, STIX ETL, and REST endpoints.
 
-## 📡 Endpoints
+## Endpoints
 
-| Method | Endpoint       | Description                  |
-| ------ | -------------- | ---------------------------- |
-| GET    | `/fetch-tetra` | Returns raw Tetragon logs    |
-| GET    | `/fetch-stix`  | Returns logs as STIX bundles |
-| POST   | `/ingest-stix` | (coming soon) Accepts STIX   |
+### Pixie ETL Control
+
+* `POST /pixie-etl/start` - Start ETL for a table with filters
+* `POST /pixie-etl/stop` - Stop ETL by UUID
+* `GET /pixie-etl/status` - List running ETLs
+
+### Data Fetch Endpoints
+
+Fetch raw logs:
+
+* `GET /http_events`
+* `GET /dns_events`
+* `GET /tetragon_logs`
+* `GET /kubescape_logs`
+
+Fetch STIX bundles:
+
+* `GET /http_stix`
+* `GET /dns_stix`
+* `GET /tetragon_stix`
+* `GET /kubescape_stix`
+
+All endpoints support `?limit=` and filters for debugging pipelines.
+
+## Filters
+
+Use filters to refine data retrieval during testing:
+
+### `/http_events`, `/dns_events`
+
+* `pod_name`, `node_name`, `namespace`, `container_id`, `remote_addr`
+
+### `/tetragon_logs`
+
+* `node_name`, `type`
+
+### `/kubescape_logs`
+
+* `event`, `level`, `msg`
+
+### `/http_stix`, `/dns_stix`, `/tetragon_stix`, `/kubescape_stix`
+
+* Only `limit` supported, no pagination
+
+## 🛠️ Developer Notes
+
+👉 Uses `apscheduler` for periodic ETL polling.
+👉 Uses `clickhouse-connect` for ingestion.
+👉 Uses `python-dotenv` for local environment management.
+👉 StixETLs start automatically in production and are disabled during tests.
+👉 During the tests, Pixie and Clickhouse connections are mocked. No real Database connection used
 
 ---
 
-Made with ❤️ for Kubernetes observability, STIX, and bees.
+Made with ❤️ for scalable observability and STIX pipelines.

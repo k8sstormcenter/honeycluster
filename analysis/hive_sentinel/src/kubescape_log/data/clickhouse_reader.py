@@ -1,5 +1,5 @@
 from datetime import datetime
-from src.clickhouse_client import get_clickhouse_client
+from src.clickhouse_client import ClickHouseClient
 import json
 
 
@@ -27,13 +27,13 @@ def safe_json_parse(val):
 
 
 def fetch_kubescape_logs():
-    client = get_clickhouse_client()
+    client = ClickHouseClient().get_client()
 
     query = f"""
     SELECT
         {', '.join(ROOT_KEYS)},
         toUnixTimestamp64Nano(time) AS time_ns
-    FROM kubescape
+    FROM kubescape_logs
     WHERE message LIKE '%Unexpected process launched%'
     """
 
