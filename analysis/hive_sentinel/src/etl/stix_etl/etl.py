@@ -33,7 +33,8 @@ class StixETL:
                 LIMIT 10
             """
             try:
-                rows = self.client.execute(query, {"last_ts": self.last_seen_ts})
+                result = self.client.query(query, parameters={"last_ts": self.last_seen_ts})
+                rows = result.result_rows
                 logger.info(f"🔍 Fetched {len(rows)} rows after {self.last_seen_ts}")
 
                 if not rows:

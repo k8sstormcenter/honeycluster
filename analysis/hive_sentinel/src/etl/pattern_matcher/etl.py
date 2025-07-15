@@ -63,7 +63,8 @@ class PatternMatcherETL:
             "ns": self.namespace
         }
 
-        return self.client.execute(query, params)
+        result = self.client.query(query, parameters=params)
+        return result.result_rows
 
     def fetch_and_process(self):
         with self.lock:
