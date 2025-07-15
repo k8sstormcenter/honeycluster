@@ -1,4 +1,4 @@
-# K8sStormCenter: Understand your 🌩️ Threats in  (with 🐝 ♥️  )
+# K8sStormCenter: Understand your 🌩️ Threats (with 🐝)
 <img width="4342" height="2086" alt="musketeers" src="https://github.com/user-attachments/assets/ff4614b5-32ba-4475-858a-22cc0b0792d2" />
 
 
