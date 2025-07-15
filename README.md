@@ -1,14 +1,18 @@
-# K8sStormCenter: Honey Storm and Lightening
+# K8sStormCenter: Understand your 🌩️ Threats in  (with 🐝 ♥️  )
+<img width="4342" height="2086" alt="musketeers" src="https://github.com/user-attachments/assets/ff4614b5-32ba-4475-858a-22cc0b0792d2" />
+
+
 
 > [!NOTE]
 > This deployment is an opinionated collection of offensive and defensive open-source security and observability tools. It contains destructive elements, and it is NOT to be used in production under any circumstances   
 > Currently, we are rewriting the stack a second time with pixie becoming the user-facing component with adapters for data-src and data-sinks. Most of the wiki/Readme should still work
 
 What this project is: essentially an open-source SOC for `k8s` built on the most amazing projects out there, so that you can visualize ongoing attacks, post-exploitation. 
+<img width="1891" height="1047" alt="pixiest" src="https://github.com/user-attachments/assets/3bbf8fce-da46-40ec-8479-18f7764df0a2" />
 
 Welcome to the K8sStormCenter main repository. Here you will find everything you need to set up your own HoneyCluster: a Kubernetes cluster that is instrumented with bait and tripwires to collect data on the attacks carried out against it. With our complimentary [lightening-rod](https://github.com/k8sstormcenter/cti-stix-visualization) , the `attack paths` can be visualized and are made `shareable` using STIX. You can also use the `lightening`-feature to attack yourself to create a threat-model-starting point or to generally scan your setup. The `storm` feature is the collection of CTI from many `HoneyClusters` into a open shared threat-intel collection.
 
-We expressely thank the upstream maintainers of our main components: KubeHound, KubeScape, Vector, Tetragon, Falco, Oasis/STIX, Kubesploit and Pixie
+We expressely thank the upstream maintainers of our main components: KubeHound, KubeScape, Vector, Tetragon, Oasis/STIX, Kubesploit and Pixie
 
 If you like it -> consider leaving a star ⭐
 
