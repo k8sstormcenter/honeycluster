@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import MagicMock, patch
-from src.etl.stix_etl import StixETL
+from src.etl.stix_etl.etl import StixETL
 
 @pytest.fixture
 def sample_rows():
@@ -18,7 +18,7 @@ def processed_rows(sample_rows):
         [sample_rows[1][0], '{"processed": "data2"}']
     ]
 
-@patch("src.etl.stix_etl.ClickHouseClient")
+@patch("src.etl.stix_etl.etl.ClickHouseClient")
 def test_stix_etl_fetch_and_process(mock_clickhouse_client_cls, sample_rows, processed_rows):
     # Mock ClickHouseClient().get_client()
     mock_client = MagicMock()

@@ -28,13 +28,12 @@ class StixETL:
             logger.info(f"🚀 Running ETL fetch for table {self.table}")
             query = f"""
                 SELECT * FROM {self.table}
-                WHERE time > '{self.last_seen_ts}'
+                WHERE time > %(last_ts)s
                 ORDER BY time ASC
                 LIMIT 10
             """
             try:
-                result = self.client.query(query)
-                rows = result.result_rows
+                rows = self.client.execute(query, {"last_ts": self.last_seen_ts})
                 logger.info(f"🔍 Fetched {len(rows)} rows after {self.last_seen_ts}")
 
                 if not rows:
