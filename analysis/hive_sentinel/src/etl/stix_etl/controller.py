@@ -37,7 +37,7 @@ def process_kubescape_row(row):
     }
     stix_objects, bundles = transform_kubescape_logs_to_stix([log])
     pod_name = log["RuntimeK8sDetails"].get("podName", "unknown")
-    namespace = log["RuntimeK8sDetails"].get("namespaceName", "unknown")
+    namespace = log["RuntimeK8sDetails"].get("podNamespace", "unknown")
     data = json.dumps(stix_objects)
     return [log["timestamp"], pod_name, namespace, data]
 
