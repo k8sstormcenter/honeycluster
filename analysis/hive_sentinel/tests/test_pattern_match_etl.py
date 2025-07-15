@@ -32,16 +32,24 @@ def test_pattern_matcher_fetch_and_process(mock_clickhouse_client_cls, sample_ro
 
     etl.fetch_and_process()
 
-    # Check file created and has lines
-    assert os.path.exists(TEST_OUTPUT_FILE)
+    # Check if output file was created and contains valid STIX bundle(s)
+    assert os.path.exists(TEST_OUTPUT_FILE), f"❌ Output file not found at {TEST_OUTPUT_FILE}"
+
     with open(TEST_OUTPUT_FILE, "r") as f:
         lines = f.readlines()
-        assert len(lines) > 0
-        for line in lines:
-            parsed = json.loads(line)
-            assert "original" in parsed
-            assert "matches" in parsed
-            assert isinstance(parsed["matches"], list)
+        assert len(lines) > 0, "❌ Output file is empty, expected at least one line"
+
+        for i, line in enumerate(lines):
+            try:
+                parsed = json.loads(line)
+            except json.JSONDecodeError as e:
+                pytest.fail(f"❌ Line {i} is not valid JSON: {e}")
+
+            # Basic STIX bundle checks
+            assert isinstance(parsed, dict), f"❌ Line {i} is not a JSON object"
+            assert parsed.get("type") == "bundle", f"❌ Line {i} does not contain a STIX bundle"
+            assert "objects" in parsed, f"❌ 'objects' missing in bundle on line {i}"
+            assert isinstance(parsed["objects"], list), f"❌ 'objects' should be a list in line {i}"
 
     # Check insert was called
-    assert mock_client.execute.called
+    assert mock_client.insert.called

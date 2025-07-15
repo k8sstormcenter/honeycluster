@@ -2,7 +2,6 @@
 
 import os
 import json
-import time
 import threading
 import traceback
 import logging
@@ -27,37 +26,41 @@ class PatternMatcherETL:
         self.scheduler = BackgroundScheduler()
         self.lock = threading.Lock()
         self.last_seen_ts = "1970-01-01T00:00:00Z"
-        self.attack_patterns = [    {
-        "type": "bundle",
-        "id": "16",
-        "name": "DummyForTesting",
-        "version": "1.0.0",
-        "spec_version": "2.1",
-        "objects": [
+        self.time_column_index = 0
+
+        self.attack_patterns = [
             {
-                "type": "attack-pattern",
-                "id": "attack-pattern--tracee",
-                "name": "tracee",
-                "description": "description",
-            },
-            {
-                "type": "indicator",
-                "id": "indicator--tracee",
-                "name": "tracee",
-                "description": "Detecting tracee",
-                "pattern": "[process:command_line MATCHES '/bin/sh -c ping -c 4 1.1.1.1;cat /proc/self/mounts']",
-                "pattern_type": "stix",
-                "valid_from": "2024-01-01T00:00:00Z",
-            },
-            {
-                "type": "relationship",
-                "id": "relationship--tracee",
-                "relationship_type": "indicates",
-                "source_ref": "indicator--tracee",
-                "target_ref": "attack-pattern--tracee",
-            },
-        ],
-    },]
+                "type": "bundle",
+                "id": "16",
+                "name": "DummyForTesting",
+                "version": "1.0.0",
+                "spec_version": "2.1",
+                "objects": [
+                    {
+                        "type": "attack-pattern",
+                        "id": "attack-pattern--tracee",
+                        "name": "tracee",
+                        "description": "description",
+                    },
+                    {
+                        "type": "indicator",
+                        "id": "indicator--tracee",
+                        "name": "tracee",
+                        "description": "Detecting tracee",
+                        "pattern": "[process:command_line MATCHES '/bin/sh -c ping -c 4 1.1.1.1;cat /proc/self/mounts']",
+                        "pattern_type": "stix",
+                        "valid_from": "2024-01-01T00:00:00Z",
+                    },
+                    {
+                        "type": "relationship",
+                        "id": "relationship--tracee",
+                        "relationship_type": "indicates",
+                        "source_ref": "indicator--tracee",
+                        "target_ref": "attack-pattern--tracee",
+                    },
+                ],
+            }
+        ]
 
     def set_filters(self, timestamp=None, podname=None, namespace=None):
         self.timestamp = timestamp
@@ -65,30 +68,18 @@ class PatternMatcherETL:
         self.namespace = namespace
 
     def fetch_logs(self):
-        lower_bounds = []
-        if self.last_seen_ts:
-            lower_bounds.append(self.last_seen_ts)
-        if self.timestamp:
-            lower_bounds.append(self.timestamp)
-
-        if not lower_bounds:
-            logger.warning("No timestamp defined, skipping fetch")
-            return []
-
-        effective_start_ns = max(lower_bounds)
-
         query = """
         SELECT timestamp, data
         FROM kubescape_stix
-        WHERE toUInt64(timestamp) > %(start_ns)s
+        WHERE timestamp > %(start_ts)s
           AND pod_name = %(pod)s
           AND namespace = %(ns)s
-        ORDER BY timestamp DESC
+        ORDER BY timestamp ASC
         LIMIT 100
         """
 
         params = {
-            "start_ns": effective_start_ns,
+            "start_ts": self.last_seen_ts,
             "pod": self.podname,
             "ns": self.namespace
         }
@@ -121,7 +112,7 @@ class PatternMatcherETL:
                             matching_patterns.append((indicator_id, pattern_id, attack_bundle))
 
                     if matching_patterns:
-                        matches = [
+                        matches_result = [
                             {"indicator_id": i, "pattern_id": p, "attack": a["objects"]}
                             for i, p, a in matching_patterns
                         ]
@@ -131,13 +122,14 @@ class PatternMatcherETL:
 
                         self.client.insert(
                             table="matched_attack_patterns",
-                            data=[(timestamp, json.dumps(stix_bundle), json.dumps(matches))],
+                            data=[(timestamp, json.dumps(stix_bundle), json.dumps(matches_result))],
                             column_names=["timestamp", "bundle", "matches"]
                         )
 
-                        logger.info("[PatternMatcherETL] Match found and appended")
+                        logger.info("[PatternMatcherETL] Match found and written")
 
                 self.last_seen_ts = rows[-1][self.time_column_index]
+                logger.info(f"[PatternMatcherETL] Updated last_seen_ts to {self.last_seen_ts}")
 
             except Exception as e:
                 logger.error(f"[PatternMatcherETL] Error: {e}")
