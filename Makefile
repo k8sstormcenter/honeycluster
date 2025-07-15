@@ -222,8 +222,11 @@ tetragon: helm check-context
 
 .PHONY: vector
 vector: helm 
-	-$(HELM) repo add vector https://helm.vector.dev
-	-$(HELM) upgrade --install vector vector/vector --namespace honey --create-namespace --values honeystack/vector/soc.yaml
+	@echo "🔍 Selecting Vector config..."
+	@CONFIG_PATH=$$(kubectl get svc -n honey clickhouse --ignore-not-found | grep -q clickhouse && echo "honeystack/vector/soc.with-clickhouse.yaml" || echo "honeystack/vector/soc.no-clickhouse.yaml"); \
+	echo "📦 Deploying Vector using: $$CONFIG_PATH"; \
+	-$(HELM) repo add vector https://helm.vector.dev; \
+	-$(HELM) upgrade --install vector vector/vector --namespace honey --create-namespace --values $$CONFIG_PATH; \
 	-kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=vector  -n honey --timeout=5m 
 
 .PHONY: traces
