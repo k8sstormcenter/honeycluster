@@ -98,7 +98,7 @@ clickhouse:
 	@CLICKHOUSE_USER="default"; \
 	CLICKHOUSE_PASSWORD=$$(kubectl get secret --namespace honey clickhouse -o jsonpath="{.data.admin-password}" | base64 -d); \
 	export CLICKHOUSE_USER CLICKHOUSE_PASSWORD; \
-	envsubst < honeystack/vector/soc.yaml > honeystack/vector/soc.yaml.tmp && mv honeystack/vector/soc.yaml.tmp honeystack/vector/soc.yaml
+	envsubst < honeystack/vector/soc.with-clickhouse.yaml > honeystack/vector/soc.with-clickhouse.yaml.tmp && mv honeystack/vector/soc.with-clickhouse.yaml.tmp honeystack/vector/soc.with-clickhouse.yaml
 
 .PHONY: hive-sentinel
 HIVE_SENTINEL_IMAGE ?= ghcr.io/k8sstormcenter/hivesentinel:latest
