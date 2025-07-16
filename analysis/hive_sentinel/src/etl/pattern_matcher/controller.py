@@ -18,7 +18,7 @@ def start_pattern_etl():
     namespace = data.get("namespace")
 
     try:
-        matcher = PatternMatcherETL(timestamp=timestamp, pod=podname, namespace=namespace)
+        matcher = PatternMatcherETL()
         matcher.set_filters(timestamp, podname, namespace)
         matcher.start()
 
