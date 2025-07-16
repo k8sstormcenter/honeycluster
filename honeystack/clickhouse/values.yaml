@@ -56,6 +56,16 @@ configdFiles:
 
             <scripts>
                 <query>
+                    CREATE TABLE IF NOT EXISTS default.matched_attack_patterns (
+                        timestamp DateTime,
+                        bundle String,
+                        matches String
+                    ) ENGINE = MergeTree() ORDER BY timestamp;
+                </query>
+            </scripts>
+
+            <scripts>
+                <query>
                     CREATE TABLE IF NOT EXISTS default.http_events (
                         time_ UInt64,
                         upid UUID,
