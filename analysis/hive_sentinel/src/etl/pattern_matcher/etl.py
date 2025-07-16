@@ -28,39 +28,7 @@ class PatternMatcherETL:
         self.last_seen_ts = "1970-01-01T00:00:00Z"
         self.time_column_index = 0
 
-        self.attack_patterns = [
-            {
-                "type": "bundle",
-                "id": "6",
-                "name": "CE_VAR_LOG_SYMLINK",
-                "version": "1.0.0",
-                "spec_version": "2.1",
-                "objects": [
-                    {
-                        "type": "attack-pattern",
-                        "id": "attack-pattern--kh-ce-var-log-symlink",
-                        "name": "CE_VAR_LOG_SYMLINK",
-                        "description": "Arbitrary file reads on the host from a node via an exposed /var/log mount..",
-                    },
-                    {
-                        "type": "indicator",
-                        "id": "indicator--kh-ce-var-log-symlink",
-                        "name": "Symlink to log dir",
-                        "description": "Symbolic link to /var/log/root_link",
-                        "pattern": "[process:command_line MATCHES '/bin/sh -c ping -c 4 1.1.1.1;cat /proc/self/mounts']",
-                        "pattern_type": "stix",
-                        "valid_from": "2024-01-01T00:00:00Z",
-                    },
-                    {
-                        "type": "relationship",
-                        "id": "relationship--kh-ce-var-log-symlink",
-                        "relationship_type": "indicates",
-                        "source_ref": "indicator--kh-ce-var-log-symlink",
-                        "target_ref": "attack-pattern--kh-ce-var-log-symlink",
-                    },
-                ],
-            }
-        ]
+        self.attack_patterns = get_attack_patterns()
 
     def set_filters(self, timestamp=None, podname=None, namespace=None):
         self.timestamp = timestamp
