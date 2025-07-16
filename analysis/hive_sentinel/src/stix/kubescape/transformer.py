@@ -12,10 +12,12 @@ def transform_kubescape_object_to_stix(log):
     runtime_k8s = log.get("RuntimeK8sDetails", {})
     runtime_process = log.get("RuntimeProcessDetails", {})
     cloud_metadata = log.get("CloudMetadata", {}) or {}
+    event = log.get("event", {}) or {}
 
     container_id = runtime_k8s.get("containerID", "")
     pid = runtime_process.get("processTree", {}).get("pid", -1)
-    hostname = cloud_metadata.get("instance_id", {}) or "UnknownHost"
+    # hostname = cloud_metadata.get("instance_id", {}) or ""  # Original implementation from lightening rod
+    hostname = event.get("k8s", {}).get("node", "UnknownHost") # matches with tetragon which uses node_name according to lightening rod
     timestamp = log.get("time", _get_current_time_iso_format())
     corr_id = generate_unique_log_id(
         container_id, pid, hostname, timestamp, "kubescape"
