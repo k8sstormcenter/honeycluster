@@ -1,9 +1,11 @@
 import json
+import os
 import threading
 from apscheduler.schedulers.background import BackgroundScheduler
 from src.clickhouse_client import ClickHouseClient
 from src.pixie_client import get_px_connection
 from src.stix.pixie.orchestrator import transform_pixie_logs_to_stix
+from src.config import OUTPUT_DIR
 import logging
 import traceback
 
@@ -26,6 +28,8 @@ class PixieETL:
         self.lock = threading.Lock()
         self.last_seen_ns = 0  # nanoseconds since epoch
 
+        self.OUTPUT_FILE = os.path.join(OUTPUT_DIR, f"{self.stix_table}.json")
+
     def clean_bstring(self, val):
         val = val.decode("utf-8")
         if isinstance(val, str) and val.startswith("b'") and val.endswith("'"):
@@ -40,7 +44,6 @@ class PixieETL:
     def fetch_px_logs(self):
         conn = get_px_connection()
 
-        # Determine effective lower bound for start_time in nanoseconds
         lower_bounds = []
         if self.last_seen_ns:
             lower_bounds.append(self.last_seen_ns)
@@ -54,7 +57,6 @@ class PixieETL:
             start_time_arg = 'start_time="-20m"'
 
         filter_lines = ""
-
         if self.namespace:
             filter_lines += f'df = df[df.namespace == "{self.namespace}"]\n'
         if self.podname:
@@ -80,7 +82,6 @@ px.display(df, "{self.table_name}")
         for row in script.results(self.table_name):
             log = {}
             for col_name, val in zip(self.column_names, row):
-                # If bytes, decode it
                 if isinstance(val, bytes):
                     val = val.decode()
                 log[col_name] = val
@@ -102,9 +103,22 @@ px.display(df, "{self.table_name}")
 
                 for row in rows:
                     all_stix_objects, stix_bundles = transform_pixie_logs_to_stix([row], self.stix_table)
-                    self.client.insert(self.stix_table, [[row.get("time_", 0), json.dumps(stix_bundles, default=lambda o: o.decode(errors="replace") if isinstance(o, bytes) else str(o))]], column_names=["timestamp", "data"])
 
-                # Update last_seen_ns
+                    with open(self.OUTPUT_FILE, "a") as f:
+                        f.write(json.dumps(stix_bundles, default=str) + "\n")
+
+                    self.client.insert(
+                        self.stix_table,
+                        [[
+                            row.get("time_", 0),
+                            json.dumps(
+                                stix_bundles,
+                                default=lambda o: o.decode(errors="replace") if isinstance(o, bytes) else str(o)
+                            )
+                        ]],
+                        column_names=["timestamp", "data"]
+                    )
+
                 self.last_seen_ns = max(int(row.get('time_', 0)) for row in rows if 'time_' in row)
 
             except Exception as e:
