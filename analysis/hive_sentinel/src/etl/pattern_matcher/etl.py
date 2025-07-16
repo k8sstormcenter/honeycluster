@@ -85,6 +85,10 @@ class PatternMatcherETL:
                             for i, p, a in matching_patterns
                         ]
 
+                        stix_bundle["extensions"] = {
+                            "x-matching-patterns": matches_result
+                        }
+
                         with open(self.OUTPUT_FILE, "a") as f:
                             f.write(json.dumps(stix_bundle) + "\n")
 
