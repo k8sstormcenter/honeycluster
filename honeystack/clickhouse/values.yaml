@@ -57,7 +57,7 @@ configdFiles:
             <scripts>
                 <query>
                     CREATE TABLE IF NOT EXISTS default.matched_attack_patterns (
-                        timestamp DateTime,
+                        timestamp String,
                         bundle String,
                         matches String
                     ) ENGINE = MergeTree() ORDER BY timestamp;
