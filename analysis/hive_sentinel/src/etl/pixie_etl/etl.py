@@ -4,7 +4,7 @@ import threading
 from apscheduler.schedulers.background import BackgroundScheduler
 from src.clickhouse_client import ClickHouseClient
 from src.pixie_client import get_px_connection
-from src.stix.pixie.orchestrator import transform_pixie_logs_to_stix
+from src.stix.pixie.orchestrator import transform_pixie_log_to_stix
 from src.config import OUTPUT_DIR
 import logging
 import traceback
@@ -102,17 +102,17 @@ px.display(df, "{self.table_name}")
                 self.client.insert(self.processed_table, processed_rows, column_names=self.column_names)
 
                 for row in rows:
-                    all_stix_objects, stix_bundles = transform_pixie_logs_to_stix([row], self.stix_table)
+                    all_stix_object, stix_bundle = transform_pixie_log_to_stix(row, self.stix_table)
 
                     with open(self.OUTPUT_FILE, "a") as f:
-                        f.write(json.dumps(stix_bundles, default=str) + "\n")
+                        f.write(json.dumps(stix_bundle, default=str) + "\n")
 
                     self.client.insert(
                         self.stix_table,
                         [[
                             row.get("time_", 0),
                             json.dumps(
-                                stix_bundles,
+                                stix_bundle,
                                 default=lambda o: o.decode(errors="replace") if isinstance(o, bytes) else str(o)
                             )
                         ]],
