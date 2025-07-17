@@ -20,7 +20,7 @@ class PatternMatcherETL:
         self.podname = None
         self.namespace = None
         self.poll_interval = poll_interval
-        self.OUTPUT_FILE = os.path.join(OUTPUT_DIR, "pixie_matched_stream.json")
+        self.OUTPUT_FILE = os.path.join(OUTPUT_DIR, "matched_patterns.json")
 
         self.client = ClickHouseClient().get_client()
         self.scheduler = BackgroundScheduler()
