@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime, timezone
 import re
 import base64
+import hashlib
 
 
 def generate_stix_id(type):
@@ -65,10 +66,16 @@ def unique_process_stix_id(exec_id):
         except Exception as e:
             print(f"Error decoding or hashing exec_id: {e}")
 
+def short_md5(text, length=12):
+    return hashlib.md5(text.encode()).hexdigest()[:length]
 
 def generate_unique_log_id(container_id, pid, hostname, time, src):
     pid = str(pid).zfill(8)
-    host = str(hostname[:12]).zfill(12)
+    # handle hostname
+    if hostname != "UnknownHost":
+        host = short_md5(hostname)
+    else:
+        host = str(hostname[:12]).zfill(12)
     timestamp = re.sub(r"[-\:\.]", "", time[2:22])
     if src == "tetra":
         match = re.match(r"containerd://([0-9a-f]+)", container_id)

@@ -66,7 +66,7 @@ class PixieETL:
 import px
 
 df = px.DataFrame(table="{self.table_name}", {start_time_arg})
-df.pod_name = df.ctx['pod']
+df.pod_name = px.pluck_array(px.split(df.ctx["pod_name"],"/"), 1)
 df.namespace = df.ctx['namespace']
 df.container_id = px.upid_to_container_id(df["upid"])
 df.pid = px.upid_to_pid(df.upid)

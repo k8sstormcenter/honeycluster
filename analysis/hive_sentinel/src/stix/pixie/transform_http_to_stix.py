@@ -35,7 +35,7 @@ def transform_http_row_to_stix(row):
     namespace = row.get("namespace")
     node_name = row.get("node_name")
 
-    corr_id = generate_unique_log_id(container_id, pid, node_name, timestamp, "http_events")
+    corr_id = generate_unique_log_id(container_id, pid, pod_name, timestamp, "http_events")
 
     stix_objects = []
 
