@@ -8,7 +8,12 @@ from src.stix.core import (
 def transform_http_row_to_stix(row):
     timestamp = row.get("time_", "{}")
     if isinstance(timestamp, int):
-      timestamp = datetime.fromtimestamp(timestamp / 1000).isoformat(timespec="seconds") + "Z"
+      if timestamp > 1e12:
+          # ns -> s
+          timestamp = datetime.fromtimestamp(timestamp / 1_000_000_000).isoformat(timespec="seconds") + "Z"
+      else:
+          # ms -> s
+          timestamp = datetime.fromtimestamp(timestamp / 1000).isoformat(timespec="seconds") + "Z"
 
     req_headers = json.loads(row.get("req_headers", "{}"))
     resp_headers = json.loads(row.get("resp_headers", "{}"))
