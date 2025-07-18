@@ -1,12 +1,14 @@
+from datetime import datetime
 import json
 from src.stix.core import (
     generate_stix_id,
-    _get_current_time_iso_format,
     generate_unique_log_id,
 )
 
 def transform_http_row_to_stix(row):
-    timestamp = _get_current_time_iso_format()
+    timestamp = row.get("time_", "{}")
+    if isinstance(timestamp, int):
+      timestamp = datetime.fromtimestamp(timestamp / 1000).isoformat(timespec="seconds") + "Z"
 
     req_headers = json.loads(row.get("req_headers", "{}"))
     resp_headers = json.loads(row.get("resp_headers", "{}"))
