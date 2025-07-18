@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from src import create_app
-from src.etl.controller import running_etls
+from src.etl.pixie_etl.controller import running_etls
 
 @pytest.fixture
 def client():
@@ -10,7 +10,7 @@ def client():
     with app.test_client() as client:
         yield client
 
-@patch("src.etl.controller.PixieETL")
+@patch("src.etl.pixie_etl.controller.PixieETL")
 def test_start_stop_status_endpoints(mock_pixie_etl_cls, client):
     # Mock PixieETL to avoid real ETL logic
     mock_etl_instance = MagicMock()

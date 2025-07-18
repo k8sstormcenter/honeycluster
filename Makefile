@@ -98,7 +98,7 @@ clickhouse:
 	@CLICKHOUSE_USER="default"; \
 	CLICKHOUSE_PASSWORD=$$(kubectl get secret --namespace honey clickhouse -o jsonpath="{.data.admin-password}" | base64 -d); \
 	export CLICKHOUSE_USER CLICKHOUSE_PASSWORD; \
-	envsubst < honeystack/vector/soc.yaml > honeystack/vector/soc.yaml.tmp && mv honeystack/vector/soc.yaml.tmp honeystack/vector/soc.yaml
+	envsubst < honeystack/vector/soc.with-clickhouse.yaml > honeystack/vector/soc.with-clickhouse.yaml.tmp && mv honeystack/vector/soc.with-clickhouse.yaml.tmp honeystack/vector/soc.with-clickhouse.yaml
 
 .PHONY: hive-sentinel
 HIVE_SENTINEL_IMAGE ?= ghcr.io/k8sstormcenter/hivesentinel:latest
@@ -222,9 +222,12 @@ tetragon: helm check-context
 
 .PHONY: vector
 vector: helm 
-	-$(HELM) repo add vector https://helm.vector.dev
-	-$(HELM) upgrade --install vector vector/vector --namespace honey --create-namespace --values honeystack/vector/soc.yaml
-	-kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=vector  -n honey --timeout=5m 
+	@echo "🔍 Selecting Vector config..."
+	@CONFIG_PATH=$$(kubectl get svc -n honey clickhouse --ignore-not-found | grep -q clickhouse && echo "honeystack/vector/soc.with-clickhouse.yaml" || echo "honeystack/vector/soc.no-clickhouse.yaml"); \
+	echo "📦 Deploying Vector using: $$CONFIG_PATH"; \
+	$(HELM) repo add vector https://helm.vector.dev; \
+	$(HELM) upgrade --install vector vector/vector --namespace honey --create-namespace --values $$CONFIG_PATH; \
+	kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=vector  -n honey --timeout=5m 
 
 .PHONY: traces
 traces: 

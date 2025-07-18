@@ -1,0 +1,11 @@
+import px
+import pxlog
+import pxtrace
+
+glob = "/tmp/http_stix.json"
+table = "http_stix.json"
+pxlog.FileSource(glob, table, "4h")
+
+df = px.DataFrame(table)
+
+px.display(df)

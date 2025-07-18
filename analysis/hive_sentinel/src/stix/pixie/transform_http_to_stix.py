@@ -1,12 +1,19 @@
+from datetime import datetime
 import json
 from src.stix.core import (
     generate_stix_id,
-    _get_current_time_iso_format,
     generate_unique_log_id,
 )
 
 def transform_http_row_to_stix(row):
-    timestamp = _get_current_time_iso_format()
+    timestamp = row.get("time_", "{}")
+    if isinstance(timestamp, int):
+      if timestamp > 1e12:
+          # ns -> s
+          timestamp = datetime.fromtimestamp(timestamp / 1_000_000_000).isoformat(timespec="seconds") + "Z"
+      else:
+          # ms -> s
+          timestamp = datetime.fromtimestamp(timestamp / 1000).isoformat(timespec="seconds") + "Z"
 
     req_headers = json.loads(row.get("req_headers", "{}"))
     resp_headers = json.loads(row.get("resp_headers", "{}"))
@@ -28,7 +35,7 @@ def transform_http_row_to_stix(row):
     namespace = row.get("namespace")
     node_name = row.get("node_name")
 
-    corr_id = generate_unique_log_id(container_id, pid, node_name, timestamp, "http_events")
+    corr_id = generate_unique_log_id(container_id, pid, pod_name, timestamp, "http_events")
 
     stix_objects = []
 

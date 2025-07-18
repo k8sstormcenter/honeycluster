@@ -1,7 +1,7 @@
 import pytest
 import json
 import uuid
-from src.etl.pixie_etl import PixieETL
+from src.etl.pixie_etl.etl import PixieETL
 
 @pytest.mark.parametrize("table_name,processed_table,stix_table,column_names,row_data,expected_row", [
     (
@@ -73,14 +73,14 @@ def test_fetch_and_process_inserts_dual_data(mocker, table_name, processed_table
     mock_script = mocker.Mock()
     mock_script.results.return_value = iter([row_data])
     mock_conn.prepare_script.return_value = mock_script
-    mocker.patch("src.etl.pixie_etl.get_px_connection", return_value=mock_conn)
+    mocker.patch("src.etl.pixie_etl.etl.get_px_connection", return_value=mock_conn)
 
     # Mock ClickHouseClient().get_client().insert
     mock_clickhouse_client = mocker.Mock()
     mock_clickhouse_client.insert = mocker.Mock()
     mock_clickhouse_client_cls = mocker.Mock()
     mock_clickhouse_client_cls.get_client.return_value = mock_clickhouse_client
-    mocker.patch("src.etl.pixie_etl.ClickHouseClient", return_value=mock_clickhouse_client_cls)
+    mocker.patch("src.etl.pixie_etl.etl.ClickHouseClient", return_value=mock_clickhouse_client_cls)
 
     etl = PixieETL(
         table_name=table_name,

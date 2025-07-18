@@ -1,0 +1,11 @@
+import px
+import pxlog
+import pxtrace
+
+glob = "/tmp/matched_patterns.json"
+table = "matched_patterns.json"
+pxlog.FileSource(glob, table, "4h")
+
+df = px.DataFrame(table)
+
+px.display(df)
