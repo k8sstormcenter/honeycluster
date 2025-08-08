@@ -35,6 +35,15 @@ spec:
               value: '${CLICKHOUSE_DB}'
             - name: USE_PIXIE
               value: '${USE_PIXIE}'
+          volumeMounts:
+            - name: host-tmp
+              mountPath: /tmp
+              readOnly: false
+      volumes:
+        - name: host-tmp
+          hostPath:
+            path: /tmp
+            type: DirectoryOrCreate
 ---
 apiVersion: v1
 kind: Service

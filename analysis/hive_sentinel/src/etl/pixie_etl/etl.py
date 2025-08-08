@@ -1,9 +1,11 @@
 import json
+import os
 import threading
 from apscheduler.schedulers.background import BackgroundScheduler
 from src.clickhouse_client import ClickHouseClient
 from src.pixie_client import get_px_connection
-from src.stix.pixie.orchestrator import transform_pixie_logs_to_stix
+from src.stix.pixie.orchestrator import transform_pixie_log_to_stix
+from src.config import OUTPUT_DIR
 import logging
 import traceback
 
@@ -26,6 +28,8 @@ class PixieETL:
         self.lock = threading.Lock()
         self.last_seen_ns = 0  # nanoseconds since epoch
 
+        self.OUTPUT_FILE = os.path.join(OUTPUT_DIR, f"{self.stix_table}.json")
+
     def clean_bstring(self, val):
         val = val.decode("utf-8")
         if isinstance(val, str) and val.startswith("b'") and val.endswith("'"):
@@ -40,7 +44,6 @@ class PixieETL:
     def fetch_px_logs(self):
         conn = get_px_connection()
 
-        # Determine effective lower bound for start_time in nanoseconds
         lower_bounds = []
         if self.last_seen_ns:
             lower_bounds.append(self.last_seen_ns)
@@ -54,7 +57,6 @@ class PixieETL:
             start_time_arg = 'start_time="-20m"'
 
         filter_lines = ""
-
         if self.namespace:
             filter_lines += f'df = df[df.namespace == "{self.namespace}"]\n'
         if self.podname:
@@ -64,7 +66,7 @@ class PixieETL:
 import px
 
 df = px.DataFrame(table="{self.table_name}", {start_time_arg})
-df.pod_name = df.ctx['pod']
+df.pod_name = px.pluck_array(px.split(df.ctx["pod_name"],"/"), 1)
 df.namespace = df.ctx['namespace']
 df.container_id = px.upid_to_container_id(df["upid"])
 df.pid = px.upid_to_pid(df.upid)
@@ -80,7 +82,6 @@ px.display(df, "{self.table_name}")
         for row in script.results(self.table_name):
             log = {}
             for col_name, val in zip(self.column_names, row):
-                # If bytes, decode it
                 if isinstance(val, bytes):
                     val = val.decode()
                 log[col_name] = val
@@ -101,10 +102,23 @@ px.display(df, "{self.table_name}")
                 self.client.insert(self.processed_table, processed_rows, column_names=self.column_names)
 
                 for row in rows:
-                    all_stix_objects, stix_bundles = transform_pixie_logs_to_stix([row], self.stix_table)
-                    self.client.insert(self.stix_table, [[row.get("time_", 0), json.dumps(stix_bundles, default=lambda o: o.decode(errors="replace") if isinstance(o, bytes) else str(o))]], column_names=["timestamp", "data"])
+                    all_stix_object, stix_bundle = transform_pixie_log_to_stix(row, self.stix_table)
 
-                # Update last_seen_ns
+                    with open(self.OUTPUT_FILE, "a") as f:
+                        f.write(json.dumps(stix_bundle, default=str) + "\n")
+
+                    self.client.insert(
+                        self.stix_table,
+                        [[
+                            row.get("time_", 0),
+                            json.dumps(
+                                stix_bundle,
+                                default=lambda o: o.decode(errors="replace") if isinstance(o, bytes) else str(o)
+                            )
+                        ]],
+                        column_names=["timestamp", "data"]
+                    )
+
                 self.last_seen_ns = max(int(row.get('time_', 0)) for row in rows if 'time_' in row)
 
             except Exception as e:

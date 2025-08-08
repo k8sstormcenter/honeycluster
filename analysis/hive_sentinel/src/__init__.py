@@ -1,6 +1,6 @@
 from flask import Flask
 from src.routes import register_routes
-from src.etl.controller import start_stix_etls
+from src.etl.stix_etl.controller import start_stix_etls
 import sys
 IS_PYTEST = "pytest" in sys.modules
 

@@ -12,13 +12,16 @@ def transform_kubescape_object_to_stix(log):
     runtime_k8s = log.get("RuntimeK8sDetails", {})
     runtime_process = log.get("RuntimeProcessDetails", {})
     cloud_metadata = log.get("CloudMetadata", {}) or {}
+    event = log.get("event", {}) or {}
 
     container_id = runtime_k8s.get("containerID", "")
-    pid = runtime_process.get("processTree", {}).get("pid", -1)
-    hostname = cloud_metadata.get("instance_id", {}) or "UnknownHost"
-    timestamp = log.get("time", _get_current_time_iso_format())
+    pid = runtime_process.get("processTree", {}).get("ppid", -1)
+    # hostname = cloud_metadata.get("instance_id", {}) or ""  # Original implementation from lightening rod
+    # hostname = event.get("k8s", {}).get("node", "UnknownHost") # matches with tetragon which uses node_name according to lightening rod
+    pod_name = runtime_k8s.get("podName", "UnknownHost") # this way we can match with http logs' pod names
+    timestamp = log.get("time", log.get("timestamp", "UnknownTime"))
     corr_id = generate_unique_log_id(
-        container_id, pid, hostname, timestamp, "kubescape"
+        container_id, pid, pod_name, timestamp, "kubescape"
     )
 
     stix_objects = []
@@ -34,7 +37,7 @@ def transform_kubescape_object_to_stix(log):
             "container_id": container_id,
             "flags": log.get("message", ""),
             "image_id": runtime_k8s.get("image", ""),
-            "pod_name": runtime_k8s.get("podName", ""),
+            "pod_name": pod_name,
             "namespace": runtime_k8s.get("namespace", ""),
             "function_name": log.get("RuleID", ""),
             "parent_pid": runtime_process.get("processTree", {}).get("ppid", -1),
@@ -64,7 +67,7 @@ def transform_kubescape_object_to_stix(log):
             "alert_name": base_metadata.get("alertName", ""),
             "correlation": corr_id,
             "rule_id": log.get("RuleID", ""),
-            "node_info": hostname,
+            "node_info": event.get("k8s", {}).get("node", ""),
             "children": runtime_process.get("processTree", {}).get("children", []),
         },
     }

@@ -25,6 +25,8 @@ configdFiles:
                 <query>
                     CREATE TABLE IF NOT EXISTS default.kubescape_stix (
                         timestamp String,
+                        pod_name String,
+                        namespace String,
                         data String
                     ) ENGINE = MergeTree() ORDER BY timestamp;
                 </query>
@@ -45,7 +47,19 @@ configdFiles:
                 <query>
                     CREATE TABLE IF NOT EXISTS default.tetragon_stix (
                         timestamp String,
+                        pod_name String,
+                        namespace String,
                         data String
+                    ) ENGINE = MergeTree() ORDER BY timestamp;
+                </query>
+            </scripts>
+
+            <scripts>
+                <query>
+                    CREATE TABLE IF NOT EXISTS default.matched_attack_patterns (
+                        timestamp String,
+                        bundle String,
+                        matches String
                     ) ENGINE = MergeTree() ORDER BY timestamp;
                 </query>
             </scripts>
