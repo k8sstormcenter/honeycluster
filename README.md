@@ -5,7 +5,7 @@
 
 > [!NOTE]
 > This deployment is an opinionated collection of offensive and defensive open-source security and observability tools. It contains destructive elements, and it is NOT to be used in production under any circumstances   
-> Currently, we are rewriting the stack a second time with pixie becoming the user-facing component with adapters for data-src and data-sinks. Most of the wiki/Readme should still work
+> Currently, we are rewriting the stack a second time with pixie becoming the user-facing component with adapters for data-src and data-sinks. The documentation is very likely out-of-sync
 
 What this project is: essentially an open-source SOC for `k8s` built on the most amazing projects out there, so that you can visualize ongoing attacks, post-exploitation. 
 <img width="1891" height="1047" alt="pixiest" src="https://github.com/user-attachments/assets/3bbf8fce-da46-40ec-8479-18f7764df0a2" />
