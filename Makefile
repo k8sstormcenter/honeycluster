@@ -88,6 +88,36 @@ kind-pixie-up:
 	-$(HELM) upgrade --install cert-manager jetstack/cert-manager --set installCRDs=true --namespace cert-manager  --create-namespace
 
 
+.PHONY: clickhouse
+clickhouse:
+	echo "📦 Installing ClickHouse..."
+	$(HELM) upgrade --install clickhouse oci://registry-1.docker.io/bitnamicharts/clickhouse  --namespace honey --create-namespace --values honeystack/clickhouse/values.yaml
+	@echo "⏳ Waiting for ClickHouse pods to be ready..."
+	kubectl wait --namespace honey --for=condition=Ready pod -l app.kubernetes.io/name=clickhouse --timeout=180s
+	@echo "🔐 Fetching credentials..."
+	@CLICKHOUSE_USER="default"; \
+	CLICKHOUSE_PASSWORD=$$(kubectl get secret --namespace honey clickhouse -o jsonpath="{.data.admin-password}" | base64 -d); \
+	export CLICKHOUSE_USER CLICKHOUSE_PASSWORD; \
+	envsubst < honeystack/vector/soc.with-clickhouse.yaml > honeystack/vector/soc.with-clickhouse.yaml.tmp && mv honeystack/vector/soc.with-clickhouse.yaml.tmp honeystack/vector/soc.with-clickhouse.yaml
+
+.PHONY: hive-sentinel
+HIVE_SENTINEL_IMAGE ?= ghcr.io/k8sstormcenter/hivesentinel:latest
+hive-sentinel:
+	@echo "📦 Deploying Hive Sentinel..."
+	@PIXIE_API_TOKEN=$$(px api-key create -s | tail -n 1); \
+	PIXIE_CLUSTER_ID=$$(px get clusters | grep CS_HEALTHY | awk '{print $$2}'); \
+	CLICKHOUSE_PASSWORD=$$(kubectl get secret --namespace honey clickhouse -o jsonpath="{.data.admin-password}" | base64 -d); \
+	CLICKHOUSE_HOST=clickhouse.honey.svc.cluster.local; \
+	CLICKHOUSE_PORT=8123; \
+	CLICKHOUSE_USER=default; \
+	CLICKHOUSE_DB=default; \
+	USE_PIXIE=False; \
+	HIVE_SENTINEL_IMAGE=$(HIVE_SENTINEL_IMAGE); \
+	export PIXIE_API_TOKEN PIXIE_CLUSTER_ID CLICKHOUSE_PASSWORD CLICKHOUSE_HOST CLICKHOUSE_PORT CLICKHOUSE_USER CLICKHOUSE_DB USE_PIXIE HIVE_SENTINEL_IMAGE; \
+	envsubst < honeystack/hive-sentinel/values.yaml.template > honeystack/hive-sentinel/values.yaml; \
+	kubectl apply -f honeystack/hive-sentinel/values.yaml
+	@echo "✅ Hive Sentinel deployed."
+
 .PHONY: storage
 storage:
 	kubectl apply -f https://openebs.github.io/charts/openebs-operator-lite.yaml
@@ -118,17 +148,7 @@ k8spin:
 	-$(HELM) upgrade --install kwasm-operator kwasm/kwasm-operator --namespace storm --create-namespace --set kwasmOperator.installerImage=ghcr.io/spinkube/containerd-shim-spin/node-installer:v0.16.0
 	-kubectl annotate node --all kwasm.sh/kwasm-node=true
 
-.PHONY: stixviz
-stixviz:
-	-kubectl apply -f lightening-rod/cti-stix-visualizer-deployment.yaml 
-	
-.PHONY: lighteningrod
-lighteningrod:
-	-kubectl apply -f lightening-rod/deployment.yaml	
 
-.PHONY: dev-ui
-dev-ui:
-	-kubectl apply -f development/redis-insight.yaml
 
 .PHONY: falco
 falco:
@@ -191,12 +211,6 @@ kubescape-bob:
 	sleep 10
 	kubectl rollout restart -n honey ds node-agent
 
-.PHONY: redis
-redis:
-	-$(HELM) repo add bitnami https://charts.bitnami.com/bitnami
-	-$(HELM) repo update
-	$(HELM) upgrade --install redis bitnami/redis -n storm --create-namespace --values lightening-rod/redis/values.yaml
-
 
 .PHONY: tetragon
 tetragon: helm check-context
@@ -208,9 +222,12 @@ tetragon: helm check-context
 
 .PHONY: vector
 vector: helm 
-	-$(HELM) repo add vector https://helm.vector.dev
-	-$(HELM) upgrade --install vector vector/vector --namespace honey --create-namespace --values honeystack/vector/soc.yaml
-	-kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=vector  -n honey --timeout=5m 
+	@echo "🔍 Selecting Vector config..."
+	@CONFIG_PATH=$$(kubectl get svc -n honey clickhouse --ignore-not-found | grep -q clickhouse && echo "honeystack/vector/soc.with-clickhouse.yaml" || echo "honeystack/vector/soc.no-clickhouse.yaml"); \
+	echo "📦 Deploying Vector using: $$CONFIG_PATH"; \
+	$(HELM) repo add vector https://helm.vector.dev; \
+	$(HELM) upgrade --install vector vector/vector --namespace honey --create-namespace --values $$CONFIG_PATH; \
+	kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=vector  -n honey --timeout=5m 
 
 .PHONY: traces
 traces: 
@@ -262,9 +279,7 @@ lightening-off:
 .PHONY: sample-app
 sample-app:
 	$(MAKE) --makefile=cncf/harbor/Makefile install-helm install-harbor
-	#-kubectl create ns pets
-	#-kubectl apply -f https://raw.githubusercontent.com/Azure-Samples/aks-store-demo/main/aks-store-all-in-one.yaml -n pets
-	
+
 
 .PHONY: sample-app-off
 sample-app-off:
@@ -276,12 +291,6 @@ sample-app-off:
 .PHONY: pixie
 pixie:
 	px deploy --pem_memory_limit=1Gi 
-	#-$(HELM) repo add pixie-operator https://artifacts.px.dev/helm_charts/operator 
-	#-$(HELM) repo update
-	#-$(HELM) upgrade --install  pixie pixie-operator/pixie-operator-chart --set cloudAddr=getcosmic.ai --set deployKey= --set clusterName=$(CLUSTER_NAME) --namespace pl --create-namespace 
-	#helm repo add pixie-vizier https://artifacts.px.dev/helm_charts/vizier
-	#helm repo update
-	#helm install pixie pixie-vizier/vizier-chart --set deployKey= --set clusterName=$(CLUSTER_NAME) --namespace pl --create-namespace 
 
 .PHONY: pixie-cli
 pixie-cli:

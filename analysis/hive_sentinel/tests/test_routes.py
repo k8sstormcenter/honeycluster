@@ -12,16 +12,16 @@ def client():
         yield client
 
 
-@patch("src.tetra_log.reader.fetch_tetragon_logs", return_value=mock_log)
+@patch("src.tetra_log.controller.fetch_tetragon_logs", return_value=mock_log)
 def test_fetch_tetra(mock_fetch, client):
-    res = client.get("/fetch-tetra")
+    res = client.get("/tetragon")
     assert res.status_code == 200
     assert isinstance(res.get_json(), list)
     assert res.get_json()[0]["process_exec"]["parent"]["binary"] == "/bin/sh"
 
-@patch("src.tetra_log.reader.fetch_tetragon_logs", return_value=mock_log)
+@patch("src.tetra_log.controller.fetch_tetragon_logs", return_value=mock_log)
 def test_fetch_stix(mock_fetch, client):
-    res = client.get("/fetch-stix")
+    res = client.get("/tetragon/fetch-stix")
     assert res.status_code == 200
     data = res.get_json()
     assert isinstance(data, list) or isinstance(data, dict)

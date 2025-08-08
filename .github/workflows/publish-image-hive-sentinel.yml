@@ -3,14 +3,22 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'mywebapp-chart/**'
+      - '.github/workflows/publish-oci-helmchart.yaml'
+
   pull_request:
 
-
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to build and push'
+        required: true
+        default: 'main'
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: k8sstormcenter/hivesentinel
-
 
 jobs:
   build-and-push-image:
@@ -23,6 +31,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref || github.event.inputs.branch || github.ref_name }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -43,19 +53,31 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=tag
-            type=ref,event=pr
-            type=match,pattern=\d.\d.\d.*
-            type=sha
-
-      - name: Build and push 
+            ${{ github.head_ref || github.ref_name }}
+            sha-${{ github.sha }}
+            type=raw,value=latest,enable=${{ github.ref_name == 'main' }}
+      - name: Build and push
         uses: docker/build-push-action@v6
         with:
           context: ./analysis/hive_sentinel
           file: ./analysis/hive_sentinel/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
 
+  cleanup-pr-image:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    needs: build-and-push-image
+    permissions:
+      packages: write
+    steps:
+      - name: Delete image for merged PR
+        uses: actions/delete-package-versions@v4
+        with:
+          package-name: hivesentinel
+          package-type: container
+          min-versions-to-keep: 0
+          delete-only-untagged-versions: false
+          ignore-versions: latest

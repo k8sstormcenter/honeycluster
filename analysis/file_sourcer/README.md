@@ -38,7 +38,6 @@ This folder contains scripts to simulate Tetragon logs and load them into Pixie 
 * `example_tetragon_schema.json`: Schema example for reference
 * `tetragon.json`: Final processed file that Pixie reads
 * `init_tetragon.sh`: Setup script for first-time use
-* `preprocess_tetragon.sh`: Updates the JSON to simulate new log entries
 * `display_tetragon.pxl`: Script to visualize the data
 * `ingest_tetragon.pxl`: Used by Pixie to connect the FileSource
 * `delete_filesource.pxl`: (Optional) Use this to remove the FileSource if needed

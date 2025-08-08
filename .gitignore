@@ -57,7 +57,10 @@ jupyterhub/rke2values.yaml
 !stix.log
 *.sqlite
 pip-log.txt
-.env
+*/hive_sentinel/.env
+*/hive_sentinel/tests/pixie_matched_stream.json
+
+honeystack/hive-sentinel/values.yaml
 
 attacks/managedidentitygke/deploy-9-beta.yaml
 attacks/lightening/caps-output.txt

@@ -3,10 +3,10 @@
 # https://vector.dev/docs/setup/installation/package-managers/helm/
 
 # nameOverride -- Override the name of resources.
-nameOverride: ""
+nameOverride: ''
 
 # fullnameOverride -- Override the full name of resources.
-fullnameOverride: ""
+fullnameOverride: ''
 
 # role -- [Role](https://vector.dev/docs/setup/deployment/roles/) for this Vector instance, valid options are:
 # "Agent", "Aggregator", and "Stateless-Aggregator".
@@ -15,7 +15,7 @@ fullnameOverride: ""
 # Agent = DaemonSet
 # Aggregator = StatefulSet
 # Stateless-Aggregator = Deployment
-role: "Agent"
+role: 'Agent'
 
 # rollWorkload -- Add a checksum of the generated ConfigMap to workload annotations.
 rollWorkload: true
@@ -35,9 +35,9 @@ image:
   pullSecrets: []
   # image.tag -- The tag to use for Vector's image.
   # @default -- Derived from the Chart's appVersion.
-  tag: ""
+  tag: ''
   # image.sha -- The SHA to use for Vector's image.
-  sha: ""
+  sha: ''
 
 # replicas -- Specify the number of Pods to create. Valid for the "Aggregator" and "Stateless-Aggregator" roles.
 replicas: 1
@@ -51,7 +51,8 @@ secrets:
   # secrets.generic -- Each Key/Value will be added to the Secret's data key, each value should be raw and NOT base64
   # encoded. Any secrets can be provided here. It's commonly used for credentials and other access related values.
   # **NOTE: Don't commit unencrypted secrets to git!**
-  generic: {}
+  generic:
+    {}
     # my_variable: "my-secret-value"
     # datadog_api_key: "api-key"
     # awsAccessKeyId: "access-key"
@@ -70,7 +71,8 @@ autoscaling:
   # autoscaling.targetMemoryUtilizationPercentage -- (int) Target memory utilization for Vector's HPA.
   targetMemoryUtilizationPercentage:
   # autoscaling.customMetric -- Target a custom metric for autoscaling.
-  customMetric: {}
+  customMetric:
+    {}
     #  - type: Pods
     #    pods:
     #      metric:
@@ -79,7 +81,8 @@ autoscaling:
     #        type: AverageValue
     #        averageValue: 95
   # autoscaling.behavior -- Configure separate scale-up and scale-down behaviors.
-  behavior: {}
+  behavior:
+    {}
     # scaleDown:
     #   stabilizationWindowSeconds: 300
 
@@ -118,18 +121,18 @@ podAnnotations: {}
 
 # podLabels -- Set labels on Vector Pods.
 podLabels:
-  vector.dev/exclude: "true"
+  vector.dev/exclude: 'true'
 
 # podPriorityClassName -- Set the [priorityClassName](https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/#priorityclass)
 # on Vector Pods.
-podPriorityClassName: ""
+podPriorityClassName: ''
 
 # podHostNetwork -- Configure hostNetwork on Vector Pods.
 podHostNetwork: false
 
 # podSecurityContext -- Allows you to overwrite the default [PodSecurityContext](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/)
 # for Vector Pods.
-podSecurityContext: 
+podSecurityContext:
   fsGroup: 1000
 
 # securityContext -- TODO get rid off this once you figure out the correct fsGroup for tmp or even better to write to clickhouse
@@ -142,10 +145,11 @@ command: []
 # args -- Override Vector's default arguments.
 args:
   - --config-dir
-  - "/etc/vector/"
+  - '/etc/vector/'
 
 # env -- Set environment variables for Vector containers.
-env: []
+env:
+  []
   # - name: MY_VARIABLE
   #   valueFrom:
   #     secretKeyRef:
@@ -158,7 +162,8 @@ env: []
   #       key: awsAccessKeyId
 
 # envFrom -- Define environment variables from Secrets or ConfigMaps.
-envFrom: []
+envFrom:
+  []
   # - secretRef:
   #     name: vector
 
@@ -166,7 +171,8 @@ envFrom: []
 containerPorts: []
 
 # resources -- Set Vector resource requests and limits.
-resources: {}
+resources:
+  {}
   # requests:
   #   cpu: 200m
   #   memory: 256Mi
@@ -175,7 +181,8 @@ resources: {}
   #   memory: 256Mi
 
 # lifecycle -- Set lifecycle hooks for Vector containers.
-lifecycle: {}
+lifecycle:
+  {}
   # preStop:
   #   exec:
   #     command:
@@ -202,11 +209,11 @@ nodeSelector: {}
 
 # tolerations -- Configure Vector Pods to be scheduled on [tainted](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/)
 # nodes.
-tolerations: 
-  - effect: "NoSchedule"
-    key: "sandbox.gke.io/runtime"
-    operator: "Equal"
-    value: "gvisor"
+tolerations:
+  - effect: 'NoSchedule'
+    key: 'sandbox.gke.io/runtime'
+    operator: 'Equal'
+    value: 'gvisor'
 
 # affinity -- Configure [affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity)
 # rules for Vector Pods.
@@ -221,7 +228,7 @@ service:
   # service.enabled -- If true, create and provide a Service resource for Vector.
   enabled: true
   # service.type -- Set the type for Vector's Service.
-  type: "ClusterIP"
+  type: 'ClusterIP'
   # service.annotations -- Set annotations on Vector's Service.
   annotations: {}
   # service.topologyKeys -- Specify the [topologyKeys](https://kubernetes.io/docs/concepts/services-networking/service-topology/#using-service-topology)
@@ -234,11 +241,11 @@ service:
   # service.ports -- Manually set the Service ports, overriding automated generation of Service ports.
   ports: []
   # service.externalTrafficPolicy -- Specify the [externalTrafficPolicy](https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip).
-  externalTrafficPolicy: ""
+  externalTrafficPolicy: ''
   # service.loadBalancerIP -- Specify the [loadBalancerIP](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer).
-  loadBalancerIP: ""
+  loadBalancerIP: ''
   # service.ipFamilyPolicy -- Configure [IPv4/IPv6 dual-stack](https://kubernetes.io/docs/concepts/services-networking/dual-stack/).
-  ipFamilyPolicy: ""
+  ipFamilyPolicy: ''
   # service.ipFamilies -- Configure [IPv4/IPv6 dual-stack](https://kubernetes.io/docs/concepts/services-networking/dual-stack/).
   ipFamilies: []
 
@@ -253,9 +260,10 @@ ingress:
   enabled: false
   # ingress.className -- Specify the [ingressClassName](https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress),
   # requires Kubernetes >= 1.18
-  className: ""
+  className: ''
   # ingress.annotations -- Set annotations on the Ingress.
-  annotations: {}
+  annotations:
+    {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   # ingress.hosts -- Configure the hosts and paths for the Ingress.
@@ -281,20 +289,19 @@ ingress:
 existingConfigMaps: []
 
 # dataDir -- Specify the path for Vector's data, only used when existingConfigMaps are used.
-dataDir: ""
+dataDir: ''
 
 # customConfig -- Override Vector's default configs, if used **all** options need to be specified. This section supports
 # using helm templates to populate dynamic values. See Vector's [configuration documentation](https://vector.dev/docs/reference/configuration/)
 # for all options.
 customConfig:
   transforms:
-
     tetragon_pre:
       type: remap
       inputs:
         - tetragon_logs
       source: |
-          . = parse_json!(.message)
+        . = parse_json!(.message)
 
     tetragon_filter:
       type: filter
@@ -306,7 +313,7 @@ customConfig:
       type: remap
       inputs:
         - tetragon_filter
-      source: | 
+      source: |
         .field1  = if exists(.process_exec.process.pod.container.id){ .process_exec.process.pod.container.id } else { if exists(.process_exit.process.pod.container.id) { .process_exit.process.pod.container.id } else { if exists(.process_kprobe.process.pod.container.id){ .process_kprobe.process.pod.container.id } else { "1" } } } 
         .field2  = if exists(.process_exec.process.binary)          { .process_exec.process.binary }           else { if exists(.process_exit.process.binary)           { .process_exit.process.binary }           else { if exists(.process_kprobe.process.binary)          { .process_kprobe.process.binary}            else { "1" } } }
         .field3  = if exists(.process_exec.process.arguments)       { .process_exec.process.arguments }        else { if exists(.process_exit.process.arguments)        { .process_exit.process.arguments }        else { if exists(.process_kprobe.process.arguments)       { .process_kprobe.process.arguments }        else { "1" } } }
@@ -337,20 +344,19 @@ customConfig:
         del(.key)
         del(.pre)
         del(.process_kprobe.args)
-         
 
     tetragon_pixie:
       type: remap
       inputs:
         - tetragon_create_key
       source: |
-          .payload = if exists(.process_exec) { .process_exec } else { if exists(.process_exit) { .process_exit } else { if exists(.process_kprobe){ .process_kprobe }  else { "empty" } } }
-          .payload.dedup = .dedup
-          del(.process_exec)
-          del(.process_exit)
-          del(.process_kprobe)
-          del(.md5_hash)
-          del(.dedup)
+        .payload = if exists(.process_exec) { .process_exec } else { if exists(.process_exit) { .process_exit } else { if exists(.process_kprobe){ .process_kprobe }  else { "empty" } } }
+        .payload.dedup = .dedup
+        del(.process_exec)
+        del(.process_exit)
+        del(.process_kprobe)
+        del(.md5_hash)
+        del(.dedup)
 
     # tetragon_pre:
     #   type: remap
@@ -364,14 +370,12 @@ customConfig:
     #           .kprobe3= if exists(.process_kprobe.args[3]) { .process_kprobe.args[3] } else { "empty"  }
     #           .kprobe4= if exists(.process_kprobe.args[4]) { .process_kprobe.args[4] } else { "empty"  }
 
-
-
     kubescape-nodeagent_pre:
-       type: remap
-       inputs:
-          - kubescape-nodeagent_logs
-       source: |
-              . = parse_json!(.message)
+      type: remap
+      inputs:
+        - kubescape-nodeagent_logs
+      source: |
+        . = parse_json!(.message)
 
     kubescape-nodeagent:
       type: filter
@@ -401,7 +405,6 @@ customConfig:
         del(.field6)
         del(.key)
 
-
   data_dir: /vector-data-dir
   api:
     enabled: true
@@ -412,72 +415,66 @@ customConfig:
       type: file
       include:
         - /var/run/cilium/tetragon/tetragon.log
-    tracee_logs:  
+    tracee_logs:
       type: kubernetes_logs
-      extra_label_selector: "app.kubernetes.io/instance=tracee,app.kubernetes.io/name=tracee"
-    kubescape-nodeagent_logs:  
+      extra_label_selector: 'app.kubernetes.io/instance=tracee,app.kubernetes.io/name=tracee'
+    kubescape-nodeagent_logs:
       type: kubernetes_logs
-      extra_label_selector: "app.kubernetes.io/instance=kubescape,app.kubernetes.io/component=node-agent"
-    falco_logs:  
+      extra_label_selector: 'app.kubernetes.io/instance=kubescape,app.kubernetes.io/component=node-agent'
+    falco_logs:
       type: kubernetes_logs
-      extra_label_selector: "app.kubernetes.io/instance=falco,app.kubernetes.io/name=falco"
+      extra_label_selector: 'app.kubernetes.io/instance=falco,app.kubernetes.io/name=falco'
     app_logs:
       type: kubernetes_logs
       exclude_paths_glob_patterns:
-        - "**/kube-system_event-exporter-*/**"
-        - "**/kube-system_fluentbit-*/**"
-        - "**/kube-system_pdcsi-*/**"
-        - "**/kube-system_konnectivity-*/**"
-        - "**/kube-system_netd-*/**"
-        - "**/kube-system_anetd-*/**"
-        - "**/kubeshark_kubeshark-worker*/**"
-        - "**/kubeshark_kubeshark-hub-*/**"
-        - "**/gke-managed*/**"
-        - "**/cert-manager_cert-manager*/**"
-        - "**/storm*/**"
-        - "**/honey*/**"
-        - "**/*Error getting SSL certificate*"
-        - "**/kube-system_image-package-extractor*/**"
+        - '**/kube-system_event-exporter-*/**'
+        - '**/kube-system_fluentbit-*/**'
+        - '**/kube-system_pdcsi-*/**'
+        - '**/kube-system_konnectivity-*/**'
+        - '**/kube-system_netd-*/**'
+        - '**/kube-system_anetd-*/**'
+        - '**/kubeshark_kubeshark-worker*/**'
+        - '**/kubeshark_kubeshark-hub-*/**'
+        - '**/gke-managed*/**'
+        - '**/cert-manager_cert-manager*/**'
+        - '**/storm*/**'
+        - '**/honey*/**'
+        - '**/*Error getting SSL certificate*'
+        - '**/kube-system_image-package-extractor*/**'
   sinks:
-    kubescape: 
+    kubescape:
       type: file
       inputs:
-         - kubescape-create_key
+        - kubescape-create_key
       encoding:
         codec: json
-      path: "/tmp/kubescape.json"
-    tetragon: 
+      path: '/tmp/kubescape.json'
+    tetragon:
       type: file
       inputs:
-         - tetragon_pixie
+        - tetragon_pixie
       encoding:
         codec: json
-      path: "/tmp/tetragon.json"
+      path: '/tmp/tetragon.json'
 
-
-
-
-        
 # extraVolumes -- Additional Volumes to use with Vector Pods.
 extraVolumes:
   - name: tetra-log
     hostPath:
-      path: "/var/run/cilium/tetragon/"
+      path: '/var/run/cilium/tetragon/'
   - name: kubescape-log
     hostPath:
-      path: "/tmp"
+      path: '/tmp'
       type: DirectoryOrCreate
 
 # extraVolumeMounts -- Additional Volume to mount into Vector Containers.
-extraVolumeMounts: 
+extraVolumeMounts:
   - name: tetra-log
-    mountPath: "/var/run/cilium/tetragon/"
+    mountPath: '/var/run/cilium/tetragon/'
     readOnly: true
   - name: kubescape-log
-    mountPath: "/tmp"
+    mountPath: '/tmp'
     readOnly: false
-
-
 
 # initContainers -- Init Containers to be added to the Vector Pods.
 initContainers: []
@@ -490,7 +487,7 @@ persistence:
   # persistence.enabled -- If true, create and use PersistentVolumeClaims.
   enabled: false
   # persistence.existingClaim -- Name of an existing PersistentVolumeClaim to use. Valid for the "Aggregator" role.
-  existingClaim: ""
+  existingClaim: ''
   # persistence.storageClassName -- Specifies the storageClassName for PersistentVolumeClaims. Valid for the
   # "Aggregator" role.
   # storageClassName: default
@@ -509,7 +506,7 @@ persistence:
   hostPath:
     # persistence.hostPath.path -- Override path used for hostPath persistence. Valid for the "Agent" role, persistence
     # is always used for the "Agent" role.
-    path: "/var/lib/vector"
+    path: '/var/lib/vector'
 
 # dnsPolicy -- Specify the [dnsPolicy](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-dns-policy)
 # for Vector Pods.
@@ -517,7 +514,8 @@ dnsPolicy: ClusterFirst
 
 # dnsConfig -- Specify the [dnsConfig](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-dns-config)
 # options for Vector Pods.
-dnsConfig: {}
+dnsConfig:
+  {}
   # nameservers:
   #   - 1.2.3.4
   # searches:
@@ -530,14 +528,16 @@ dnsConfig: {}
 
 # livenessProbe -- Override default liveness probe settings. If customConfig is used, requires customConfig.api.enabled
 # to be set to true.
-livenessProbe: {}
+livenessProbe:
+  {}
   # httpGet:
   #   path: /health
   #   port: api
 
 # readinessProbe -- Override default readiness probe settings. If customConfig is used,
 # requires customConfig.api.enabled to be set to true.
-readinessProbe: {}
+readinessProbe:
+  {}
   # httpGet:
   #   path: /health
   #   port: api
@@ -580,7 +580,7 @@ haproxy:
     # to reference for the HAProxy Pods.
     pullSecrets: []
     # haproxy.image.tag -- The tag to use for HAProxy's image.
-    tag: "2.4.17"
+    tag: '2.4.17'
 
   # haproxy.rollWorkload -- Add a checksum of the generated ConfigMap to the HAProxy Deployment.
   rollWorkload: true
@@ -601,7 +601,8 @@ haproxy:
 
   # haproxy.strategy -- Customize the [strategy](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/deployment-v1/)
   # used to replace HAProxy Pods.
-  strategy: {}
+  strategy:
+    {}
     # rollingUpdate:
     #   maxSurge: 25%
     #   maxUnavailable: 25%
@@ -617,14 +618,16 @@ haproxy:
   podLabels: {}
 
   # haproxy.podPriorityClassName -- Set the priorityClassName on HAProxy Pods.
-  podPriorityClassName: ""
+  podPriorityClassName: ''
 
   # haproxy.podSecurityContext -- Allows you to overwrite the default PodSecurityContext for HAProxy.
-  podSecurityContext: {}
+  podSecurityContext:
+    {}
     # fsGroup: 2000
 
   # haproxy.securityContext -- Specify securityContext on HAProxy containers.
-  securityContext: {}
+  securityContext:
+    {}
     # capabilities:
     #   drop:
     #   - ALL
@@ -651,24 +654,24 @@ haproxy:
     # haproxy.service.ports -- Manually set HAPRoxy's Service ports, overrides automated generation of Service ports.
     ports: []
     # haproxy.service.externalTrafficPolicy -- Specify the [externalTrafficPolicy](https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip).
-    externalTrafficPolicy: ""
+    externalTrafficPolicy: ''
     # haproxy.service.loadBalancerIP -- Specify the [loadBalancerIP](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer).
-    loadBalancerIP: ""
+    loadBalancerIP: ''
     # haproxy.service.ipFamilyPolicy -- Configure [IPv4/IPv6 dual-stack](https://kubernetes.io/docs/concepts/services-networking/dual-stack/).
-    ipFamilyPolicy: ""
+    ipFamilyPolicy: ''
     # haproxy.service.ipFamilies -- Configure [IPv4/IPv6 dual-stack](https://kubernetes.io/docs/concepts/services-networking/dual-stack/).
     ipFamilies: []
 
   # haproxy.existingConfigMap -- Use this existing ConfigMap for HAProxy's configuration instead of creating a new one.
   # Additionally, haproxy.containerPorts and haproxy.service.ports should be specified based on your supplied
   # configuration. If set, this parameter takes precedence over customConfig and the chart's default configs.
-  existingConfigMap: ""
+  existingConfigMap: ''
 
   # haproxy.customConfig -- Override HAProxy's default configs, if used **all** options need to be specified.
   # This parameter supports using Helm templates to insert values dynamically. By default, this chart will parse
   # Vector's configuration from customConfig to generate HAProxy's config, which can be overwritten with
   # haproxy.customConfig.
-  customConfig: ""
+  customConfig: ''
 
   # haproxy.extraVolumes -- Additional Volumes to use with HAProxy Pods.
   extraVolumes: []
@@ -694,7 +697,8 @@ haproxy:
     # haproxy.autoscaling.targetMemoryUtilizationPercentage -- (int) Target memory utilization for HAProxy's HPA.
     targetMemoryUtilizationPercentage:
     # haproxy.autoscaling.customMetric -- Target a custom metric for autoscaling.
-    customMetric: {}
+    customMetric:
+      {}
       #  - type: Pods
       #    pods:
       #      metric:
@@ -704,7 +708,8 @@ haproxy:
       #        averageValue: 95
 
   # haproxy.resources -- Set HAProxy resource requests and limits.
-  resources: {}
+  resources:
+    {}
     # limits:
     #   cpu: 100m
     #   memory: 128Mi
@@ -733,4 +738,3 @@ haproxy:
   # haproxy.affinity -- Configure [affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity)
   # rules for HAProxy Pods.
   affinity: {}
-  
