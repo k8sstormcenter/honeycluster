@@ -33,9 +33,35 @@ spec:
       - honey
       - storm
       - lightening
-  rules:
+  rules:                                                                       
   - ruleName: Unexpected process launched
-  - ruleName: Unexpected file access
+  - parameters:
+      includePrefixes:
+      - /proc
+      - /run/secrets/kubernetes.io/serviceaccount
+      - /var/run/secrets/kubernetes.io/serviceaccount
+      - /tmp
+      - /etc
+      - /var/spool/cron/
+      - /var/log/
+      - /var/run/
+      - /dev/shm/
+      - /run/
+      - /var/www/
+      - /var/lib/docker/
+      - /opt/
+      - /usr/local/
+      - /app/
+      - /.dockerenv
+      - /proc/self/environ
+      - /var/lib/kubelet/
+      - /etc/cni/net.d/
+      - /var/run/secrets/kubernetes.io/
+      - /var/run/secrets/kubernetes.io/serviceaccount/
+      - /run/containerd/
+      - /run/flannel/
+      - /run/calico/
+    ruleName: Unexpected file access
   - ruleName: Unexpected system call
   - ruleName: Unexpected capability used
   - ruleName: Unexpected domain request
