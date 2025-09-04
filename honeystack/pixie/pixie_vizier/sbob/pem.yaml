@@ -1515,6 +1515,15 @@ spec:
       path: /sys/kernel/debug/tracing/uprobe_events
     - flags:
       - O_RDONLY
+      path: /usr/bin/* 
+    - flags:
+      - O_RDONLY
+      path: /usr/sbin/* 
+    - flags:
+      - O_RDONLY
+      path: /opt/⋯/bin/⋯/* 
+    - flags:
+      - O_RDONLY
       path: /usr/bin/bash
     - flags:
       - O_RDONLY
