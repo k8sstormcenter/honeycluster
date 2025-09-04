@@ -1521,7 +1521,10 @@ spec:
       path: /usr/sbin/* 
     - flags:
       - O_RDONLY
-      path: /opt/⋯/bin/⋯/* 
+      path: /opt/⋯/bin/⋯/*
+    - flags:
+      - O_RDONLY
+      path: /opt/⋯/bin/*      
     - flags:
       - O_RDONLY
       path: /usr/bin/bash
