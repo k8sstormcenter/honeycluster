@@ -1,79 +1,54 @@
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
 metadata:
-  name: replicaset-vizier-metadata-5f47d4fcfb
+  name: replicaset-vizier-query-broker-77454cb6c9
   namespace: pl
   annotations:
     kubescape.io/completion: complete
     kubescape.io/status: completed
-    kubescape.io/instance-id: apiVersion-apps/v1/namespace-pl/kind-ReplicaSet/name-vizier-metadata-5f47d4fcfb
-    kubescape.io/wlid: wlid://cluster-bobexample/namespace-pl/deployment-vizier-metadata
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-pl/kind-ReplicaSet/name-vizier-query-broker-77454cb6c9
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-pl/deployment-vizier-query-broker
   labels:
     kubescape.io/workload-api-group: apps
     kubescape.io/workload-api-version: v1
     kubescape.io/workload-kind: Deployment
-    kubescape.io/workload-name: vizier-metadata
+    kubescape.io/workload-name: vizier-query-broker
     kubescape.io/workload-namespace: pl
 spec:
   architectures:
   - amd64
   containers:
   - capabilities:
+    - DAC_OVERRIDE
+    - DAC_READ_SEARCH
+    - FOWNER
     - NET_ADMIN
     endpoints: null
     execs:
     - args:
-      - /app/src/vizier/services/metadata/metadata
-      path: /app/src/vizier/services/metadata/metadata
+      - /app/src/vizier/services/query_broker/query_broker
+      path: /app/src/vizier/services/query_broker/query_broker
     identifiedCallStacks: null
-    imageID: gcr.io/pixie-oss/pixie-prod/vizier-metadata_server_image@sha256:3c2e07eeb209f53c982724173457c8650301e4b36e29d3d93e7196c6e56a7cc5
-    imageTag: gcr.io/pixie-oss/pixie-prod/vizier-metadata_server_image:0.14.15
+    imageID: docker.io/entlein/vizier-query_broker_server_image@sha256:42c2b938319fd6aafc52fe97e4e5c1eed647b68fe8dff9895f02f6479a9c298b
+    imageTag: docker.io/entlein/vizier-query_broker_server_image:2025-06-19_09-51-27.876_UTC
     name: app
     opens:
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /app/src/vizier/services/metadata/metadata.runfiles/px/src/vizier/services/metadata/metadata_/metadata
+      path: /app/src/vizier/services/query_broker/query_broker.runfiles/px/src/vizier/services/query_broker/query_broker_/query_broker
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /certs/⋯/ca.crt
+      path: /certs/⋯/*
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/*
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /certs/⋯/client.crt
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
-      path: /certs/⋯/client.key
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
-      path: /certs/⋯/server.crt
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
-      path: /certs/⋯/server.key
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
-      path: /etc/hosts
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
-      path: /etc/resolv.conf
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
-      path: /lib/x86_64-linux-gnu/libc.so.6
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
-      path: /lib/x86_64-linux-gnu/libm.so.6
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
-      path: /lib/x86_64-linux-gnu/libresolv.so.2
+      path: /lib/x⋯_⋯-linux-gnu/*.⋯
     - flags:
       - O_RDONLY
       - O_CLOEXEC
@@ -81,22 +56,26 @@ spec:
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /proc/⋯/task/1/fd
+      path: /proc/⋯/task/⋯/fd
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /sys/devices/system/cpu/online
     - flags:
       - O_RDONLY
       path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
-      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt
+      - O_CLOEXEC
+      path: /usr/lib/x⋯_⋯-linux-gnu/libunwind.so.⋯.⋯.⋯
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token
+      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/*
     rulePolicies:
       R0001:
         processAllowed:
-        - metadata
+        - query_broker
       R0002: {}
       R0003: {}
       R0004: {}
@@ -134,21 +113,38 @@ spec:
     - capget
     - capset
     - chdir
-    - clone3
+    - clone
     - close
     - close_range
     - connect
+    - dup2
+    - dup3
     - epoll_create1
     - epoll_ctl
     - epoll_pwait
+    - eventfd2
     - execve
+    - exit
+    - exit_group
+    - faccessat
     - faccessat2
+    - fchdir
+    - fchmodat
+    - fchown
+    - fchownat
     - fcntl
+    - fork
+    - fsconfig
+    - fsmount
+    - fsopen
     - fstat
     - fstatfs
     - futex
     - getcwd
     - getdents64
+    - getegid
+    - geteuid
+    - getgid
     - getpeername
     - getpid
     - getppid
@@ -157,16 +153,29 @@ spec:
     - getsockname
     - getsockopt
     - gettid
+    - getuid
     - ioctl
+    - keyctl
     - listen
     - madvise
+    - membarrier
+    - mincore
+    - mkdirat
+    - mknodat
     - mmap
+    - mount
     - mprotect
     - munmap
     - nanosleep
     - newfstatat
+    - open
+    - open_tree
     - openat
+    - openat2
+    - pipe
     - pipe2
+    - pivot_root
+    - poll
     - prctl
     - pread64
     - prlimit64
@@ -179,15 +188,27 @@ spec:
     - rt_sigreturn
     - sched_getaffinity
     - sched_yield
+    - sendto
     - set_robust_list
     - set_tid_address
     - setgid
     - setgroups
+    - setsid
     - setsockopt
     - setuid
     - sigaltstack
     - socket
+    - socketpair
+    - stat
+    - statfs
+    - statx
+    - symlinkat
     - tgkill
     - tkill
+    - umask
+    - umount2
     - uname
+    - unlinkat
+    - wait4
     - write
+    - writev

@@ -171,16 +171,10 @@ spec:
       path: /lib/x⋯_⋯-linux-gnu/*.⋯
     - flags:
       - O_RDONLY
-      path: /opt/bitnami/clickhouse-keeper/bin/clickhouse-keeper
+      path: /opt/**/bin/**/*
     - flags:
       - O_RDONLY
-      path: /opt/bitnami/clickhouse/bin/clickhouse
-    - flags:
-      - O_RDONLY
-      path: /opt/⋯/bin/*
-    - flags:
-      - O_RDONLY
-      path: /opt/⋯/bin/⋯/*
+      path: /usr/**/bin/**/*
     - flags:
       - O_RDONLY
       path: /proc/⋯
@@ -368,16 +362,13 @@ spec:
       path: /sys/kernel/debug/tracing/events/syscalls/sys_enter_execveat/*
     - flags:
       - O_RDONLY
-      path: /usr/bin/*
-    - flags:
-      - O_RDONLY
       path: /usr/lib/x⋯_⋯-linux-gnu/*
     - flags:
       - O_RDONLY
-      path: /usr/local/bin/*
+      path: /usr/sbin/*
     - flags:
       - O_RDONLY
-      path: /usr/sbin/*
+      path: /usr/**/sbin/**/*
     rulePolicies:
       R0001:
         processAllowed:

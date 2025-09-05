@@ -1,89 +1,51 @@
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
 metadata:
-  name: replicaset-vizier-cloud-connector-df45849cc
+  name: replicaset-vizier-metadata-6d98d555dc
   namespace: pl
   annotations:
     kubescape.io/completion: complete
     kubescape.io/status: completed
-    kubescape.io/instance-id: apiVersion-apps/v1/namespace-pl/kind-ReplicaSet/name-vizier-cloud-connector-df45849cc
-    kubescape.io/wlid: wlid://cluster-bobexample/namespace-pl/deployment-vizier-cloud-connector
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-pl/kind-ReplicaSet/name-vizier-metadata-6d98d555dc
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-pl/deployment-vizier-metadata
   labels:
     kubescape.io/workload-api-group: apps
     kubescape.io/workload-api-version: v1
     kubescape.io/workload-kind: Deployment
-    kubescape.io/workload-name: vizier-cloud-connector
+    kubescape.io/workload-name: vizier-metadata
     kubescape.io/workload-namespace: pl
 spec:
   architectures:
   - amd64
   containers:
   - capabilities:
-    - DAC_OVERRIDE
-    - DAC_READ_SEARCH
     - NET_ADMIN
     endpoints: null
     execs:
     - args:
-      - /app/src/vizier/services/cloud_connector/cloud_connector_server
-      path: /app/src/vizier/services/cloud_connector/cloud_connector_server
+      - /app/src/vizier/services/metadata/metadata
+      path: /app/src/vizier/services/metadata/metadata
     identifiedCallStacks: null
-    imageID: gcr.io/pixie-oss/pixie-prod/vizier-cloud_connector_server_image@sha256:9f1c1636f96e325d1a3b12316e77f14c2faf5672aca9e65e43f9eb08a21f6fae
-    imageTag: gcr.io/pixie-oss/pixie-prod/vizier-cloud_connector_server_image:0.14.15
+    imageID: docker.io/entlein/vizier-metadata_server_image@sha256:7b3800dd7993c134bc0b864cee449c61eafc88e3336b99dcf2d36acbba665b2f
+    imageTag: docker.io/entlein/vizier-metadata_server_image:2025-06-19_09-51-27.876_UTC
     name: app
     opens:
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /app/src/vizier/services/cloud_connector/cloud_connector_server.runfiles/px/src/vizier/services/cloud_connector/cloud_connector_server_/cloud_connector_server
+      path: /app/src/vizier/services/metadata/metadata.runfiles/px/src/vizier/services/metadata/metadata_/metadata
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /certs/⋯/ca.crt
+      path: /certs/⋯/*
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /certs/⋯/client.crt
+      path: /etc/*
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /certs/⋯/client.key
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
-      path: /certs/⋯/server.crt
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
-      path: /certs/⋯/server.key
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
-      path: /etc/hosts
-    - flags:
-      - O_CLOEXEC
-      - O_RDONLY
-      path: /etc/resolv.conf
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
-      path: /etc/ssl/certs
-    - flags:
-      - O_CLOEXEC
-      - O_RDONLY
-      path: /etc/ssl/certs/ca-certificates.crt
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
-      path: /lib/x86_64-linux-gnu/libc.so.6
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
-      path: /lib/x86_64-linux-gnu/libm.so.6
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
-      path: /lib/x86_64-linux-gnu/libresolv.so.2
+      path: /lib/x⋯_⋯-linux-gnu/*
     - flags:
       - O_RDONLY
       - O_CLOEXEC
@@ -91,22 +53,18 @@ spec:
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /proc/⋯/task/1/fd
+      path: /proc/⋯/task/⋯/fd
     - flags:
       - O_RDONLY
       path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
     - flags:
-      - O_RDONLY
       - O_CLOEXEC
-      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt
-    - flags:
       - O_RDONLY
-      - O_CLOEXEC
-      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token
+      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/*
     rulePolicies:
       R0001:
         processAllowed:
-        - cloud_connector
+        - metadata
       R0002: {}
       R0003: {}
       R0004: {}
@@ -144,7 +102,7 @@ spec:
     - capget
     - capset
     - chdir
-    - clone
+    - clone3
     - close
     - close_range
     - connect
@@ -152,10 +110,9 @@ spec:
     - epoll_ctl
     - epoll_pwait
     - execve
-    - exit
     - faccessat2
-    - fchown
     - fcntl
+    - fdatasync
     - fstat
     - fstatfs
     - futex
@@ -171,7 +128,6 @@ spec:
     - gettid
     - ioctl
     - listen
-    - lseek
     - madvise
     - mmap
     - mprotect
@@ -180,7 +136,6 @@ spec:
     - newfstatat
     - openat
     - pipe2
-    - poll
     - prctl
     - pread64
     - prlimit64
@@ -193,7 +148,6 @@ spec:
     - rt_sigreturn
     - sched_getaffinity
     - sched_yield
-    - sendmmsg
     - set_robust_list
     - set_tid_address
     - setgid
