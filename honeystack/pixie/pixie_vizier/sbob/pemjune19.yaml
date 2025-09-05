@@ -1515,7 +1515,7 @@ spec:
     - write
     - writev
   initContainers:
-    capabilities:
+  - capabilities:
     - DAC_OVERRIDE
     - DAC_READ_SEARCH
     - SETGID
