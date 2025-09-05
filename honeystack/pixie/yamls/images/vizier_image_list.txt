@@ -1,8 +1,0 @@
-"gcr.io/pixie-oss/pixie-prod/vizier-cert_provisioner_image:0.14.15"
-"gcr.io/pixie-oss/pixie-prod/vizier-cloud_connector_server_image:0.14.15"
-"gcr.io/pixie-oss/pixie-prod/vizier-deps/nats:2.9.19-scratch@sha256:5de59286eb54ead4d4a9279846098d4097b9c17a3c0588182398a7250cde1af9"
-"gcr.io/pixie-oss/pixie-prod/vizier-kelvin_image:0.14.15"
-"gcr.io/pixie-oss/pixie-prod/vizier-metadata_server_image:0.14.15"
-"gcr.io/pixie-oss/pixie-prod/vizier-pem_image:0.14.15"
-"gcr.io/pixie-oss/pixie-prod/vizier-query_broker_server_image:0.14.15"
-"ghcr.io/pixie-io/pixie-oss-pixie-dev-public-curl:multiarch-7.87.0@sha256:f7f265d5c64eb4463a43a99b6bf773f9e61a50aaa7cefaf564f43e42549a01dd"

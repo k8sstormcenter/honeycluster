@@ -1,0 +1,176 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  name: replicaset-vizier-cloud-connector-75449f5585
+  namespace: pl
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/status: completed
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-pl/kind-ReplicaSet/name-vizier-cloud-connector-75449f5585
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-pl/deployment-vizier-cloud-connector
+  labels:
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: vizier-cloud-connector
+    kubescape.io/workload-namespace: pl
+spec:
+  architectures:
+  - amd64
+  containers:
+  - capabilities:
+    - DAC_OVERRIDE
+    - DAC_READ_SEARCH
+    - NET_ADMIN
+    endpoints: null
+    execs:
+    - args:
+      - /app/src/vizier/services/cloud_connector/cloud_connector_server
+      path: /app/src/vizier/services/cloud_connector/cloud_connector_server
+    identifiedCallStacks: null
+    imageID: docker.io/entlein/vizier-cloud_connector_server_image@sha256:17eb1500ef6cae8a95004d4532bdeb5350498527bed85813da01940e925dc0fa
+    imageTag: docker.io/entlein/vizier-cloud_connector_server_image:2025-06-19_09-51-27.876_UTC
+    name: app
+    opens:
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /app/src/vizier/services/cloud_connector/cloud_connector_server.runfiles/px/src/vizier/services/cloud_connector/cloud_connector_server_/cloud_connector_server
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /certs/⋯/*
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/*
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/ssl/certs
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/ssl/certs/ca-certificates.crt
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /lib/x⋯_⋯-linux-gnu/*
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/net/core/somaxconn
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/task/⋯/fd
+    - flags:
+      - O_RDONLY
+      path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/*
+    rulePolicies:
+      R0001:
+        processAllowed:
+        - cloud_connector
+      R0002: {}
+      R0003: {}
+      R0004: {}
+      R0005: {}
+      R0006: {}
+      R0007: {}
+      R0008: {}
+      R0009: {}
+      R0010: {}
+      R0011: {}
+      R1000: {}
+      R1001: {}
+      R1002: {}
+      R1003: {}
+      R1004: {}
+      R1005: {}
+      R1006: {}
+      R1007: {}
+      R1008: {}
+      R1009: {}
+      R1010: {}
+      R1011: {}
+      R1012: {}
+      R1015: {}
+      R1030: {}
+    seccompProfile:
+      spec:
+        defaultAction: ""
+    syscalls:
+    - accept4
+    - access
+    - arch_prctl
+    - bind
+    - brk
+    - capget
+    - capset
+    - chdir
+    - clone
+    - close
+    - close_range
+    - connect
+    - epoll_create1
+    - epoll_ctl
+    - epoll_pwait
+    - execve
+    - exit
+    - faccessat2
+    - fchown
+    - fcntl
+    - fstat
+    - fstatfs
+    - futex
+    - getcwd
+    - getdents64
+    - getpeername
+    - getpid
+    - getppid
+    - getrandom
+    - getrlimit
+    - getsockname
+    - getsockopt
+    - gettid
+    - ioctl
+    - listen
+    - lseek
+    - madvise
+    - mmap
+    - mprotect
+    - munmap
+    - nanosleep
+    - newfstatat
+    - openat
+    - pipe2
+    - poll
+    - prctl
+    - pread64
+    - prlimit64
+    - read
+    - readlinkat
+    - recvfrom
+    - rseq
+    - rt_sigaction
+    - rt_sigprocmask
+    - rt_sigreturn
+    - sched_getaffinity
+    - sched_yield
+    - sendmmsg
+    - set_robust_list
+    - set_tid_address
+    - setgid
+    - setgroups
+    - setsockopt
+    - setuid
+    - sigaltstack
+    - socket
+    - tgkill
+    - tkill
+    - uname
+    - write

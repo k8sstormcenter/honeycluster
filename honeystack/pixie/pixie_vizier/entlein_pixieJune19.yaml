@@ -1506,6 +1506,8 @@ spec:
           value: "false"
         - name: PL_HOST_PATH
           value: /host
+       # - name: PX_STIRLING_ENABLE_TLS_TRACING
+       #   value: "1"
         - name: PL_POD_NAME
           valueFrom:
             fieldRef:
