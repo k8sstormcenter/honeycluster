@@ -28,7 +28,7 @@ spec:
     - SYS_ADMIN
     - SYS_PTRACE
     - SYSLOG
-    endpoints: null
+    endpoints: null  
     execs:
     - args:
       - /app/src/vizier/services/agent/pem/pem
@@ -1523,6 +1523,11 @@ spec:
     endpoints: null
     execs:
     - args:
+      - /bin/sh
+      - -c
+      - 'set -x; URL="https://${SERVICE_NAME}:${SERVICE_PORT}/healthz"; until [ $(curl -m 0.5 -s -o /dev/null -w "%{http_code}" -k ${URL}) -eq 200 ]; do echo "waiting for ${URL}"; sleep 2; done; '
+      path: /bin/sh
+    - args:
       - /usr/bin/curl
       - -m
       - "0.5"
@@ -1534,11 +1539,6 @@ spec:
       - -k
       - https://vizier-query-broker-svc:50300/healthz
       path: /usr/bin/curl
-    - args:
-      - /bin/sh
-      - -c
-      - 'set -x; URL="https://${SERVICE_NAME}:${SERVICE_PORT}/healthz"; until [ $(curl -m 0.5 -s -o /dev/null -w "%{http_code}" -k ${URL}) -eq 200 ]; do echo "waiting for ${URL}"; sleep 2; done; '
-      path: /bin/sh
     identifiedCallStacks: null
     imageID: ghcr.io/pixie-io/pixie-oss-pixie-dev-public-curl@sha256:f7f265d5c64eb4463a43a99b6bf773f9e61a50aaa7cefaf564f43e42549a01dd
     imageTag: ghcr.io/pixie-io/pixie-oss-pixie-dev-public-curl@sha256:f7f265d5c64eb4463a43a99b6bf773f9e61a50aaa7cefaf564f43e42549a01dd
@@ -1554,17 +1554,7 @@ spec:
       - O_RDONLY
       - O_LARGEFILE
       - O_CLOEXEC
-      path: /etc/hosts
-    - flags:
-      - O_RDONLY
-      - O_LARGEFILE
-      - O_CLOEXEC
-      path: /etc/passwd
-    - flags:
-      - O_RDONLY
-      - O_LARGEFILE
-      - O_CLOEXEC
-      path: /etc/resolv.conf
+      path: /etc/*.conf
     - flags:
       - O_RDONLY
       - O_LARGEFILE
@@ -1573,50 +1563,16 @@ spec:
       - O_RDONLY
       - O_LARGEFILE
       - O_CLOEXEC
-      path: /lib/libcrypto.so.1.1
+      path: /lib/*.⋯
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/task/⋯/fd
     - flags:
       - O_RDONLY
       - O_LARGEFILE
       - O_CLOEXEC
-      path: /lib/libssl.so.1.1
-    - flags:
-      - O_RDONLY
-      - O_LARGEFILE
-      - O_CLOEXEC
-      path: /lib/libz.so.1.2.12
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
-      path: /proc/⋯/task/180792/fd
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
-      path: /proc/⋯/task/223056/fd
-    - flags:
-      - O_RDONLY
-      - O_LARGEFILE
-      - O_CLOEXEC
-      path: /usr/lib/libbrotlicommon.so.1.0.9
-    - flags:
-      - O_RDONLY
-      - O_LARGEFILE
-      - O_CLOEXEC
-      path: /usr/lib/libbrotlidec.so.1.0.9
-    - flags:
-      - O_RDONLY
-      - O_LARGEFILE
-      - O_CLOEXEC
-      path: /usr/lib/libcurl.so.4.8.0
-    - flags:
-      - O_RDONLY
-      - O_LARGEFILE
-      - O_CLOEXEC
-      path: /usr/lib/libnghttp2.so.14.21.2
-    - flags:
-      - O_RDONLY
-      - O_LARGEFILE
-      - O_CLOEXEC
-      path: /usr/lib/libssh2.so.1.0.1
+      path: /usr/lib/*.⋯
     rulePolicies:
       R0001:
         processAllowed:
@@ -1669,9 +1625,13 @@ spec:
     - exit
     - exit_group
     - faccessat2
+    - fchmod
     - fchown
     - fcntl
+    - fgetxattr
     - fork
+    - fsconfig
+    - fsopen
     - fstat
     - fstatfs
     - futex
@@ -1692,6 +1652,8 @@ spec:
     - madvise
     - membarrier
     - mmap
+    - mount
+    - mount_setattr
     - mprotect
     - munmap
     - nanosleep
@@ -1718,8 +1680,10 @@ spec:
     - socket
     - socketpair
     - stat
+    - statx
     - tgkill
     - tkill
+    - umount2
     - wait4
     - write
     - writev
