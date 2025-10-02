@@ -812,6 +812,7 @@ metadata:
   labels:
     app: pl-monitoring
     component: vizier
+    kubescape.io/user-defined-profile: replicaset-kelvin
   name: kelvin
   namespace: pl
 spec:
@@ -827,6 +828,7 @@ spec:
         component: vizier
         name: kelvin
         plane: data
+        kubescape.io/user-defined-profile: replicaset-kelvin
     spec:
       affinity:
         nodeAffinity:
@@ -991,6 +993,7 @@ metadata:
     app: pl-monitoring
     component: vizier
     vizier-bootstrap: "true"
+    kubescape.io/user-defined-profile: replicaset-vizier-cloud-connector
   name: vizier-cloud-connector
   namespace: pl
 spec:
@@ -1009,6 +1012,7 @@ spec:
         name: vizier-cloud-connector
         plane: control
         vizier-bootstrap: "true"
+        kubescape.io/user-defined-profile: replicaset-vizier-cloud-connector
     spec:
       affinity:
         nodeAffinity:
@@ -1142,6 +1146,7 @@ metadata:
     app: pl-monitoring
     component: vizier
     flavour: entlein
+    kubescape.io/user-defined-profile: replicaset-vizier-query-broker
   name: vizier-query-broker
   namespace: pl
 spec:
@@ -1161,6 +1166,7 @@ spec:
         component: vizier
         name: vizier-query-broker
         plane: control
+        kubescape.io/user-defined-profile: replicaset-vizier-query-broker
     spec:
       affinity:
         nodeAffinity:
@@ -1313,6 +1319,7 @@ metadata:
     component: vizier
   name: vizier-metadata
   namespace: pl
+  kubescape.io/user-defined-profile: statefulset-vizier-metadata
 spec:
   replicas: 1
   selector:
@@ -1331,6 +1338,7 @@ spec:
         component: vizier
         name: vizier-metadata
         plane: control
+        kubescape.io/user-defined-profile: statefulset-vizier-metadata
     spec:
       affinity:
         nodeAffinity:
@@ -1457,7 +1465,7 @@ metadata:
   labels:
     app: pl-monitoring
     component: vizier
-    kubescape.io/user-defined-profile: "vizier-pem"
+    kubescape.io/user-defined-profile: "daemonset-vizier-pem"
   name: vizier-pem
   namespace: pl
 spec:
@@ -1473,7 +1481,7 @@ spec:
         component: vizier
         name: vizier-pem
         plane: data
-        kubescape.io/user-defined-profile: "vizier-pem"
+        kubescape.io/user-defined-profile: "daemonset-vizier-pem"
     spec:
       affinity:
         nodeAffinity:
@@ -1622,7 +1630,7 @@ metadata:
     app: pl-monitoring
     component: vizier
     vizier-bootstrap: "true"
-    kubescape.io/user-defined-profile: "cert-provisioner-job"
+    kubescape.io/user-defined-profile: "job-cert-provisioner-job"
   name: cert-provisioner-job
   namespace: pl
 spec:
@@ -1635,7 +1643,7 @@ spec:
         app: pl-monitoring
         component: vizier
         vizier-bootstrap: "true"
-        kubescape.io/user-defined-profile: "cert-provisioner-job"
+        kubescape.io/user-defined-profile: "job-cert-provisioner-job"
       name: cert-provisioner-job
     spec:
       containers:
