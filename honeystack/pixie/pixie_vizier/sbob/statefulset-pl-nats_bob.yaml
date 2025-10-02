@@ -71,15 +71,15 @@ spec:
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /etc/nats-server-tls-certs/⋯/*
+      path: /etc/nats-server-tls-certs/⋯/⋯
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /proc/*/task/*/fd
+      path: /proc/⋯/task/⋯/fd
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /proc/⋯/*
+      path: /proc/⋯/⋯
     - flags:
       - O_CLOEXEC
       - O_RDONLY

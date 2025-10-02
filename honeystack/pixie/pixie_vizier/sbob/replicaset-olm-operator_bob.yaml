@@ -37,7 +37,7 @@ spec:
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: \1*
+      path: \1⋯
     - flags:
       - O_RDONLY
       - O_CLOEXEC
@@ -45,7 +45,7 @@ spec:
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /proc/*/task/*/fd
+      path: /proc/⋯/task/⋯/fd
     - flags:
       - O_CLOEXEC
       - O_RDONLY
@@ -60,7 +60,7 @@ spec:
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/*
+      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/⋯
     rulePolicies:
       R0001:
         processAllowed:

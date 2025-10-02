@@ -23,29 +23,29 @@ spec:
     opens:
     - flags:
       - O_RDONLY
-      path: /certs/⋯/*
+      path: /certs/⋯/⋯
     - flags:
       - O_RDONLY
       path: /dev/urandom
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /etc/*
+      path: /etc/⋯
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /lib/x⋯_⋯-linux-gnu/*.⋯
+      path: /lib/x⋯_⋯-linux-gnu/⋯.⋯
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /proc/*/task/*/fd
+      path: /proc/⋯/task/⋯/fd
     - flags:
       - O_RDONLY
-      path: /proc/⋯/net/*
+      path: /proc/⋯/net/⋯
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /sys/devices/system/cpu/*
+      path: /sys/devices/system/cpu/⋯
     - flags:
       - O_RDONLY
       - O_NONBLOCK
@@ -54,10 +54,10 @@ spec:
       path: /sys/fs/cgroup
     - flags:
       - O_RDONLY
-      path: /sys/fs/cgroup/**/*
+      path: /sys/fs/cgroup/⋯⋯/⋯
     - flags:
       - O_RDONLY
-      path: /sys/fs/cgroup/kubepods.slice/kubepods-besteffort.slice/*
+      path: /sys/fs/cgroup/kubepods.slice/kubepods-besteffort.slice/⋯
     - flags:
       - O_RDONLY
       - O_NONBLOCK
@@ -69,19 +69,19 @@ spec:
       - O_CLOEXEC
       - O_RDONLY
       - O_NONBLOCK
-      path: /sys/fs/cgroup/system.slice/*
+      path: /sys/fs/cgroup/system.slice/⋯
     - flags:
       - O_NONBLOCK
       - O_DIRECTORY
       - O_CLOEXEC
       - O_RDONLY
-      path: /sys/fs/cgroup/system.slice/⋯/*
+      path: /sys/fs/cgroup/system.slice/⋯/⋯
     - flags:
       - O_CLOEXEC
       - O_RDONLY
       - O_NONBLOCK
       - O_DIRECTORY
-      path: /sys/fs/cgroup/user.slice/**/*
+      path: /sys/fs/cgroup/user.slice/⋯⋯/⋯
     - flags:
       - O_RDONLY
       - O_CLOEXEC

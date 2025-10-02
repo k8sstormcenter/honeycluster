@@ -27,18 +27,18 @@ spec:
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /lib/x86_64-linux-gnu/*
+      path: /lib/x86_64-linux-gnu/⋯
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /proc/*/task/*/fd
+      path: /proc/⋯/task/⋯/fd
     - flags:
       - O_RDONLY
       path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/*
+      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/⋯
     rulePolicies:
       R0001:
         processAllowed:

@@ -96,24 +96,24 @@ spec:
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /etc/*.conf
+      path: /etc/⋯.conf
     - flags:
       - O_CLOEXEC
       - O_LARGEFILE
       - O_RDONLY
-      path: /etc/etcd/scripts/*
+      path: /etc/etcd/scripts/⋯
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /etc/etcdtls/client/etcd-tls/⋯/*
+      path: /etc/etcdtls/client/etcd-tls/⋯/⋯
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /etc/etcdtls/member/peer-tls/⋯/*
+      path: /etc/etcdtls/member/peer-tls/⋯/⋯
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /etc/etcdtls/member/server-tls/⋯/*
+      path: /etc/etcdtls/member/server-tls/⋯/⋯
     - flags:
       - O_CLOEXEC
       - O_RDONLY
@@ -121,11 +121,11 @@ spec:
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /proc/*/task/*/fd
+      path: /proc/⋯/task/⋯/fd
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /proc/⋯/*
+      path: /proc/⋯/⋯
     - flags:
       - O_CLOEXEC
       - O_RDONLY
@@ -140,28 +140,28 @@ spec:
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /usr/local\1*
+      path: /usr/local\1⋯
     - flags:
       - O_CLOEXEC
       - O_CREAT
       - O_RDONLY
       - O_TRUNC
       - O_WRONLY
-      path: /var/run/etcd/default.etcd/*
+      path: /var/run/etcd/default.etcd/⋯
     - flags:
       - O_CLOEXEC
       - O_CREAT
       - O_RDONLY
       - O_TRUNC
       - O_WRONLY
-      path: /var/run/etcd/default.etcd/member/**
+      path: /var/run/etcd/default.etcd/member/⋯⋯
     - flags:
       - O_CLOEXEC
       - O_CREAT
       - O_RDWR
       - O_TRUNC
       - O_WRONLY
-      path: /var/run/etcd/default.etcd/member/snap/*
+      path: /var/run/etcd/default.etcd/member/snap/⋯
     - flags:
       - O_WRONLY
       - O_CREAT
@@ -172,7 +172,7 @@ spec:
       - O_CREAT
       - O_TRUNC
       - O_WRONLY
-      path: /var/run/etcd/default.etcd/member/wal.tmp/*
+      path: /var/run/etcd/default.etcd/member/wal.tmp/⋯
     rulePolicies:
       R0001:
         processAllowed:
