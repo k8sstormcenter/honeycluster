@@ -1,0 +1,189 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  name: statefulset-pl-nats
+  namespace: pl
+spec:
+  architectures:
+  - amd64
+  containers:
+  - capabilities:
+    - DAC_OVERRIDE
+    - DAC_READ_SEARCH
+    - NET_ADMIN
+    endpoints:
+    - direction: inbound
+      endpoint: :8222/
+      headers:
+        Accept-Encoding:
+          - gzip
+        Connection:
+          - close
+        Host:
+          - 10-42-0-26.pl.pod.cluster.local:8222
+          - 10.42.0.26:8222
+      internal: false
+      methods:
+        - GET
+    - direction: inbound
+      endpoint: :8222/
+      headers:
+        Accept-Encoding:
+          - gzip
+        Connection:
+          - close
+        Host:
+          - 10-42-0-26.pl.pod.cluster.local:8222
+          - 10.42.0.26:8222
+          - pl-nats-mgmt:8222
+      internal: false
+      methods:
+        - GET
+    - direction: inbound
+      endpoint: :8222/
+      headers:
+        Accept-Encoding:
+          - gzip
+        Connection:
+          - close
+        Host:
+          - 10.42.0.26:8222
+          - pl-nats-mgmt:8222
+          - 10-42-0-26.pl.pod.cluster.local:8222
+      internal: false
+      methods:
+        - GET
+    execs:
+    - args:
+      - /nats-server
+      - --config
+      - /etc/nats-config/nats.conf
+      path: /nats-server
+    identifiedCallStacks: null
+    imageID: gcr.io/pixie-oss/pixie-prod/vizier-deps/nats@sha256:5de59286eb54ead4d4a9279846098d4097b9c17a3c0588182398a7250cde1af9
+    imageTag: gcr.io/pixie-oss/pixie-prod/vizier-deps/nats@sha256:5de59286eb54ead4d4a9279846098d4097b9c17a3c0588182398a7250cde1af9
+    name: pl-nats
+    opens:
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/nats-config/⋯/nats.conf
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/nats-server-tls-certs/⋯/*
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/*/task/*/fd
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /proc/⋯/*
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /proc/⋯/net/core/somaxconn
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /sys/fs/cgroup/cpu.max
+    - flags:
+      - O_RDONLY
+      path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+    - flags:
+      - O_WRONLY
+      - O_CREAT
+      - O_TRUNC
+      - O_CLOEXEC
+      path: /var/run/nats/nats.pid
+    rulePolicies:
+      R0001:
+        processAllowed:
+        - nats-server
+      R0002: {}
+      R0003: {}
+      R0004: {}
+      R0005: {}
+      R0006: {}
+      R0007: {}
+      R0008: {}
+      R0009: {}
+      R0010: {}
+      R0011: {}
+      R1000: {}
+      R1001: {}
+      R1002: {}
+      R1003: {}
+      R1004: {}
+      R1005: {}
+      R1006: {}
+      R1007: {}
+      R1008: {}
+      R1009: {}
+      R1010: {}
+      R1011: {}
+      R1012: {}
+      R1015: {}
+      R1030: {}
+    seccompProfile:
+      spec:
+        defaultAction: ""
+    syscalls:
+    - accept4
+    - arch_prctl
+    - bind
+    - brk
+    - capget
+    - capset
+    - chdir
+    - clone
+    - close
+    - close_range
+    - epoll_create1
+    - epoll_ctl
+    - epoll_pwait
+    - execve
+    - exit
+    - faccessat2
+    - fchown
+    - fcntl
+    - fstat
+    - fstatfs
+    - futex
+    - getcwd
+    - getdents64
+    - getpid
+    - getppid
+    - getrandom
+    - getrlimit
+    - getsockname
+    - gettid
+    - listen
+    - madvise
+    - mmap
+    - munmap
+    - nanosleep
+    - newfstatat
+    - openat
+    - pipe2
+    - prctl
+    - read
+    - recvfrom
+    - rt_sigaction
+    - rt_sigprocmask
+    - rt_sigreturn
+    - sched_getaffinity
+    - sched_yield
+    - sendto
+    - setgid
+    - setgroups
+    - setsockopt
+    - setuid
+    - sigaltstack
+    - socket
+    - sysinfo
+    - tgkill
+    - tkill
+    - write
+    - writev

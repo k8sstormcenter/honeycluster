@@ -1,0 +1,26 @@
+# AppArmor profile for pod-pixie-operator-index-zxhdt
+profile pod-pixie-operator-index-zxhdt-profile flags=(attach_disconnected,mediate_deleted) {
+  #include <tunables/global>
+  # Executable: /bin/grpc_health_probe
+  /bin/grpc_health_probe \{
+    capability CHOWN,
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability NET_ADMIN,
+    capability SETGID,
+    capability SETPCAP,
+    capability SETUID,
+    capability SYS_ADMIN,
+  }
+  # Executable: /bin/opm
+  /bin/opm \{
+    capability CHOWN,
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability NET_ADMIN,
+    capability SETGID,
+    capability SETPCAP,
+    capability SETUID,
+    capability SYS_ADMIN,
+  }
+}

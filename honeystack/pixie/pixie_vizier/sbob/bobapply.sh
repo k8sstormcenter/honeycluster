@@ -1,4 +1,4 @@
 #!/bin/bash
-for file in *.yaml; do
+for file in *_bob.yaml; do
     kubectl apply -f $file;
 done

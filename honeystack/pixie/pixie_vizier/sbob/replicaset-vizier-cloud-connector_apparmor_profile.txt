@@ -1,0 +1,10 @@
+# AppArmor profile for replicaset-vizier-cloud-connector
+profile replicaset-vizier-cloud-connector-profile flags=(attach_disconnected,mediate_deleted) {
+  #include <tunables/global>
+  # Executable: /app/src/vizier/services/cloud_connector/cloud_connector_server
+  /app/src/vizier/services/cloud_connector/cloud_connector_server \{
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability NET_ADMIN,
+  }
+}

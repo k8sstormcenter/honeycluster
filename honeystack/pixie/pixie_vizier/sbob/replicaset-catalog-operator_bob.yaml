@@ -1,100 +1,116 @@
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
 metadata:
-  name: replicaset-vizier-operator-7648ff4c7b
-  namespace: px-operator
-  annotations:
-    kubescape.io/completion: complete
-    kubescape.io/status: completed
-    kubescape.io/instance-id: apiVersion-apps/v1/namespace-px-operator/kind-ReplicaSet/name-vizier-operator-7648ff4c7b
-    kubescape.io/wlid: wlid://cluster-bobexample/namespace-px-operator/deployment-vizier-operator
-  labels:
-    kubescape.io/workload-api-group: apps
-    kubescape.io/workload-api-version: v1
-    kubescape.io/workload-kind: Deployment
-    kubescape.io/workload-name: vizier-operator
-    kubescape.io/workload-namespace: px-operator
+  name: replicaset-catalog-operator
+  namespace: olm
 spec:
   architectures:
   - amd64
   containers:
   - capabilities:
+    - CHOWN
+    - DAC_OVERRIDE
+    - DAC_READ_SEARCH
     - NET_ADMIN
-    endpoints: 
-    - direction: outbound
-      endpoint: :8222/
+    - SETGID
+    - SETPCAP
+    - SETUID
+    - SYS_ADMIN
+    endpoints:
+    - direction: inbound
+      endpoint: :8080/healthz
       headers:
-        Accept-Encoding:
-          - gzip
+        Connection:
+          - close
         Host:
-          - *.pl.pod.cluster.local:8222
+          - 10.42.0.21:8080
       internal: false
       methods:
         - GET
     execs:
     - args:
-      - /app/src/operator/operator
-      path: /app/src/operator/operator
+      - /bin/catalog
+      - --namespace
+      - olm
+      - --configmapServerImage=quay.io/operator-framework/configmap-operator-registry:latest
+      - --util-image
+      - quay.io/operator-framework/olm@sha256:1b6002156f568d722c29138575733591037c24b4bfabc67946f268ce4752c3e6
+      - --opmImage
+      - quay.io/operator-framework/opm@sha256:d999588bd4e9509ec9e75e49adfb6582d256e9421e454c7fb5e9fe57e7b1aada
+      path: /bin/catalog
+    - args:
+      - /bin/grpc_health_probe
+      - -addr=:50051
+      path: /bin/grpc_health_probe
+    - args:
+      - /bin/opm
+      - registry
+      - serve
+      - --database
+      - /database/index.db
+      path: /bin/opm
     identifiedCallStacks: null
-    imageID: gcr.io/pixie-oss/pixie-prod/operator-operator_image@sha256:f596c0293ca825c22beb316a10ac6999ee28abfef260609bdb2909bd470095d7
-    imageTag: gcr.io/pixie-oss/pixie-prod/operator-operator_image:0.1.7
-    name: app
+    imageID: quay.io/operator-framework/olm@sha256:1b6002156f568d722c29138575733591037c24b4bfabc67946f268ce4752c3e6
+    imageTag: quay.io/operator-framework/olm@sha256:1b6002156f568d722c29138575733591037c24b4bfabc67946f268ce4752c3e6
+    name: catalog-operator
     opens:
     - flags:
-      - O_RDONLY
       - O_CLOEXEC
-      path: /app/src/operator/operator.runfiles/px/src/operator/operator_/operator
+      - O_RDONLY
+      path: /*
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /etc/hosts
+      path: /database/index.db
+    - flags:
+      - O_WRONLY
+      - O_CREAT
+      - O_CLOEXEC
+      path: /dev/termination-log
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /etc/resolv.conf
+      path: /etc/*.conf
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /etc/ssl/certs
+      path: /proc/⋯
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /etc/ssl/certs/ca-certificates.crt
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
-      path: /lib/x86_64-linux-gnu/libc.so.6
+      path: /proc/*/task/*/fd
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /lib/x86_64-linux-gnu/libm.so.6
+      path: /proc/⋯/*
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /lib/x86_64-linux-gnu/libresolv.so.2
+      path: /proc/⋯/kernel/cap_last_cap
     - flags:
       - O_RDONLY
       - O_CLOEXEC
       path: /proc/⋯/net/core/somaxconn
     - flags:
       - O_RDONLY
-      - O_CLOEXEC
-      path: /proc/⋯/task/1/fd
-    - flags:
-      - O_RDONLY
       path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
     - flags:
-      - O_RDONLY
+      - O_RDWR
+      - O_CREAT
+      - O_EXCL
       - O_CLOEXEC
-      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt
+      - O_NOFOLLOW
+      path: /tmp/db*
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token
+      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/*
     rulePolicies:
       R0001:
         processAllowed:
-        - operator
+        - catalog
+        - grpc_health_pro
+        - opm
       R0002: {}
       R0003: {}
       R0004: {}
@@ -125,7 +141,6 @@ spec:
         defaultAction: ""
     syscalls:
     - accept4
-    - access
     - arch_prctl
     - bind
     - brk
@@ -174,8 +189,6 @@ spec:
     - ioctl
     - keyctl
     - listen
-    - lseek
-    - lstat
     - madvise
     - mkdirat
     - mknodat
@@ -185,18 +198,15 @@ spec:
     - munmap
     - nanosleep
     - newfstatat
-    - open
     - open_tree
     - openat
     - openat2
     - pipe2
     - pivot_root
-    - poll
     - prctl
     - pread64
     - prlimit64
     - read
-    - readlink
     - readlinkat
     - recvfrom
     - rseq
@@ -205,18 +215,16 @@ spec:
     - rt_sigreturn
     - sched_getaffinity
     - sched_yield
-    - sendfile
-    - sendmmsg
     - set_robust_list
     - set_tid_address
     - setgid
     - setgroups
+    - setns
     - setsid
     - setsockopt
     - setuid
     - sigaltstack
     - socket
-    - stat
     - statfs
     - statx
     - symlinkat
@@ -226,5 +234,5 @@ spec:
     - umount2
     - uname
     - unlinkat
+    - unshare
     - write
-    - writev

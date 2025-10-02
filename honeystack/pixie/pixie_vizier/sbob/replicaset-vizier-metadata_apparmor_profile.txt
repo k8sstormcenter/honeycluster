@@ -1,0 +1,8 @@
+# AppArmor profile for replicaset-vizier-metadata
+profile replicaset-vizier-metadata-profile flags=(attach_disconnected,mediate_deleted) {
+  #include <tunables/global>
+  # Executable: /app/src/vizier/services/metadata/metadata
+  /app/src/vizier/services/metadata/metadata \{
+    capability NET_ADMIN,
+  }
+}

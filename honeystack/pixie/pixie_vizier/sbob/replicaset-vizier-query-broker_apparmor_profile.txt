@@ -1,0 +1,11 @@
+# AppArmor profile for replicaset-vizier-query-broker
+profile replicaset-vizier-query-broker-profile flags=(attach_disconnected,mediate_deleted) {
+  #include <tunables/global>
+  # Executable: /app/src/vizier/services/query_broker/query_broker
+  /app/src/vizier/services/query_broker/query_broker \{
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability FOWNER,
+    capability NET_ADMIN,
+  }
+}

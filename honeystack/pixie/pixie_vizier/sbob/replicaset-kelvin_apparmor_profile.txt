@@ -1,0 +1,10 @@
+# AppArmor profile for replicaset-kelvin
+profile replicaset-kelvin-profile flags=(attach_disconnected,mediate_deleted) {
+  #include <tunables/global>
+  # Executable: /app/src/vizier/services/agent/kelvin/kelvin
+  /app/src/vizier/services/agent/kelvin/kelvin \{
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability NET_ADMIN,
+  }
+}

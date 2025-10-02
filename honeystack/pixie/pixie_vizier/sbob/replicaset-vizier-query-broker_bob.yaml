@@ -1,77 +1,47 @@
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
 metadata:
-  name: replicaset-vizier-operator-7648ff4c7b
-  namespace: px-operator
-  annotations:
-    kubescape.io/completion: complete
-    kubescape.io/status: completed
-    kubescape.io/instance-id: apiVersion-apps/v1/namespace-px-operator/kind-ReplicaSet/name-vizier-operator-7648ff4c7b
-    kubescape.io/wlid: wlid://cluster-bobexample/namespace-px-operator/deployment-vizier-operator
-  labels:
-    kubescape.io/workload-api-group: apps
-    kubescape.io/workload-api-version: v1
-    kubescape.io/workload-kind: Deployment
-    kubescape.io/workload-name: vizier-operator
-    kubescape.io/workload-namespace: px-operator
+  name: replicaset-vizier-query-broker
+  namespace: pl
 spec:
   architectures:
   - amd64
   containers:
   - capabilities:
+    - DAC_OVERRIDE
+    - DAC_READ_SEARCH
+    - FOWNER
     - NET_ADMIN
-    endpoints: 
-    - direction: outbound
-      endpoint: :8222/
-      headers:
-        Accept-Encoding:
-          - gzip
-        Host:
-          - *.pl.pod.cluster.local:8222
-      internal: false
-      methods:
-        - GET
+    endpoints: null
     execs:
     - args:
-      - /app/src/operator/operator
-      path: /app/src/operator/operator
+      - /app/src/vizier/services/query_broker/query_broker
+      path: /app/src/vizier/services/query_broker/query_broker
     identifiedCallStacks: null
-    imageID: gcr.io/pixie-oss/pixie-prod/operator-operator_image@sha256:f596c0293ca825c22beb316a10ac6999ee28abfef260609bdb2909bd470095d7
-    imageTag: gcr.io/pixie-oss/pixie-prod/operator-operator_image:0.1.7
+    imageID: docker.io/entlein/vizier-query_broker_server_image@sha256:42c2b938319fd6aafc52fe97e4e5c1eed647b68fe8dff9895f02f6479a9c298b
+    imageTag: docker.io/entlein/vizier-query_broker_server_image:2025-06-19_09-51-27.876_UTC
     name: app
     opens:
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /app/src/operator/operator.runfiles/px/src/operator/operator_/operator
+      path: /app/src/vizier/services/query_broker/query_broker.runfiles/px/src/vizier/services/query_broker/query_broker_/query_broker
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /etc/hosts
+      path: /certs/⋯/*
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /etc/resolv.conf
+      path: /etc/*
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /etc/ssl/certs
+      path: /lib/x⋯_⋯-linux-gnu/*.⋯
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /etc/ssl/certs/ca-certificates.crt
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
-      path: /lib/x86_64-linux-gnu/libc.so.6
-    - flags:
-      - O_CLOEXEC
-      - O_RDONLY
-      path: /lib/x86_64-linux-gnu/libm.so.6
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
-      path: /lib/x86_64-linux-gnu/libresolv.so.2
+      path: /proc/*/task/*/fd
     - flags:
       - O_RDONLY
       - O_CLOEXEC
@@ -79,22 +49,22 @@ spec:
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /proc/⋯/task/1/fd
+      path: /sys/devices/system/cpu/online
     - flags:
       - O_RDONLY
       path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt
+      path: /usr/lib/x⋯_⋯-linux-gnu/libunwind.so.⋯.⋯.⋯
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
-      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token
+      - O_CLOEXEC
+      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/*
     rulePolicies:
       R0001:
         processAllowed:
-        - operator
+        - query_broker
       R0002: {}
       R0003: {}
       R0004: {}
@@ -133,11 +103,10 @@ spec:
     - capset
     - chdir
     - clone
-    - clone3
     - close
     - close_range
     - connect
-    - copy_file_range
+    - dup2
     - dup3
     - epoll_create1
     - epoll_ctl
@@ -153,6 +122,7 @@ spec:
     - fchown
     - fchownat
     - fcntl
+    - fork
     - fsconfig
     - fsmount
     - fsopen
@@ -161,6 +131,8 @@ spec:
     - futex
     - getcwd
     - getdents64
+    - getegid
+    - geteuid
     - getgid
     - getpeername
     - getpid
@@ -174,9 +146,9 @@ spec:
     - ioctl
     - keyctl
     - listen
-    - lseek
-    - lstat
     - madvise
+    - membarrier
+    - mincore
     - mkdirat
     - mknodat
     - mmap
@@ -189,6 +161,7 @@ spec:
     - open_tree
     - openat
     - openat2
+    - pipe
     - pipe2
     - pivot_root
     - poll
@@ -196,7 +169,6 @@ spec:
     - pread64
     - prlimit64
     - read
-    - readlink
     - readlinkat
     - recvfrom
     - rseq
@@ -205,8 +177,7 @@ spec:
     - rt_sigreturn
     - sched_getaffinity
     - sched_yield
-    - sendfile
-    - sendmmsg
+    - sendto
     - set_robust_list
     - set_tid_address
     - setgid
@@ -216,6 +187,7 @@ spec:
     - setuid
     - sigaltstack
     - socket
+    - socketpair
     - stat
     - statfs
     - statx
@@ -226,5 +198,6 @@ spec:
     - umount2
     - uname
     - unlinkat
+    - wait4
     - write
     - writev

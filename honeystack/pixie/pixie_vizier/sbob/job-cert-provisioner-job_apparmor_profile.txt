@@ -1,0 +1,9 @@
+# AppArmor profile for job-cert-provisioner-job
+profile job-cert-provisioner-job-profile flags=(attach_disconnected,mediate_deleted) {
+  #include <tunables/global>
+  # Executable: /app/src/utils/cert_provisioner/cert_provisioner
+  /app/src/utils/cert_provisioner/cert_provisioner \{
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+  }
+}
