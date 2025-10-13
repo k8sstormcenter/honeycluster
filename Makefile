@@ -103,10 +103,10 @@ hive-sentinel:
 	@echo "📦 Deploying Hive Sentinel..."
 	@PIXIE_API_TOKEN=$$(px api-key create -s | tail -n 1); \
 	PIXIE_CLUSTER_ID=$$(px get clusters | grep CS_HEALTHY | awk '{print $$2}'); \
-	CLICKHOUSE_PASSWORD=$$(kubectl get secret --namespace honey clickhouse -o jsonpath="{.data.admin-password}" | base64 -d); \
-	CLICKHOUSE_HOST=clickhouse.honey.svc.cluster.local; \
+	CLICKHOUSE_PASSWORD=hyperdx; \
+	CLICKHOUSE_HOST=hyperdx-hdx-oss-v2-clickhouse.honey.svc.cluster.local; \
 	CLICKHOUSE_PORT=8123; \
-	CLICKHOUSE_USER=default; \
+	CLICKHOUSE_USER=app; \
 	CLICKHOUSE_DB=default; \
 	USE_PIXIE=False; \
 	HIVE_SENTINEL_IMAGE=$(HIVE_SENTINEL_IMAGE); \
