@@ -95,8 +95,7 @@ clickhouse:
 	$(HELM) repo update
 	$(HELM) upgrade --install -n honey hyperdx hyperdx/hdx-oss-v2 #--set hyperdx.appURL=http://68ebcdad8221d03de95cfa45-526273.node-uw-a3d1.iximiuz.com --set ingress.enabled=true --set ingress.host="68ebcdad8221d03de95cfa45-526273.node-uw-a3d1.iximiuz.com"
 	./honeystack/clickhouse/init.sh
-	@echo "⏳ Waiting for ClickHouse pods to be ready..."
-	kubectl wait --namespace honey --for=condition=Ready pod -l app.kubernetes.io/name=clickhouse --timeout=180s
+
 
 .PHONY: hive-sentinel
 HIVE_SENTINEL_IMAGE ?= ghcr.io/k8sstormcenter/hivesentinel:latest
