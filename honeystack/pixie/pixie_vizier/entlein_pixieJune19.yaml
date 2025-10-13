@@ -1317,9 +1317,9 @@ metadata:
   labels:
     app: pl-monitoring
     component: vizier
+    kubescape.io/user-defined-profile: statefulset-vizier-metadata
   name: vizier-metadata
   namespace: pl
-  kubescape.io/user-defined-profile: statefulset-vizier-metadata
 spec:
   replicas: 1
   selector:
