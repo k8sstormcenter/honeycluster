@@ -1,6 +1,6 @@
 #!/bin/bash
-podname=$(kubectl get pods -n clickhouse -l app=clickhouse -o jsonpath='{.items[0].metadata.name}')
-kubectl exec -n clickhouse $podname -- clickhouse-client --multiquery --database=default <<'EOF'
+podname=$(kubectl get pods -n honey -l app=clickhouse -o jsonpath='{.items[0].metadata.name}')
+kubectl exec -n honey $podname -- clickhouse-client --multiquery --database=default <<'EOF'
 CREATE TABLE IF NOT EXISTS default.kubescape_logs (
     BaseRuntimeMetadata String,
     CloudMetadata String,
