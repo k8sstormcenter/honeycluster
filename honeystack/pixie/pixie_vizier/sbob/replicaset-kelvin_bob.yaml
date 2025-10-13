@@ -23,69 +23,205 @@ spec:
     opens:
     - flags:
       - O_RDONLY
-      path: /certs/⋯/⋯
+      path: /certs/⋯/ca.crt
+    - flags:
+      - O_RDONLY
+      path: /certs/⋯/client.crt
+    - flags:
+      - O_RDONLY
+      path: /certs/⋯/client.key
     - flags:
       - O_RDONLY
       path: /dev/urandom
     - flags:
       - O_RDONLY
-      - O_CLOEXEC
-      path: /etc/⋯
-    - flags:
-      - O_CLOEXEC
-      - O_RDONLY
-      path: /lib/x⋯_⋯-linux-gnu/⋯.⋯
+      path: /etc/hosts
     - flags:
       - O_RDONLY
-      - O_CLOEXEC
+      path: /etc/resolv.conf
+    - flags:
+      - O_RDONLY
+      path: /lib/x86_64-linux-gnu/libz.so.1.2.13
+    - flags:
+      - O_RDONLY
+      path: /lib/x86_64-linux-gnu/⋯
+    - flags:
+      - O_RDONLY
+      path: /proc/⋯/net/core/somaxconn
+    - flags:
+      - O_RDONLY
+      path: /proc/⋯/stat
+    - flags:
+      - O_RDONLY
       path: /proc/⋯/task/⋯/fd
     - flags:
       - O_RDONLY
-      path: /proc/⋯/net/⋯
+      path: /sys/devices/system/cpu/online
     - flags:
       - O_RDONLY
-      - O_CLOEXEC
-      path: /sys/devices/system/cpu/⋯
+      path: /sys/devices/system/cpu/possible
     - flags:
       - O_RDONLY
-      - O_NONBLOCK
-      - O_DIRECTORY
-      - O_CLOEXEC
       path: /sys/fs/cgroup
     - flags:
       - O_RDONLY
-      path: /sys/fs/cgroup/⋯⋯/⋯
+      path: /sys/fs/cgroup/dev-hugepages.mount/cgroup.procs
     - flags:
       - O_RDONLY
-      path: /sys/fs/cgroup/kubepods.slice/kubepods-besteffort.slice/⋯
+      path: /sys/fs/cgroup/dev-mqueue.mount/cgroup.procs
     - flags:
       - O_RDONLY
-      - O_NONBLOCK
-      - O_DIRECTORY
-      - O_CLOEXEC
-      path: /sys/fs/cgroup/kubepods.slice/kubepods-besteffort.slice/-⋯.slice/⋯.scope
+      path: /sys/fs/cgroup/init.scope/cgroup.procs
     - flags:
-      - O_DIRECTORY
-      - O_CLOEXEC
       - O_RDONLY
-      - O_NONBLOCK
+      path: /sys/fs/cgroup/kubepods.slice/cgroup.procs
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/kubepods.slice/kubepods-besteffort.slice
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/kubepods.slice/kubepods-besteffort.slice/cgroup.procs
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-⋯.slice
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-⋯.slice/cgroup.procs
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-⋯.slice/⋯.scope
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-⋯.slice/⋯.scope/cgroup.procs
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/kubepods.slice/kubepods-burstable.slice
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/kubepods.slice/kubepods-burstable.slice/cgroup.procs
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-⋯.slice
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-⋯.slice/cgroup.procs
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-⋯.slice/⋯.scope
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-⋯.slice/⋯.scope/cgroup.procs
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/proc-sys-fs-binfmt_misc.mount/cgroup.procs
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/sys-fs-fuse-connections.mount/cgroup.procs
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/sys-kernel-config.mount/cgroup.procs
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/sys-kernel-debug.mount/cgroup.procs
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/sys-kernel-tracing.mount/cgroup.procs
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/system.slice/cgroup.procs
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/system.slice/code-server-proxy.socket/cgroup.procs
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/system.slice/system-getty.slice/cgroup.procs
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/system.slice/system-getty.slice/⋯.service
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/system.slice/system-getty.slice/⋯.service/cgroup.procs
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/system.slice/system-modprobe.slice/cgroup.procs
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/system.slice/system-serial\x2dgetty.slice/cgroup.procs
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/system.slice/system-serial\x2dgetty.slice/⋯.service
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/system.slice/system-serial\x2dgetty.slice/⋯.service/cgroup.procs
+    - flags:
+      - O_RDONLY
       path: /sys/fs/cgroup/system.slice/⋯
     - flags:
-      - O_NONBLOCK
-      - O_DIRECTORY
-      - O_CLOEXEC
       - O_RDONLY
-      path: /sys/fs/cgroup/system.slice/⋯/⋯
-    - flags:
-      - O_CLOEXEC
-      - O_RDONLY
-      - O_NONBLOCK
-      - O_DIRECTORY
-      path: /sys/fs/cgroup/user.slice/⋯⋯/⋯
+      path: /sys/fs/cgroup/system.slice/⋯.service
     - flags:
       - O_RDONLY
-      - O_CLOEXEC
-      path: /usr/lib/x⋯_⋯-linux-gnu/libunwind.so.⋯.⋯.⋯
+      path: /sys/fs/cgroup/system.slice/⋯.service/cgroup.procs
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/system.slice/⋯.service/udev
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/system.slice/⋯.service/udev/cgroup.procs
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/user.slice/cgroup.procs
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/user.slice/user⋯.slice
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/user.slice/user⋯.slice/cgroup.procs
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/user.slice/user⋯.slice/session-3.scope
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/user.slice/user⋯.slice/session-3.scope/cgroup.procs
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/user.slice/user⋯.slice/⋯.service
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/user.slice/user⋯.slice/⋯.service/app.slice
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/user.slice/user⋯.slice/⋯.service/app.slice/cgroup.procs
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/user.slice/user⋯.slice/⋯.service/app.slice/dbus.socket
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/user.slice/user⋯.slice/⋯.service/app.slice/dbus.socket/cgroup.procs
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/user.slice/user⋯.slice/⋯.service/app.slice/gpg-agent-ssh.socket
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/user.slice/user⋯.slice/⋯.service/app.slice/gpg-agent-ssh.socket/cgroup.procs
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/user.slice/user⋯.slice/⋯.service/cgroup.procs
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/user.slice/user⋯.slice/⋯.service/init.scope
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/user.slice/user⋯.slice/⋯.service/init.scope/cgroup.procs
+    - flags:
+      - O_RDONLY
+      path: /sys/fs/cgroup/⋯
+    - flags:
+      - O_RDONLY
+      path: /usr/lib/x86_64-linux-gnu/libelf-0.188.so
+    - flags:
+      - O_RDONLY
+      path: /usr/lib/x86_64-linux-gnu/libunwind.so.8.0.1
     rulePolicies:
       R0001:
         processAllowed:
@@ -119,7 +255,6 @@ spec:
       spec:
         defaultAction: ""
     syscalls:
-    - accept4
     - access
     - arch_prctl
     - bind
@@ -132,6 +267,8 @@ spec:
     - close
     - close_range
     - connect
+    - dup2
+    - dup3
     - epoll_create1
     - epoll_ctl
     - epoll_pwait
@@ -139,45 +276,69 @@ spec:
     - eventfd2
     - execve
     - exit
+    - exit_group
+    - faccessat
     - faccessat2
+    - fchdir
+    - fchmodat
     - fchown
+    - fchownat
     - fcntl
+    - fork
+    - fsconfig
+    - fsmount
+    - fsopen
     - fstat
     - fstatfs
     - futex
     - getcwd
     - getdents64
+    - getegid
+    - geteuid
+    - getgid
+    - getpeername
     - getpid
     - getppid
     - getrandom
     - getsockname
     - getsockopt
     - gettid
+    - getuid
     - ioctl
+    - keyctl
     - listen
     - lseek
     - madvise
+    - membarrier
     - mincore
+    - mkdirat
+    - mknodat
     - mmap
+    - mount
     - mprotect
     - munmap
     - nanosleep
     - newfstatat
+    - open
+    - open_tree
     - openat
+    - openat2
+    - pipe
     - pipe2
+    - pivot_root
     - poll
     - prctl
     - pread64
     - prlimit64
     - read
+    - readlinkat
     - recvfrom
     - recvmsg
     - rseq
     - rt_sigaction
     - rt_sigprocmask
     - rt_sigreturn
-    - sched_getparam
-    - sched_getscheduler
+    - sched_getaffinity
     - sched_yield
     - sendmmsg
     - sendmsg
@@ -186,12 +347,458 @@ spec:
     - set_tid_address
     - setgid
     - setgroups
+    - setsid
     - setsockopt
     - setuid
     - shutdown
     - sigaltstack
     - socket
+    - socketpair
+    - stat
     - statfs
+    - statx
+    - symlinkat
+    - tgkill
     - tkill
+    - umask
+    - umount2
     - uname
+    - unlinkat
+    - wait4
     - write
+    - writev
+  initContainers:
+  - capabilities:
+    - DAC_OVERRIDE
+    - DAC_READ_SEARCH
+    - SETGID
+    - SETUID
+    endpoints: null
+    execs:
+    - args:
+      - /bin/sh
+      - -c
+      - 'set -x; URL="https://${SERVICE_NAME}:${SERVICE_PORT}/readyz"; until [ $(curl -m 0.5 -s -o /dev/null -w "%{http_code}" -k ${URL}) -eq 200 ]; do echo "waiting for ${URL}"; sleep 2; done; '
+      path: /bin/sh
+    - args:
+      - /bin/sleep
+      - "2"
+      path: /bin/sleep
+    - args:
+      - /usr/bin/curl
+      - -m
+      - "0.5"
+      - -s
+      - -o
+      - /dev/null
+      - -w
+      - '%{http_code}'
+      - -k
+      - https://vizier-cloud-connector-svc:50800/readyz
+      path: /usr/bin/curl
+    identifiedCallStacks: null
+    imageID: ghcr.io/pixie-io/pixie-oss-pixie-dev-public-curl@sha256:f7f265d5c64eb4463a43a99b6bf773f9e61a50aaa7cefaf564f43e42549a01dd
+    imageTag: ghcr.io/pixie-io/pixie-oss-pixie-dev-public-curl@sha256:f7f265d5c64eb4463a43a99b6bf773f9e61a50aaa7cefaf564f43e42549a01dd
+    name: cc-wait
+    opens:
+    - flags:
+      - O_TRUNC
+      - O_LARGEFILE
+      - O_WRONLY
+      - O_CREAT
+      path: /dev/null
+    - flags:
+      - O_TRUNC
+      - O_LARGEFILE
+      - O_WRONLY
+      - O_CREAT
+      path: /etc/hosts
+    - flags:
+      - O_TRUNC
+      - O_LARGEFILE
+      - O_WRONLY
+      - O_CREAT
+      path: /etc/passwd
+    - flags:
+      - O_TRUNC
+      - O_LARGEFILE
+      - O_WRONLY
+      - O_CREAT
+      path: /etc/resolv.conf
+    - flags:
+      - O_TRUNC
+      - O_LARGEFILE
+      - O_WRONLY
+      - O_CREAT
+      path: /etc/ssl/openssl.cnf
+    - flags:
+      - O_TRUNC
+      - O_LARGEFILE
+      - O_WRONLY
+      - O_CREAT
+      path: /lib/libcrypto.so.1.1
+    - flags:
+      - O_TRUNC
+      - O_LARGEFILE
+      - O_WRONLY
+      - O_CREAT
+      path: /lib/libssl.so.1.1
+    - flags:
+      - O_TRUNC
+      - O_LARGEFILE
+      - O_WRONLY
+      - O_CREAT
+      path: /lib/libz.so.1.2.12
+    - flags:
+      - O_TRUNC
+      - O_LARGEFILE
+      - O_WRONLY
+      - O_CREAT
+      path: /proc/⋯/task/⋯/fd
+    - flags:
+      - O_TRUNC
+      - O_LARGEFILE
+      - O_WRONLY
+      - O_CREAT
+      path: /usr/lib/⋯
+    rulePolicies:
+      R0001:
+        processAllowed:
+        - curl
+        - sh
+        - sleep
+      R0002: {}
+      R0003: {}
+      R0004: {}
+      R0005: {}
+      R0006: {}
+      R0007: {}
+      R0008: {}
+      R0009: {}
+      R0010: {}
+      R0011: {}
+      R1000: {}
+      R1001: {}
+      R1002: {}
+      R1003: {}
+      R1004: {}
+      R1005: {}
+      R1006: {}
+      R1007: {}
+      R1008: {}
+      R1009: {}
+      R1010: {}
+      R1011: {}
+      R1012: {}
+      R1015: {}
+      R1030: {}
+    seccompProfile:
+      spec:
+        defaultAction: ""
+    syscalls:
+    - access
+    - arch_prctl
+    - bind
+    - brk
+    - capget
+    - capset
+    - chdir
+    - clone
+    - close
+    - close_range
+    - connect
+    - dup2
+    - dup3
+    - epoll_create1
+    - epoll_ctl
+    - epoll_pwait
+    - epoll_wait
+    - eventfd2
+    - execve
+    - exit
+    - exit_group
+    - faccessat
+    - faccessat2
+    - fchdir
+    - fchmodat
+    - fchown
+    - fchownat
+    - fcntl
+    - fork
+    - fsconfig
+    - fsmount
+    - fsopen
+    - fstat
+    - fstatfs
+    - futex
+    - getcwd
+    - getdents64
+    - getegid
+    - geteuid
+    - getgid
+    - getpeername
+    - getpid
+    - getppid
+    - getrandom
+    - getsockname
+    - getsockopt
+    - gettid
+    - getuid
+    - ioctl
+    - keyctl
+    - listen
+    - lseek
+    - madvise
+    - membarrier
+    - mincore
+    - mkdirat
+    - mknodat
+    - mmap
+    - mount
+    - mprotect
+    - munmap
+    - nanosleep
+    - newfstatat
+    - open
+    - open_tree
+    - openat
+    - openat2
+    - pipe
+    - pipe2
+    - pivot_root
+    - poll
+    - prctl
+    - pread64
+    - prlimit64
+    - read
+    - readlinkat
+    - recvfrom
+    - rseq
+    - rt_sigaction
+    - rt_sigprocmask
+    - rt_sigreturn
+    - sched_getaffinity
+    - sched_yield
+    - sendmmsg
+    - sendto
+    - set_robust_list
+    - set_tid_address
+    - setgid
+    - setgroups
+    - setsid
+    - setsockopt
+    - setuid
+    - sigaltstack
+    - socket
+    - socketpair
+    - stat
+    - statfs
+    - statx
+    - symlinkat
+    - tgkill
+    - tkill
+    - umask
+    - umount2
+    - uname
+    - unlinkat
+    - wait4
+    - write
+    - writev
+  - capabilities:
+    - DAC_OVERRIDE
+    - DAC_READ_SEARCH
+    - SETGID
+    - SETUID
+    endpoints: null
+    execs:
+    - args:
+      - /bin/sh
+      - -c
+      - 'set -x; URL="https://${SERVICE_NAME}:${SERVICE_PORT}/healthz"; until [ $(curl -m 0.5 -s -o /dev/null -w "%{http_code}" -k ${URL}) -eq 200 ]; do echo "waiting for ${URL}"; sleep 2; done; '
+      path: /bin/sh
+    - args:
+      - /bin/sleep
+      - "2"
+      path: /bin/sleep
+    - args:
+      - /usr/bin/curl
+      - -m
+      - "0.5"
+      - -s
+      - -o
+      - /dev/null
+      - -w
+      - '%{http_code}'
+      - -k
+      - https://vizier-query-broker-svc:50300/healthz
+      path: /usr/bin/curl
+    identifiedCallStacks: null
+    imageID: ghcr.io/pixie-io/pixie-oss-pixie-dev-public-curl@sha256:f7f265d5c64eb4463a43a99b6bf773f9e61a50aaa7cefaf564f43e42549a01dd
+    imageTag: ghcr.io/pixie-io/pixie-oss-pixie-dev-public-curl@sha256:f7f265d5c64eb4463a43a99b6bf773f9e61a50aaa7cefaf564f43e42549a01dd
+    name: qb-wait
+    opens:
+    - flags:
+      - O_WRONLY
+      - O_CREAT
+      - O_TRUNC
+      - O_LARGEFILE
+      path: /dev/null
+    - flags:
+      - O_WRONLY
+      - O_CREAT
+      - O_TRUNC
+      - O_LARGEFILE
+      path: /etc/hosts
+    - flags:
+      - O_WRONLY
+      - O_CREAT
+      - O_TRUNC
+      - O_LARGEFILE
+      path: /etc/passwd
+    - flags:
+      - O_WRONLY
+      - O_CREAT
+      - O_TRUNC
+      - O_LARGEFILE
+      path: /etc/resolv.conf
+    - flags:
+      - O_WRONLY
+      - O_CREAT
+      - O_TRUNC
+      - O_LARGEFILE
+      path: /etc/ssl/openssl.cnf
+    - flags:
+      - O_WRONLY
+      - O_CREAT
+      - O_TRUNC
+      - O_LARGEFILE
+      path: /lib/libcrypto.so.1.1
+    - flags:
+      - O_WRONLY
+      - O_CREAT
+      - O_TRUNC
+      - O_LARGEFILE
+      path: /lib/libssl.so.1.1
+    - flags:
+      - O_WRONLY
+      - O_CREAT
+      - O_TRUNC
+      - O_LARGEFILE
+      path: /lib/libz.so.1.2.12
+    - flags:
+      - O_WRONLY
+      - O_CREAT
+      - O_TRUNC
+      - O_LARGEFILE
+      path: /proc/⋯/task/⋯/fd
+    - flags:
+      - O_WRONLY
+      - O_CREAT
+      - O_TRUNC
+      - O_LARGEFILE
+      path: /usr/lib/⋯
+    rulePolicies:
+      R0001:
+        processAllowed:
+        - curl
+        - sh
+        - sleep
+      R0002: {}
+      R0003: {}
+      R0004: {}
+      R0005: {}
+      R0006: {}
+      R0007: {}
+      R0008: {}
+      R0009: {}
+      R0010: {}
+      R0011: {}
+      R1000: {}
+      R1001: {}
+      R1002: {}
+      R1003: {}
+      R1004: {}
+      R1005: {}
+      R1006: {}
+      R1007: {}
+      R1008: {}
+      R1009: {}
+      R1010: {}
+      R1011: {}
+      R1012: {}
+      R1015: {}
+      R1030: {}
+    seccompProfile:
+      spec:
+        defaultAction: ""
+    syscalls:
+    - arch_prctl
+    - bind
+    - brk
+    - capget
+    - capset
+    - chdir
+    - clone
+    - close
+    - close_range
+    - connect
+    - dup2
+    - epoll_ctl
+    - epoll_pwait
+    - execve
+    - exit
+    - exit_group
+    - faccessat2
+    - fchown
+    - fcntl
+    - fork
+    - fstat
+    - fstatfs
+    - futex
+    - getcwd
+    - getdents64
+    - getegid
+    - geteuid
+    - getgid
+    - getpeername
+    - getpid
+    - getppid
+    - getrandom
+    - getsockname
+    - getsockopt
+    - gettid
+    - getuid
+    - ioctl
+    - madvise
+    - membarrier
+    - mmap
+    - mprotect
+    - munmap
+    - nanosleep
+    - newfstatat
+    - open
+    - openat
+    - pipe
+    - pipe2
+    - poll
+    - prctl
+    - read
+    - recvfrom
+    - rt_sigaction
+    - rt_sigprocmask
+    - rt_sigreturn
+    - sched_yield
+    - sendto
+    - set_tid_address
+    - setgid
+    - setgroups
+    - setsockopt
+    - setuid
+    - socket
+    - socketpair
+    - stat
+    - tgkill
+    - tkill
+    - wait4
+    - write
+    - writev

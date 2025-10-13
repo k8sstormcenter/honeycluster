@@ -1,72 +1,96 @@
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
 metadata:
-  name: job-cert-provisioner-job
-  namespace: pl
-  annotations:
-    kubescape.io/completion: complete
-    kubescape.io/status: completed
-    kubescape.io/instance-id: apiVersion-batch/v1/namespace-pl/kind-Job/name-cert-provisioner-job
-    kubescape.io/wlid: wlid://cluster-bobexample/namespace-pl/job-cert-provisioner-job
-  labels:
-    kubescape.io/workload-api-group: batch
-    kubescape.io/workload-api-version: v1
-    kubescape.io/workload-kind: Job
-    kubescape.io/workload-name: cert-provisioner-job
-    kubescape.io/workload-namespace: pl
+  name: pod-pixie-operator-index-f459h
+  namespace: px-operator
 spec:
   architectures:
   - amd64
   containers:
-  - capabilities:
-    - DAC_OVERRIDE
-    - DAC_READ_SEARCH
+  - capabilities: null
     endpoints: null
-    
     execs:
     - args:
-      - /app/src/utils/cert_provisioner/cert_provisioner
-      path: /app/src/utils/cert_provisioner/cert_provisioner
+      - /bin/grpc_health_probe
+      - -addr=:50051
+      path: /bin/grpc_health_probe
+    - args:
+      - /bin/opm
+      - registry
+      - serve
+      - --database
+      - /database/index.db
+      path: /bin/opm
     identifiedCallStacks: null
-    imageID: gcr.io/pixie-oss/pixie-prod/vizier-cert_provisioner_image@sha256:2e00396429096505cf11cb31e62e447a45bbd2497089cc41c78955a24b8e3558
-    imageTag: gcr.io/pixie-oss/pixie-prod/vizier-cert_provisioner_image:0.14.15
-    name: provisioner
+    imageID: gcr.io/pixie-oss/pixie-prod/operator/bundle_index@sha256:1f69b7bb1ce9bd6b0898ae15bf6d17f07669c0958a964da973b3560f84cb9ba4
+    imageTag: gcr.io/pixie-oss/pixie-prod/operator/bundle_index:0.0.1
+    name: registry-server
     opens:
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /app/src/utils/cert_provisioner/cert_provisioner.runfiles/px/src/utils/cert_provisioner/cert_provisioner_/cert_provisioner
-    - flags:
-      - O_CLOEXEC
-      - O_RDONLY
-      path: /lib/x86_64-linux-gnu/libc.so.6
+      path: /bin/grpc_health_probe
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /lib/x86_64-linux-gnu/libm.so.6
+      path: /bin/opm
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /lib/x86_64-linux-gnu/libresolv.so.2
+      path: /database/index.db
     - flags:
+      - O_RDONLY
       - O_CLOEXEC
-      - O_RDONLY
-      path: /proc/⋯/task/1/fd
+      path: /dev/termination-log
     - flags:
       - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/group
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/passwd
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/kernel/cap_last_cap
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/maps
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/mountinfo
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/net/core/somaxconn
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/setgroups
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/task/⋯/fd
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
       path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
-      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token
+      path: /tmp/db⋯
     rulePolicies:
       R0001:
         processAllowed:
-        - cert_provisione
+        - grpc_health_pro
+        - opm
       R0002: {}
       R0003: {}
       R0004: {}
@@ -96,25 +120,37 @@ spec:
       spec:
         defaultAction: ""
     syscalls:
-    - access
+    - accept4
     - arch_prctl
+    - bind
     - brk
     - capget
     - capset
     - chdir
     - clone
+    - clone3
     - close
     - close_range
     - connect
+    - copy_file_range
+    - dup3
     - epoll_create1
     - epoll_ctl
     - epoll_pwait
+    - eventfd2
     - execve
     - exit
     - exit_group
+    - faccessat
     - faccessat2
+    - fchdir
+    - fchmodat
     - fchown
+    - fchownat
     - fcntl
+    - fsconfig
+    - fsmount
+    - fsopen
     - fstat
     - fstatfs
     - futex
@@ -129,14 +165,22 @@ spec:
     - getsockopt
     - gettid
     - ioctl
+    - keyctl
+    - listen
     - madvise
+    - mkdirat
+    - mknodat
     - mmap
+    - mount
     - mprotect
     - munmap
     - nanosleep
     - newfstatat
+    - open_tree
     - openat
+    - openat2
     - pipe2
+    - pivot_root
     - prctl
     - pread64
     - prlimit64
@@ -153,11 +197,20 @@ spec:
     - set_tid_address
     - setgid
     - setgroups
+    - setns
+    - setsid
     - setsockopt
     - setuid
     - sigaltstack
     - socket
+    - statfs
+    - statx
+    - symlinkat
     - tgkill
     - tkill
+    - umask
+    - umount2
     - uname
+    - unlinkat
+    - unshare
     - write

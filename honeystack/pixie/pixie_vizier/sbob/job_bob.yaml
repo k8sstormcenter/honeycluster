@@ -7,9 +7,7 @@ spec:
   architectures:
   - amd64
   containers:
-  - capabilities:
-    - DAC_OVERRIDE
-    - DAC_READ_SEARCH
+  - capabilities: null
     endpoints: null
     execs:
     - args:
@@ -33,30 +31,43 @@ spec:
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: \1*
+      path: /bin/opm
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
-      path: /bundle/*
+      - O_CLOEXEC
+      path: /bundle/manifests
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
-      path: /bundle/manifests/*
+      - O_CLOEXEC
+      path: /bundle/manifests/crd.yaml
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /bundle/manifests/csv.yaml
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /bundle/metadata
     - flags:
       - O_RDONLY
       - O_CLOEXEC
       path: /bundle/metadata/annotations.yaml
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
-      path: /proc/*/task/*/fd
+      - O_CLOEXEC
+      path: /proc/⋯/task/⋯/fd
     - flags:
       - O_RDONLY
+      - O_CLOEXEC
       path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
-      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/*
+      - O_CLOEXEC
+      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token
     rulePolicies:
       R0001:
         processAllowed:
@@ -90,19 +101,15 @@ spec:
       spec:
         defaultAction: ""
     syscalls:
-    - accept4
     - arch_prctl
-    - bind
     - brk
     - capget
     - capset
     - chdir
     - clone
-    - clone3
     - close
     - close_range
     - connect
-    - copy_file_range
     - dup3
     - epoll_create1
     - epoll_ctl
@@ -138,7 +145,6 @@ spec:
     - getuid
     - ioctl
     - keyctl
-    - listen
     - lstat
     - madvise
     - mkdirat
@@ -190,3 +196,331 @@ spec:
     - unlinkat
     - write
     - writev
+  initContainers:
+  - capabilities:
+    - DAC_OVERRIDE
+    - DAC_READ_SEARCH
+    - SETGID
+    - SETUID
+    endpoints: null
+    execs:
+    - args:
+      - /bin/cp
+      - -Rv
+      - /bin/cpb
+      - /util/cpb
+      path: /bin/cp
+    identifiedCallStacks: null
+    imageID: quay.io/operator-framework/olm@sha256:1b6002156f568d722c29138575733591037c24b4bfabc67946f268ce4752c3e6
+    imageTag: quay.io/operator-framework/olm@sha256:1b6002156f568d722c29138575733591037c24b4bfabc67946f268ce4752c3e6
+    name: util
+    opens:
+    - flags:
+      - O_RDONLY
+      - O_LARGEFILE
+      path: /bin/cpb
+    - flags:
+      - O_RDONLY
+      - O_LARGEFILE
+      path: /proc/⋯/task/⋯/fd
+    - flags:
+      - O_RDONLY
+      - O_LARGEFILE
+      path: /util/cpb
+    rulePolicies:
+      R0001:
+        processAllowed:
+        - cp
+      R0002: {}
+      R0003: {}
+      R0004: {}
+      R0005: {}
+      R0006: {}
+      R0007: {}
+      R0008: {}
+      R0009: {}
+      R0010: {}
+      R0011: {}
+      R1000: {}
+      R1001: {}
+      R1002: {}
+      R1003: {}
+      R1004: {}
+      R1005: {}
+      R1006: {}
+      R1007: {}
+      R1008: {}
+      R1009: {}
+      R1010: {}
+      R1011: {}
+      R1012: {}
+      R1015: {}
+      R1030: {}
+    seccompProfile:
+      spec:
+        defaultAction: ""
+    syscalls:
+    - arch_prctl
+    - brk
+    - capget
+    - capset
+    - chdir
+    - clone
+    - close
+    - close_range
+    - connect
+    - dup3
+    - epoll_create1
+    - epoll_ctl
+    - epoll_pwait
+    - eventfd2
+    - execve
+    - exit
+    - exit_group
+    - faccessat
+    - faccessat2
+    - fchdir
+    - fchmodat
+    - fchown
+    - fchownat
+    - fcntl
+    - fsconfig
+    - fsmount
+    - fsopen
+    - fstat
+    - fstatfs
+    - futex
+    - getcwd
+    - getdents64
+    - getgid
+    - getpeername
+    - getpid
+    - getppid
+    - getrandom
+    - getrlimit
+    - getsockname
+    - getsockopt
+    - gettid
+    - getuid
+    - ioctl
+    - keyctl
+    - lstat
+    - madvise
+    - mkdirat
+    - mknodat
+    - mmap
+    - mount
+    - mprotect
+    - munmap
+    - nanosleep
+    - newfstatat
+    - open
+    - open_tree
+    - openat
+    - openat2
+    - pipe2
+    - pivot_root
+    - prctl
+    - pread64
+    - prlimit64
+    - read
+    - readlink
+    - readlinkat
+    - recvfrom
+    - rseq
+    - rt_sigaction
+    - rt_sigprocmask
+    - rt_sigreturn
+    - sched_getaffinity
+    - sched_yield
+    - sendfile
+    - set_robust_list
+    - set_tid_address
+    - setgid
+    - setgroups
+    - setsid
+    - setsockopt
+    - setuid
+    - sigaltstack
+    - socket
+    - stat
+    - statfs
+    - statx
+    - symlinkat
+    - tgkill
+    - tkill
+    - umask
+    - umount2
+    - uname
+    - unlinkat
+    - write
+    - writev
+  - capabilities: null
+    endpoints: null
+    execs:
+    - args:
+      - /util/cpb
+      - /bundle
+      path: /util/cpb
+    identifiedCallStacks: null
+    imageID: gcr.io/pixie-oss/pixie-prod/operator/bundle@sha256:4c8ddd61d02a1b51a440c975aeff2d7ca174637cb8d7b1ece4281daa7b5a18ff
+    imageTag: gcr.io/pixie-oss/pixie-prod/operator/bundle:0.1.7
+    name: pull
+    opens:
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /bundle
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /bundle/manifests/crd.yaml
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /bundle/manifests/csv.yaml
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /bundle/metadata/annotations.yaml
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /manifests/crd.yaml
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /manifests/csv.yaml
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /metadata/annotations.yaml
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/kernel/cap_last_cap
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/task/⋯/fd
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /util/cpb
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /var/run
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /var/run/secrets
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /var/run/secrets/kubernetes.io
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /var/run/secrets/kubernetes.io/serviceaccount
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/⋯
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /⋯
+    rulePolicies:
+      R0001:
+        processAllowed:
+        - cpb
+      R0002: {}
+      R0003: {}
+      R0004: {}
+      R0005: {}
+      R0006: {}
+      R0007: {}
+      R0008: {}
+      R0009: {}
+      R0010: {}
+      R0011: {}
+      R1000: {}
+      R1001: {}
+      R1002: {}
+      R1003: {}
+      R1004:
+        processAllowed:
+        - cpb
+      R1005: {}
+      R1006: {}
+      R1007: {}
+      R1008: {}
+      R1009: {}
+      R1010: {}
+      R1011: {}
+      R1012: {}
+      R1015: {}
+      R1030: {}
+    seccompProfile:
+      spec:
+        defaultAction: ""
+    syscalls:
+    - arch_prctl
+    - brk
+    - capget
+    - capset
+    - chdir
+    - clone
+    - close
+    - close_range
+    - copy_file_range
+    - epoll_create1
+    - epoll_ctl
+    - epoll_pwait
+    - execve
+    - exit
+    - exit_group
+    - faccessat2
+    - fchmodat
+    - fcntl
+    - fstat
+    - fstatfs
+    - futex
+    - getcwd
+    - getdents64
+    - getpid
+    - getppid
+    - getrlimit
+    - gettid
+    - madvise
+    - mkdirat
+    - mmap
+    - munmap
+    - nanosleep
+    - newfstatat
+    - openat
+    - pipe2
+    - prctl
+    - pread64
+    - read
+    - readlinkat
+    - recvfrom
+    - rt_sigaction
+    - rt_sigprocmask
+    - rt_sigreturn
+    - sched_getaffinity
+    - sched_yield
+    - setgid
+    - setgroups
+    - setuid
+    - sigaltstack
+    - statfs
+    - tgkill
+    - tkill
+    - uname
+    - write

@@ -20,36 +20,9 @@ spec:
         Connection:
           - close
         Host:
-          - 10-42-0-26.pl.pod.cluster.local:8222
-          - 10.42.0.26:8222
-      internal: false
-      methods:
-        - GET
-    - direction: inbound
-      endpoint: :8222/
-      headers:
-        Accept-Encoding:
-          - gzip
-        Connection:
-          - close
-        Host:
-          - 10-42-0-26.pl.pod.cluster.local:8222
-          - 10.42.0.26:8222
           - pl-nats-mgmt:8222
-      internal: false
-      methods:
-        - GET
-    - direction: inbound
-      endpoint: :8222/
-      headers:
-        Accept-Encoding:
-          - gzip
-        Connection:
-          - close
-        Host:
-          - 10.42.0.26:8222
-          - pl-nats-mgmt:8222
-          - 10-42-0-26.pl.pod.cluster.local:8222
+          - 10-42-1-11.pl.pod.cluster.local:8222
+          - 10.42.1.11:8222
       internal: false
       methods:
         - GET
@@ -65,36 +38,47 @@ spec:
     name: pl-nats
     opens:
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
+      - O_CLOEXEC
       path: /etc/nats-config/⋯/nats.conf
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
-      path: /etc/nats-server-tls-certs/⋯/⋯
+      - O_CLOEXEC
+      path: /etc/nats-server-tls-certs/⋯/ca.crt
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/nats-server-tls-certs/⋯/server.crt
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/nats-server-tls-certs/⋯/server.key
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/mountinfo
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/net/core/somaxconn
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/stat
     - flags:
       - O_RDONLY
       - O_CLOEXEC
       path: /proc/⋯/task/⋯/fd
-    - flags:
-      - O_CLOEXEC
-      - O_RDONLY
-      path: /proc/⋯/⋯
-    - flags:
-      - O_CLOEXEC
-      - O_RDONLY
-      path: /proc/⋯/net/core/somaxconn
     - flags:
       - O_RDONLY
       - O_CLOEXEC
       path: /sys/fs/cgroup/cpu.max
     - flags:
       - O_RDONLY
+      - O_CLOEXEC
       path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
     - flags:
-      - O_WRONLY
-      - O_CREAT
-      - O_TRUNC
+      - O_RDONLY
       - O_CLOEXEC
       path: /var/run/nats/nats.pid
     rulePolicies:

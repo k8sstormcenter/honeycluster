@@ -1,61 +1,71 @@
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
 metadata:
-  name: replicaset-vizier-cloud-connector-75449f5585
-  namespace: pl
-  annotations:
-    kubescape.io/completion: complete
-    kubescape.io/status: completed
-    kubescape.io/instance-id: apiVersion-apps/v1/namespace-pl/kind-ReplicaSet/name-vizier-cloud-connector-75449f5585
-    kubescape.io/wlid: wlid://cluster-bobexample/namespace-pl/deployment-vizier-cloud-connector
-  labels:
-    kubescape.io/workload-api-group: apps
-    kubescape.io/workload-api-version: v1
-    kubescape.io/workload-kind: Deployment
-    kubescape.io/workload-name: vizier-cloud-connector
-    kubescape.io/workload-namespace: pl
+  name: pod-pixie-operator-index-xd76w
+  namespace: px-operator
 spec:
   architectures:
   - amd64
   containers:
-  - capabilities:
-    - DAC_OVERRIDE
-    - DAC_READ_SEARCH
-    - NET_ADMIN
+  - capabilities: null
     endpoints: null
     execs:
     - args:
-      - /app/src/vizier/services/cloud_connector/cloud_connector_server
-      path: /app/src/vizier/services/cloud_connector/cloud_connector_server
+      - /bin/grpc_health_probe
+      - -addr=:50051
+      path: /bin/grpc_health_probe
+    - args:
+      - /bin/opm
+      - registry
+      - serve
+      - --database
+      - /database/index.db
+      path: /bin/opm
     identifiedCallStacks: null
-    imageID: docker.io/entlein/vizier-cloud_connector_server_image@sha256:17eb1500ef6cae8a95004d4532bdeb5350498527bed85813da01940e925dc0fa
-    imageTag: docker.io/entlein/vizier-cloud_connector_server_image:2025-06-19_09-51-27.876_UTC
-    name: app
+    imageID: gcr.io/pixie-oss/pixie-prod/operator/bundle_index@sha256:1f69b7bb1ce9bd6b0898ae15bf6d17f07669c0958a964da973b3560f84cb9ba4
+    imageTag: gcr.io/pixie-oss/pixie-prod/operator/bundle_index:0.0.1
+    name: registry-server
     opens:
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /app/src/vizier/services/cloud_connector/cloud_connector_server.runfiles/px/src/vizier/services/cloud_connector/cloud_connector_server_/cloud_connector_server
+      path: /bin/grpc_health_probe
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /certs/⋯/*
+      path: /bin/opm
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /etc/*
+      path: /database/index.db
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /etc/ssl/certs
-    - flags:
-      - O_CLOEXEC
-      - O_RDONLY
-      path: /etc/ssl/certs/ca-certificates.crt
+      path: /dev/termination-log
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /lib/x⋯_⋯-linux-gnu/*
+      path: /etc/group
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/passwd
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/kernel/cap_last_cap
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/maps
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/mountinfo
     - flags:
       - O_RDONLY
       - O_CLOEXEC
@@ -63,18 +73,24 @@ spec:
     - flags:
       - O_RDONLY
       - O_CLOEXEC
+      path: /proc/⋯/setgroups
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
       path: /proc/⋯/task/⋯/fd
     - flags:
       - O_RDONLY
+      - O_CLOEXEC
       path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/*
+      path: /tmp/db⋯
     rulePolicies:
       R0001:
         processAllowed:
-        - cloud_connector
+        - grpc_health_pro
+        - opm
       R0002: {}
       R0003: {}
       R0004: {}
@@ -105,7 +121,6 @@ spec:
         defaultAction: ""
     syscalls:
     - accept4
-    - access
     - arch_prctl
     - bind
     - brk
@@ -113,17 +128,29 @@ spec:
     - capset
     - chdir
     - clone
+    - clone3
     - close
     - close_range
     - connect
+    - copy_file_range
+    - dup3
     - epoll_create1
     - epoll_ctl
     - epoll_pwait
+    - eventfd2
     - execve
     - exit
+    - exit_group
+    - faccessat
     - faccessat2
+    - fchdir
+    - fchmodat
     - fchown
+    - fchownat
     - fcntl
+    - fsconfig
+    - fsmount
+    - fsopen
     - fstat
     - fstatfs
     - futex
@@ -138,17 +165,22 @@ spec:
     - getsockopt
     - gettid
     - ioctl
+    - keyctl
     - listen
-    - lseek
     - madvise
+    - mkdirat
+    - mknodat
     - mmap
+    - mount
     - mprotect
     - munmap
     - nanosleep
     - newfstatat
+    - open_tree
     - openat
+    - openat2
     - pipe2
-    - poll
+    - pivot_root
     - prctl
     - pread64
     - prlimit64
@@ -161,16 +193,24 @@ spec:
     - rt_sigreturn
     - sched_getaffinity
     - sched_yield
-    - sendmmsg
     - set_robust_list
     - set_tid_address
     - setgid
     - setgroups
+    - setns
+    - setsid
     - setsockopt
     - setuid
     - sigaltstack
     - socket
+    - statfs
+    - statx
+    - symlinkat
     - tgkill
     - tkill
+    - umask
+    - umount2
     - uname
+    - unlinkat
+    - unshare
     - write

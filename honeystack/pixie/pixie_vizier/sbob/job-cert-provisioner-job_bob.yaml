@@ -25,20 +25,33 @@ spec:
       - O_CLOEXEC
       path: /app/src/utils/cert_provisioner/cert_provisioner.runfiles/px/src/utils/cert_provisioner/cert_provisioner_/cert_provisioner
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
-      path: /lib/x86_64-linux-gnu/⋯
+      - O_CLOEXEC
+      path: /lib/x86_64-linux-gnu/libc.so.6
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
+      - O_CLOEXEC
+      path: /lib/x86_64-linux-gnu/libm.so.6
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /lib/x86_64-linux-gnu/libresolv.so.2
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
       path: /proc/⋯/task/⋯/fd
     - flags:
       - O_RDONLY
+      - O_CLOEXEC
       path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
-      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/⋯
+      - O_CLOEXEC
+      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token
     rulePolicies:
       R0001:
         processAllowed:

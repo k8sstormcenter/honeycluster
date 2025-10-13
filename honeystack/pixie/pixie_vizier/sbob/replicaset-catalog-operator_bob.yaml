@@ -7,15 +7,7 @@ spec:
   architectures:
   - amd64
   containers:
-  - capabilities:
-    - CHOWN
-    - DAC_OVERRIDE
-    - DAC_READ_SEARCH
-    - NET_ADMIN
-    - SETGID
-    - SETPCAP
-    - SETUID
-    - SYS_ADMIN
+  - capabilities: null
     endpoints:
     - direction: inbound
       endpoint: :8080/healthz
@@ -23,32 +15,11 @@ spec:
         Connection:
           - close
         Host:
-          - 10.42.0.21:8080
+          - 10.42.0.12:8080
       internal: false
       methods:
         - GET
-    execs:
-    - args:
-      - /bin/catalog
-      - --namespace
-      - olm
-      - --configmapServerImage=quay.io/operator-framework/configmap-operator-registry:latest
-      - --util-image
-      - quay.io/operator-framework/olm@sha256:1b6002156f568d722c29138575733591037c24b4bfabc67946f268ce4752c3e6
-      - --opmImage
-      - quay.io/operator-framework/opm@sha256:d999588bd4e9509ec9e75e49adfb6582d256e9421e454c7fb5e9fe57e7b1aada
-      path: /bin/catalog
-    - args:
-      - /bin/grpc_health_probe
-      - -addr=:50051
-      path: /bin/grpc_health_probe
-    - args:
-      - /bin/opm
-      - registry
-      - serve
-      - --database
-      - /database/index.db
-      path: /bin/opm
+    execs: null
     identifiedCallStacks: null
     imageID: quay.io/operator-framework/olm@sha256:1b6002156f568d722c29138575733591037c24b4bfabc67946f268ce4752c3e6
     imageTag: quay.io/operator-framework/olm@sha256:1b6002156f568d722c29138575733591037c24b4bfabc67946f268ce4752c3e6
@@ -57,182 +28,39 @@ spec:
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /⋯
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
-      path: /database/index.db
-    - flags:
-      - O_WRONLY
-      - O_CREAT
-      - O_CLOEXEC
-      path: /dev/termination-log
+      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /etc/⋯.conf
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
-      path: /proc/⋯
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
-      path: /proc/⋯/task/⋯/fd
-    - flags:
-      - O_CLOEXEC
-      - O_RDONLY
-      path: /proc/⋯/⋯
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
-      path: /proc/⋯/kernel/cap_last_cap
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
-      path: /proc/⋯/net/core/somaxconn
-    - flags:
-      - O_RDONLY
-      path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
-    - flags:
-      - O_RDWR
-      - O_CREAT
-      - O_EXCL
-      - O_CLOEXEC
-      - O_NOFOLLOW
-      path: /tmp/db⋯
-    - flags:
-      - O_CLOEXEC
-      - O_RDONLY
-      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/⋯
-    rulePolicies:
-      R0001:
-        processAllowed:
-        - catalog
-        - grpc_health_pro
-        - opm
-      R0002: {}
-      R0003: {}
-      R0004: {}
-      R0005: {}
-      R0006: {}
-      R0007: {}
-      R0008: {}
-      R0009: {}
-      R0010: {}
-      R0011: {}
-      R1000: {}
-      R1001: {}
-      R1002: {}
-      R1003: {}
-      R1004: {}
-      R1005: {}
-      R1006: {}
-      R1007: {}
-      R1008: {}
-      R1009: {}
-      R1010: {}
-      R1011: {}
-      R1012: {}
-      R1015: {}
-      R1030: {}
+      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token
+    rulePolicies: {}
     seccompProfile:
       spec:
         defaultAction: ""
     syscalls:
     - accept4
-    - arch_prctl
-    - bind
-    - brk
-    - capget
-    - capset
-    - chdir
-    - clone
-    - clone3
     - close
-    - close_range
     - connect
-    - copy_file_range
-    - dup3
-    - epoll_create1
     - epoll_ctl
     - epoll_pwait
-    - eventfd2
-    - execve
-    - exit
-    - exit_group
-    - faccessat
-    - faccessat2
-    - fchdir
-    - fchmodat
-    - fchown
-    - fchownat
     - fcntl
-    - fsconfig
-    - fsmount
-    - fsopen
     - fstat
-    - fstatfs
     - futex
-    - getcwd
-    - getdents64
-    - getgid
     - getpeername
     - getpid
-    - getppid
     - getrandom
-    - getrlimit
     - getsockname
     - getsockopt
-    - gettid
-    - getuid
     - ioctl
-    - keyctl
-    - listen
     - madvise
-    - mkdirat
-    - mknodat
     - mmap
-    - mount
-    - mprotect
-    - munmap
     - nanosleep
     - newfstatat
-    - open_tree
     - openat
-    - openat2
-    - pipe2
-    - pivot_root
-    - prctl
-    - pread64
-    - prlimit64
     - read
-    - readlinkat
-    - recvfrom
-    - rseq
-    - rt_sigaction
-    - rt_sigprocmask
     - rt_sigreturn
-    - sched_getaffinity
     - sched_yield
-    - set_robust_list
-    - set_tid_address
-    - setgid
-    - setgroups
-    - setns
-    - setsid
     - setsockopt
-    - setuid
-    - sigaltstack
     - socket
-    - statfs
-    - statx
-    - symlinkat
     - tgkill
-    - tkill
-    - umask
-    - umount2
-    - uname
-    - unlinkat
-    - unshare
     - write

@@ -8,6 +8,8 @@ kube
 logonscript.sh
 gke_gcloud_auth_plugin_cache
 proposal
+honeystack/pixie/tmp
+honeystack/pixie/tmp/**
 
 
 localshit/**

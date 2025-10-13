@@ -1,7 +1,7 @@
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
 metadata:
-  name: replicaset-vizier-cloud-connector
+  name: statefulset-vizier-metadata
   namespace: pl
 spec:
   architectures:
@@ -14,17 +14,17 @@ spec:
     endpoints: null
     execs:
     - args:
-      - /app/src/vizier/services/cloud_connector/cloud_connector_server
-      path: /app/src/vizier/services/cloud_connector/cloud_connector_server
+      - /app/src/vizier/services/metadata/metadata
+      path: /app/src/vizier/services/metadata/metadata
     identifiedCallStacks: null
-    imageID: gcr.io/pixie-oss/pixie-prod/vizier-cloud_connector_server_image@sha256:9f1c1636f96e325d1a3b12316e77f14c2faf5672aca9e65e43f9eb08a21f6fae
-    imageTag: gcr.io/pixie-oss/pixie-prod/vizier-cloud_connector_server_image:0.14.15
+    imageID: docker.io/entlein/vizier-metadata_server_image@sha256:7b3800dd7993c134bc0b864cee449c61eafc88e3336b99dcf2d36acbba665b2f
+    imageTag: docker.io/entlein/vizier-metadata_server_image:2025-06-19_09-51-27.876_UTC
     name: app
     opens:
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /app/src/vizier/services/cloud_connector/cloud_connector_server.runfiles/px/src/vizier/services/cloud_connector/cloud_connector_server_/cloud_connector_server
+      path: /app/src/vizier/services/metadata/metadata.runfiles/px/src/vizier/services/metadata/metadata_/metadata
     - flags:
       - O_RDONLY
       - O_CLOEXEC
@@ -40,14 +40,6 @@ spec:
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /etc/ssl/certs
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
-      path: /etc/ssl/certs/ca-certificates.crt
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
       path: /lib/x86_64-linux-gnu/libc.so.6
     - flags:
       - O_RDONLY
@@ -57,6 +49,30 @@ spec:
       - O_RDONLY
       - O_CLOEXEC
       path: /lib/x86_64-linux-gnu/libresolv.so.2
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /metadata
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /metadata/pebble_20220209
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /metadata/pebble_20220209/LOCK
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /metadata/pebble_20220209/MANIFEST⋯
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /metadata/pebble_20220209/OPTIONS⋯
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /metadata/pebble_20220209/⋯
     - flags:
       - O_RDONLY
       - O_CLOEXEC
@@ -84,7 +100,7 @@ spec:
     rulePolicies:
       R0001:
         processAllowed:
-        - cloud_connector
+        - metadata
       R0002: {}
       R0003: {}
       R0004: {}
@@ -126,7 +142,6 @@ spec:
     - close
     - close_range
     - connect
-    - dup2
     - dup3
     - epoll_create1
     - epoll_ctl
@@ -137,22 +152,23 @@ spec:
     - exit_group
     - faccessat
     - faccessat2
+    - fadvise64
+    - fallocate
     - fchdir
     - fchmodat
     - fchown
     - fchownat
     - fcntl
-    - fork
+    - fdatasync
     - fsconfig
     - fsmount
     - fsopen
     - fstat
     - fstatfs
+    - fsync
     - futex
     - getcwd
     - getdents64
-    - getegid
-    - geteuid
     - getgid
     - getpeername
     - getpid
@@ -166,8 +182,8 @@ spec:
     - ioctl
     - keyctl
     - listen
+    - lstat
     - madvise
-    - membarrier
     - mkdirat
     - mknodat
     - mmap
@@ -180,23 +196,23 @@ spec:
     - open_tree
     - openat
     - openat2
-    - pipe
     - pipe2
     - pivot_root
-    - poll
     - prctl
     - pread64
     - prlimit64
     - read
+    - readlink
     - readlinkat
     - recvfrom
+    - renameat
     - rseq
     - rt_sigaction
     - rt_sigprocmask
     - rt_sigreturn
     - sched_getaffinity
     - sched_yield
-    - sendto
+    - sendfile
     - set_robust_list
     - set_tid_address
     - setgid
@@ -206,18 +222,17 @@ spec:
     - setuid
     - sigaltstack
     - socket
-    - socketpair
     - stat
     - statfs
     - statx
     - symlinkat
+    - sync_file_range
     - tgkill
     - tkill
     - umask
     - umount2
     - uname
     - unlinkat
-    - wait4
     - write
     - writev
   initContainers:
@@ -321,36 +336,6 @@ spec:
       - O_CREAT
       - O_TRUNC
       - O_LARGEFILE
-      path: /usr/lib/libbrotlicommon.so.1.0.9
-    - flags:
-      - O_WRONLY
-      - O_CREAT
-      - O_TRUNC
-      - O_LARGEFILE
-      path: /usr/lib/libbrotlidec.so.1.0.9
-    - flags:
-      - O_WRONLY
-      - O_CREAT
-      - O_TRUNC
-      - O_LARGEFILE
-      path: /usr/lib/libcurl.so.4.8.0
-    - flags:
-      - O_WRONLY
-      - O_CREAT
-      - O_TRUNC
-      - O_LARGEFILE
-      path: /usr/lib/libnghttp2.so.14.21.2
-    - flags:
-      - O_WRONLY
-      - O_CREAT
-      - O_TRUNC
-      - O_LARGEFILE
-      path: /usr/lib/libssh2.so.1.0.1
-    - flags:
-      - O_WRONLY
-      - O_CREAT
-      - O_TRUNC
-      - O_LARGEFILE
       path: /usr/lib/⋯
     rulePolicies:
       R0001:
@@ -387,7 +372,6 @@ spec:
       spec:
         defaultAction: ""
     syscalls:
-    - access
     - arch_prctl
     - bind
     - brk
@@ -399,25 +383,15 @@ spec:
     - close_range
     - connect
     - dup2
-    - dup3
-    - epoll_create1
     - epoll_ctl
     - epoll_pwait
-    - eventfd2
     - execve
     - exit
     - exit_group
-    - faccessat
     - faccessat2
-    - fchdir
-    - fchmodat
     - fchown
-    - fchownat
     - fcntl
     - fork
-    - fsconfig
-    - fsmount
-    - fsopen
     - fstat
     - fstatfs
     - futex
@@ -429,64 +403,42 @@ spec:
     - getpeername
     - getpid
     - getppid
-    - getrandom
     - getsockname
     - getsockopt
     - gettid
     - getuid
     - ioctl
-    - keyctl
     - madvise
     - membarrier
-    - mkdirat
-    - mknodat
     - mmap
-    - mount
     - mprotect
     - munmap
     - nanosleep
     - newfstatat
     - open
-    - open_tree
     - openat
-    - openat2
     - pipe
     - pipe2
-    - pivot_root
     - poll
     - prctl
-    - pread64
-    - prlimit64
     - read
-    - readlinkat
     - recvfrom
-    - rseq
     - rt_sigaction
     - rt_sigprocmask
     - rt_sigreturn
-    - sched_getaffinity
     - sched_yield
     - sendto
-    - set_robust_list
     - set_tid_address
     - setgid
     - setgroups
-    - setsid
     - setsockopt
     - setuid
     - sigaltstack
     - socket
     - socketpair
     - stat
-    - statfs
-    - statx
-    - symlinkat
     - tgkill
     - tkill
-    - umask
-    - umount2
-    - uname
-    - unlinkat
     - wait4
     - write
     - writev

@@ -1,33 +1,22 @@
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
 metadata:
-  name: replicaset-vizier-operator-7648ff4c7b
+  name: replicaset-vizier-operator
   namespace: px-operator
-  annotations:
-    kubescape.io/completion: complete
-    kubescape.io/status: completed
-    kubescape.io/instance-id: apiVersion-apps/v1/namespace-px-operator/kind-ReplicaSet/name-vizier-operator-7648ff4c7b
-    kubescape.io/wlid: wlid://cluster-bobexample/namespace-px-operator/deployment-vizier-operator
-  labels:
-    kubescape.io/workload-api-group: apps
-    kubescape.io/workload-api-version: v1
-    kubescape.io/workload-kind: Deployment
-    kubescape.io/workload-name: vizier-operator
-    kubescape.io/workload-namespace: px-operator
 spec:
   architectures:
   - amd64
   containers:
   - capabilities:
     - NET_ADMIN
-    endpoints: 
+    endpoints:
     - direction: outbound
       endpoint: :8222/
       headers:
         Accept-Encoding:
           - gzip
         Host:
-          - *.pl.pod.cluster.local:8222
+          - 10-42-1-11.pl.pod.cluster.local:8222
       internal: false
       methods:
         - GET
@@ -49,8 +38,8 @@ spec:
       - O_CLOEXEC
       path: /etc/hosts
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
+      - O_CLOEXEC
       path: /etc/resolv.conf
     - flags:
       - O_RDONLY
@@ -65,8 +54,8 @@ spec:
       - O_CLOEXEC
       path: /lib/x86_64-linux-gnu/libc.so.6
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
+      - O_CLOEXEC
       path: /lib/x86_64-linux-gnu/libm.so.6
     - flags:
       - O_RDONLY
@@ -79,17 +68,18 @@ spec:
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /proc/⋯/task/1/fd
+      path: /proc/⋯/task/⋯/fd
     - flags:
       - O_RDONLY
+      - O_CLOEXEC
       path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
     - flags:
       - O_RDONLY
       - O_CLOEXEC
       path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
+      - O_CLOEXEC
       path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token
     rulePolicies:
       R0001:
@@ -132,36 +122,22 @@ spec:
     - capget
     - capset
     - chdir
-    - clone
     - clone3
     - close
     - close_range
     - connect
-    - copy_file_range
-    - dup3
     - epoll_create1
     - epoll_ctl
     - epoll_pwait
-    - eventfd2
     - execve
     - exit
-    - exit_group
-    - faccessat
     - faccessat2
-    - fchdir
-    - fchmodat
-    - fchown
-    - fchownat
     - fcntl
-    - fsconfig
-    - fsmount
-    - fsopen
     - fstat
     - fstatfs
     - futex
     - getcwd
     - getdents64
-    - getgid
     - getpeername
     - getpid
     - getppid
@@ -170,33 +146,22 @@ spec:
     - getsockname
     - getsockopt
     - gettid
-    - getuid
     - ioctl
-    - keyctl
     - listen
     - lseek
-    - lstat
     - madvise
-    - mkdirat
-    - mknodat
     - mmap
-    - mount
     - mprotect
     - munmap
     - nanosleep
     - newfstatat
-    - open
-    - open_tree
     - openat
-    - openat2
     - pipe2
-    - pivot_root
     - poll
     - prctl
     - pread64
     - prlimit64
     - read
-    - readlink
     - readlinkat
     - recvfrom
     - rseq
@@ -205,26 +170,16 @@ spec:
     - rt_sigreturn
     - sched_getaffinity
     - sched_yield
-    - sendfile
     - sendmmsg
     - set_robust_list
     - set_tid_address
     - setgid
     - setgroups
-    - setsid
     - setsockopt
     - setuid
     - sigaltstack
     - socket
-    - stat
-    - statfs
-    - statx
-    - symlinkat
     - tgkill
     - tkill
-    - umask
-    - umount2
     - uname
-    - unlinkat
     - write
-    - writev
