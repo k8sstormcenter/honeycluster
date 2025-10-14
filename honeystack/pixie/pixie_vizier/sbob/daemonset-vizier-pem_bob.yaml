@@ -23,30 +23,35 @@ spec:
       - /app/src/vizier/services/agent/pem/pem
       path: /app/src/vizier/services/agent/pem/pem
     identifiedCallStacks: null
-    imageID: gcr.io/pixie-oss/pixie-prod/vizier-pem_image@sha256:e17e8b40fda3a51a385581578e34154e2c4b7f629903bec647c8465837fda121
-    imageTag: gcr.io/pixie-oss/pixie-prod/vizier-pem_image:0.14.15
     name: pem
     opens:
     - flags:
       - O_RDONLY
+      - O_CLOEXEC
       path: /app/src/operator/operator.runfiles/px/src/operator/operator_/operator
     - flags:
       - O_RDONLY
+      - O_CLOEXEC
       path: /app/src/vizier/services/agent/kelvin/kelvin.runfiles/px/src/vizier/services/agent/kelvin/kelvin
     - flags:
       - O_RDONLY
+      - O_CLOEXEC
       path: /app/src/vizier/services/agent/pem/pem.runfiles/px/src/vizier/services/agent/pem/pem
     - flags:
       - O_RDONLY
+      - O_CLOEXEC
       path: /app/src/vizier/services/cloud_connector/cloud_connector_server.runfiles/px/src/vizier/services/cloud_connector/cloud_connector_server_/cloud_connector_server
     - flags:
       - O_RDONLY
+      - O_CLOEXEC
       path: /app/src/vizier/services/metadata/metadata.runfiles/px/src/vizier/services/metadata/metadata_/metadata
     - flags:
       - O_RDONLY
+      - O_CLOEXEC
       path: /app/src/vizier/services/query_broker/query_broker.runfiles/px/src/vizier/services/query_broker/query_broker_/query_broker
     - flags:
       - O_RDONLY
+      - O_CLOEXEC
       path: /bin/⋯
     - flags:
       - O_RDONLY
@@ -62,9 +67,11 @@ spec:
       path: /dev/urandom
     - flags:
       - O_RDONLY
+      - O_CLOEXEC
       path: /etc/hosts
     - flags:
       - O_RDONLY
+      - O_CLOEXEC
       path: /etc/resolv.conf
     - flags:
       - O_RDONLY
@@ -514,8 +521,6 @@ spec:
       - https://vizier-query-broker-svc:50300/healthz
       path: /usr/bin/curl
     identifiedCallStacks: null
-    imageID: ghcr.io/pixie-io/pixie-oss-pixie-dev-public-curl@sha256:f7f265d5c64eb4463a43a99b6bf773f9e61a50aaa7cefaf564f43e42549a01dd
-    imageTag: ghcr.io/pixie-io/pixie-oss-pixie-dev-public-curl@sha256:f7f265d5c64eb4463a43a99b6bf773f9e61a50aaa7cefaf564f43e42549a01dd
     name: qb-wait
     opens:
     - flags:
@@ -553,31 +558,7 @@ spec:
       - O_TRUNC
       - O_LARGEFILE
       - O_WRONLY
-      path: /lib/libcrypto.so.1.1
-    - flags:
-      - O_CREAT
-      - O_TRUNC
-      - O_LARGEFILE
-      - O_WRONLY
-      path: /lib/libssl.so.1.1
-    - flags:
-      - O_CREAT
-      - O_TRUNC
-      - O_LARGEFILE
-      - O_WRONLY
-      path: /lib/libz.so.1.2.12
-    - flags:
-      - O_CREAT
-      - O_TRUNC
-      - O_LARGEFILE
-      - O_WRONLY
       path: /proc/⋯/task/⋯/fd
-    - flags:
-      - O_CREAT
-      - O_TRUNC
-      - O_LARGEFILE
-      - O_WRONLY
-      path: /usr/lib/libbrotlicommon.so.1.0.9
     - flags:
       - O_CREAT
       - O_TRUNC
