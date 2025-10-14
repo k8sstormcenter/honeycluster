@@ -18,8 +18,6 @@ spec:
       - /app/src/vizier/services/query_broker/query_broker
       path: /app/src/vizier/services/query_broker/query_broker
     identifiedCallStacks: null
-    imageID: docker.io/entlein/vizier-query_broker_server_image@sha256:42c2b938319fd6aafc52fe97e4e5c1eed647b68fe8dff9895f02f6479a9c298b
-    imageTag: docker.io/entlein/vizier-query_broker_server_image:2025-06-19_09-51-27.876_UTC
     name: app
     opens:
     - flags:
@@ -244,8 +242,6 @@ spec:
       - https://vizier-metadata-svc:50400/healthz
       path: /usr/bin/curl
     identifiedCallStacks: null
-    imageID: ghcr.io/pixie-io/pixie-oss-pixie-dev-public-curl@sha256:f7f265d5c64eb4463a43a99b6bf773f9e61a50aaa7cefaf564f43e42549a01dd
-    imageTag: ghcr.io/pixie-io/pixie-oss-pixie-dev-public-curl@sha256:f7f265d5c64eb4463a43a99b6bf773f9e61a50aaa7cefaf564f43e42549a01dd
     name: mds-wait
     opens:
     - flags:
@@ -443,8 +439,6 @@ spec:
       - https://vizier-cloud-connector-svc:50800/readyz
       path: /usr/bin/curl
     identifiedCallStacks: null
-    imageID: ghcr.io/pixie-io/pixie-oss-pixie-dev-public-curl@sha256:f7f265d5c64eb4463a43a99b6bf773f9e61a50aaa7cefaf564f43e42549a01dd
-    imageTag: ghcr.io/pixie-io/pixie-oss-pixie-dev-public-curl@sha256:f7f265d5c64eb4463a43a99b6bf773f9e61a50aaa7cefaf564f43e42549a01dd
     name: cc-wait
     opens:
     - flags:

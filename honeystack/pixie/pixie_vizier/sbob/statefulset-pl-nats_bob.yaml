@@ -33,8 +33,6 @@ spec:
       - /etc/nats-config/nats.conf
       path: /nats-server
     identifiedCallStacks: null
-    imageID: gcr.io/pixie-oss/pixie-prod/vizier-deps/nats@sha256:5de59286eb54ead4d4a9279846098d4097b9c17a3c0588182398a7250cde1af9
-    imageTag: gcr.io/pixie-oss/pixie-prod/vizier-deps/nats@sha256:5de59286eb54ead4d4a9279846098d4097b9c17a3c0588182398a7250cde1af9
     name: pl-nats
     opens:
     - flags:

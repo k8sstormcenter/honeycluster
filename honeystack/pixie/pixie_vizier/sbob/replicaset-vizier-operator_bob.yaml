@@ -25,8 +25,6 @@ spec:
       - /app/src/operator/operator
       path: /app/src/operator/operator
     identifiedCallStacks: null
-    imageID: gcr.io/pixie-oss/pixie-prod/operator-operator_image@sha256:f596c0293ca825c22beb316a10ac6999ee28abfef260609bdb2909bd470095d7
-    imageTag: gcr.io/pixie-oss/pixie-prod/operator-operator_image:0.1.7
     name: app
     opens:
     - flags:

@@ -17,8 +17,6 @@ spec:
       - /app/src/vizier/services/metadata/metadata
       path: /app/src/vizier/services/metadata/metadata
     identifiedCallStacks: null
-    imageID: docker.io/entlein/vizier-metadata_server_image@sha256:7b3800dd7993c134bc0b864cee449c61eafc88e3336b99dcf2d36acbba665b2f
-    imageTag: docker.io/entlein/vizier-metadata_server_image:2025-06-19_09-51-27.876_UTC
     name: app
     opens:
     - flags:
@@ -56,23 +54,23 @@ spec:
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /metadata/pebble_20220209
+      path: /metadata/pebble_⋯
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /metadata/pebble_20220209/LOCK
+      path: /metadata/pebble_⋯/LOCK
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /metadata/pebble_20220209/MANIFEST⋯
+      path: /metadata/pebble_⋯/MANIFEST⋯
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /metadata/pebble_20220209/OPTIONS⋯
+      path: /metadata/pebble_⋯/OPTIONS⋯
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /metadata/pebble_20220209/⋯
+      path: /metadata/pebble_⋯/⋯
     - flags:
       - O_RDONLY
       - O_CLOEXEC

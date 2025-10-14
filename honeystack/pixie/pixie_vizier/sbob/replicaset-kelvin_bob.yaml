@@ -17,8 +17,6 @@ spec:
       - /app/src/vizier/services/agent/kelvin/kelvin
       path: /app/src/vizier/services/agent/kelvin/kelvin
     identifiedCallStacks: null
-    imageID: docker.io/entlein/vizier-kelvin_image@sha256:da0171e8b48c9a6f3be6d59a42fd58036f0c2a150c9e2376370323cbfcd887a8
-    imageTag: docker.io/entlein/vizier-kelvin_image:2025-06-19_09-51-27.876_UTC
     name: app
     opens:
     - flags:
@@ -397,8 +395,6 @@ spec:
       - https://vizier-cloud-connector-svc:50800/readyz
       path: /usr/bin/curl
     identifiedCallStacks: null
-    imageID: ghcr.io/pixie-io/pixie-oss-pixie-dev-public-curl@sha256:f7f265d5c64eb4463a43a99b6bf773f9e61a50aaa7cefaf564f43e42549a01dd
-    imageTag: ghcr.io/pixie-io/pixie-oss-pixie-dev-public-curl@sha256:f7f265d5c64eb4463a43a99b6bf773f9e61a50aaa7cefaf564f43e42549a01dd
     name: cc-wait
     opens:
     - flags:
@@ -633,8 +629,6 @@ spec:
       - https://vizier-query-broker-svc:50300/healthz
       path: /usr/bin/curl
     identifiedCallStacks: null
-    imageID: ghcr.io/pixie-io/pixie-oss-pixie-dev-public-curl@sha256:f7f265d5c64eb4463a43a99b6bf773f9e61a50aaa7cefaf564f43e42549a01dd
-    imageTag: ghcr.io/pixie-io/pixie-oss-pixie-dev-public-curl@sha256:f7f265d5c64eb4463a43a99b6bf773f9e61a50aaa7cefaf564f43e42549a01dd
     name: qb-wait
     opens:
     - flags:

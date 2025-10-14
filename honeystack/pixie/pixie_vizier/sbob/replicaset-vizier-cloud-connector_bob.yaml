@@ -17,8 +17,6 @@ spec:
       - /app/src/vizier/services/cloud_connector/cloud_connector_server
       path: /app/src/vizier/services/cloud_connector/cloud_connector_server
     identifiedCallStacks: null
-    imageID: gcr.io/pixie-oss/pixie-prod/vizier-cloud_connector_server_image@sha256:9f1c1636f96e325d1a3b12316e77f14c2faf5672aca9e65e43f9eb08a21f6fae
-    imageTag: gcr.io/pixie-oss/pixie-prod/vizier-cloud_connector_server_image:0.14.15
     name: app
     opens:
     - flags:
@@ -258,8 +256,6 @@ spec:
       - http://pl-nats-mgmt:8222
       path: /usr/bin/curl
     identifiedCallStacks: null
-    imageID: ghcr.io/pixie-io/pixie-oss-pixie-dev-public-curl@sha256:f7f265d5c64eb4463a43a99b6bf773f9e61a50aaa7cefaf564f43e42549a01dd
-    imageTag: ghcr.io/pixie-io/pixie-oss-pixie-dev-public-curl@sha256:f7f265d5c64eb4463a43a99b6bf773f9e61a50aaa7cefaf564f43e42549a01dd
     name: nats-wait
     opens:
     - flags:
