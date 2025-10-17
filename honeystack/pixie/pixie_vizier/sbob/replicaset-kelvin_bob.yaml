@@ -261,6 +261,7 @@ spec:
     - capset
     - chdir
     - clock_nanosleep
+    - clock_gettime
     - clone
     - close
     - close_range
@@ -301,6 +302,7 @@ spec:
     - getsockname
     - getsockopt
     - gettid
+    - gettimeofday
     - getuid
     - ioctl
     - keyctl

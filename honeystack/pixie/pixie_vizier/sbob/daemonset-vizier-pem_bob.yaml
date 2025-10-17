@@ -288,7 +288,7 @@ spec:
       path: /usr/lib/x86_64-linux-gnu/libunwind.so.8.0.1
     - flags:
       - O_RDONLY
-      path: /usr/local/bin/traefik
+      path: /usr/local/bin/⋯
     - flags:
       - O_RDONLY
       path: /usr/src/linux-headers-⋯/⋯/⋯/⋯/⋯/⋯
