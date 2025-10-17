@@ -1,0 +1,63 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  name: replicaset-catalog-operator
+  namespace: olm
+spec:
+  architectures:
+  - amd64
+  containers:
+  - capabilities: null
+    endpoints:
+    - direction: inbound
+      endpoint: :8080/healthz
+      headers:
+        Connection:
+          - close
+        Host:
+          - 10.42.0.12:8080
+      internal: false
+      methods:
+        - GET
+    execs: null
+    name: catalog-operator
+    opens:
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token
+    rulePolicies: {}
+    seccompProfile:
+      spec:
+        defaultAction: ""
+    syscalls:
+    - accept4
+    - close
+    - connect
+    - epoll_ctl
+    - epoll_pwait
+    - fcntl
+    - fstat
+    - futex
+    - getpeername
+    - getpid
+    - getrandom
+    - getsockname
+    - getsockopt
+    - ioctl
+    - madvise
+    - mmap
+    - nanosleep
+    - newfstatat
+    - openat
+    - read
+    - rt_sigreturn
+    - sched_yield
+    - setsockopt
+    - socket
+    - tgkill
+    - write

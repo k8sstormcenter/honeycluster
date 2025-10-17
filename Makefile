@@ -91,14 +91,12 @@ kind-pixie-up:
 .PHONY: clickhouse
 clickhouse:
 	echo "📦 Installing ClickHouse..."
-	$(HELM) upgrade --install clickhouse oci://registry-1.docker.io/bitnamicharts/clickhouse  --namespace honey --create-namespace --values honeystack/clickhouse/values.yaml
-	@echo "⏳ Waiting for ClickHouse pods to be ready..."
-	kubectl wait --namespace honey --for=condition=Ready pod -l app.kubernetes.io/name=clickhouse --timeout=180s
-	@echo "🔐 Fetching credentials..."
-	@CLICKHOUSE_USER="default"; \
-	CLICKHOUSE_PASSWORD=$$(kubectl get secret --namespace honey clickhouse -o jsonpath="{.data.admin-password}" | base64 -d); \
-	export CLICKHOUSE_USER CLICKHOUSE_PASSWORD; \
-	envsubst < honeystack/vector/soc.with-clickhouse.yaml > honeystack/vector/soc.with-clickhouse.yaml.tmp && mv honeystack/vector/soc.with-clickhouse.yaml.tmp honeystack/vector/soc.with-clickhouse.yaml
+	$(HELM) repo add hyperdx https://hyperdxio.github.io/helm-charts
+	$(HELM) repo update
+	$(HELM) upgrade --install -n honey hyperdx hyperdx/hdx-oss-v2 #--set hyperdx.appURL=http://68ebcdad8221d03de95cfa45-526273.node-uw-a3d1.iximiuz.com --set ingress.enabled=true --set ingress.host="68ebcdad8221d03de95cfa45-526273.node-uw-a3d1.iximiuz.com"
+	kubectl wait --for=condition=Ready pod  -l app=clickhouse -n honey --timeout=180s
+	./honeystack/clickhouse/init.sh
+
 
 .PHONY: hive-sentinel
 HIVE_SENTINEL_IMAGE ?= ghcr.io/k8sstormcenter/hivesentinel:latest
@@ -106,10 +104,10 @@ hive-sentinel:
 	@echo "📦 Deploying Hive Sentinel..."
 	@PIXIE_API_TOKEN=$$(px api-key create -s | tail -n 1); \
 	PIXIE_CLUSTER_ID=$$(px get clusters | grep CS_HEALTHY | awk '{print $$2}'); \
-	CLICKHOUSE_PASSWORD=$$(kubectl get secret --namespace honey clickhouse -o jsonpath="{.data.admin-password}" | base64 -d); \
-	CLICKHOUSE_HOST=clickhouse.honey.svc.cluster.local; \
+	CLICKHOUSE_PASSWORD=hyperdx; \
+	CLICKHOUSE_HOST=hyperdx-hdx-oss-v2-clickhouse.honey.svc.cluster.local; \
 	CLICKHOUSE_PORT=8123; \
-	CLICKHOUSE_USER=default; \
+	CLICKHOUSE_USER=app; \
 	CLICKHOUSE_DB=default; \
 	USE_PIXIE=False; \
 	HIVE_SENTINEL_IMAGE=$(HIVE_SENTINEL_IMAGE); \
@@ -223,7 +221,7 @@ tetragon: helm check-context
 .PHONY: vector
 vector: helm 
 	@echo "🔍 Selecting Vector config..."
-	@CONFIG_PATH=$$(kubectl get svc -n honey clickhouse --ignore-not-found | grep -q clickhouse && echo "honeystack/vector/soc.with-clickhouse.yaml" || echo "honeystack/vector/soc.no-clickhouse.yaml"); \
+	@CONFIG_PATH=$$(kubectl get svc -n honey hyperdx-hdx-oss-v2-clickhouse --ignore-not-found | grep -q clickhouse && echo "honeystack/vector/soc.with-clickhouse.yaml" || echo "honeystack/vector/soc.no-clickhouse.yaml"); \
 	echo "📦 Deploying Vector using: $$CONFIG_PATH"; \
 	$(HELM) repo add vector https://helm.vector.dev; \
 	$(HELM) upgrade --install vector vector/vector --namespace honey --create-namespace --values $$CONFIG_PATH; \

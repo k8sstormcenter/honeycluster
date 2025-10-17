@@ -1,0 +1,63 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  name: replicaset-olm-operator
+  namespace: olm
+spec:
+  architectures:
+  - amd64
+  containers:
+  - capabilities: null
+    endpoints:
+    - direction: inbound
+      endpoint: :8080/healthz
+      headers:
+        Connection:
+          - close
+        Host:
+          - 10.42.0.13:8080
+      internal: false
+      methods:
+        - GET
+    execs: null
+    identifiedCallStacks: null
+    name: olm-operator
+    opens:
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token
+    rulePolicies: {}
+    seccompProfile:
+      spec:
+        defaultAction: ""
+    syscalls:
+    - accept4
+    - clone
+    - close
+    - epoll_ctl
+    - epoll_pwait
+    - fcntl
+    - fstat
+    - futex
+    - getpid
+    - getrandom
+    - getsockname
+    - gettid
+    - ioctl
+    - madvise
+    - mmap
+    - nanosleep
+    - openat
+    - read
+    - rt_sigprocmask
+    - rt_sigreturn
+    - sched_yield
+    - setsockopt
+    - sigaltstack
+    - tgkill
+    - write

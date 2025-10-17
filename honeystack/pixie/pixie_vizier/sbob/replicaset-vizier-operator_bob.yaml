@@ -1,44 +1,55 @@
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
 metadata:
-  name: job-cert-provisioner-job
-  namespace: pl
-  annotations:
-    kubescape.io/completion: complete
-    kubescape.io/status: completed
-    kubescape.io/instance-id: apiVersion-batch/v1/namespace-pl/kind-Job/name-cert-provisioner-job
-    kubescape.io/wlid: wlid://cluster-bobexample/namespace-pl/job-cert-provisioner-job
-  labels:
-    kubescape.io/workload-api-group: batch
-    kubescape.io/workload-api-version: v1
-    kubescape.io/workload-kind: Job
-    kubescape.io/workload-name: cert-provisioner-job
-    kubescape.io/workload-namespace: pl
+  name: replicaset-vizier-operator
+  namespace: px-operator
 spec:
   architectures:
   - amd64
   containers:
   - capabilities:
-    - DAC_OVERRIDE
-    - DAC_READ_SEARCH
-    endpoints: null
-    
+    - NET_ADMIN
+    endpoints:
+    - direction: outbound
+      endpoint: :8222/
+      headers:
+        Accept-Encoding:
+          - gzip
+        Host:
+          - 10-42-1-11.pl.pod.cluster.local:8222
+      internal: false
+      methods:
+        - GET
     execs:
     - args:
-      - /app/src/utils/cert_provisioner/cert_provisioner
-      path: /app/src/utils/cert_provisioner/cert_provisioner
+      - /app/src/operator/operator
+      path: /app/src/operator/operator
     identifiedCallStacks: null
-    imageID: gcr.io/pixie-oss/pixie-prod/vizier-cert_provisioner_image@sha256:2e00396429096505cf11cb31e62e447a45bbd2497089cc41c78955a24b8e3558
-    imageTag: gcr.io/pixie-oss/pixie-prod/vizier-cert_provisioner_image:0.14.15
-    name: provisioner
+    name: app
     opens:
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /app/src/utils/cert_provisioner/cert_provisioner.runfiles/px/src/utils/cert_provisioner/cert_provisioner_/cert_provisioner
+      path: /app/src/operator/operator.runfiles/px/src/operator/operator_/operator
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/hosts
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/resolv.conf
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/ssl/certs
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/ssl/certs/ca-certificates.crt
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
       path: /lib/x86_64-linux-gnu/libc.so.6
     - flags:
       - O_RDONLY
@@ -49,11 +60,16 @@ spec:
       - O_CLOEXEC
       path: /lib/x86_64-linux-gnu/libresolv.so.2
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
-      path: /proc/⋯/task/1/fd
+      - O_CLOEXEC
+      path: /proc/⋯/net/core/somaxconn
     - flags:
       - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/task/⋯/fd
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
       path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
     - flags:
       - O_RDONLY
@@ -66,7 +82,7 @@ spec:
     rulePolicies:
       R0001:
         processAllowed:
-        - cert_provisione
+        - operator
       R0002: {}
       R0003: {}
       R0004: {}
@@ -96,13 +112,15 @@ spec:
       spec:
         defaultAction: ""
     syscalls:
+    - accept4
     - access
     - arch_prctl
+    - bind
     - brk
     - capget
     - capset
     - chdir
-    - clone
+    - clone3
     - close
     - close_range
     - connect
@@ -111,9 +129,7 @@ spec:
     - epoll_pwait
     - execve
     - exit
-    - exit_group
     - faccessat2
-    - fchown
     - fcntl
     - fstat
     - fstatfs
@@ -129,6 +145,8 @@ spec:
     - getsockopt
     - gettid
     - ioctl
+    - listen
+    - lseek
     - madvise
     - mmap
     - mprotect
@@ -137,6 +155,7 @@ spec:
     - newfstatat
     - openat
     - pipe2
+    - poll
     - prctl
     - pread64
     - prlimit64
@@ -149,6 +168,7 @@ spec:
     - rt_sigreturn
     - sched_getaffinity
     - sched_yield
+    - sendmmsg
     - set_robust_list
     - set_tid_address
     - setgid
