@@ -1465,7 +1465,7 @@ metadata:
   labels:
     app: pl-monitoring
     component: vizier
-    kubescape.io/user-defined-profile: "daemonset-vizier-pem"
+    kubescape.io/user-defined-profile: daemonset-vizier-pem
   name: vizier-pem
   namespace: pl
 spec:
@@ -1481,7 +1481,7 @@ spec:
         component: vizier
         name: vizier-pem
         plane: data
-        kubescape.io/user-defined-profile: "daemonset-vizier-pem"
+        kubescape.io/user-defined-profile: daemonset-vizier-pem
     spec:
       affinity:
         nodeAffinity:
@@ -1516,8 +1516,6 @@ spec:
           value: "false"
         - name: PL_HOST_PATH
           value: /host
-       # - name: PX_STIRLING_ENABLE_TLS_TRACING
-       #   value: "1"
         - name: PL_POD_NAME
           valueFrom:
             fieldRef:
@@ -1630,7 +1628,7 @@ metadata:
     app: pl-monitoring
     component: vizier
     vizier-bootstrap: "true"
-    kubescape.io/user-defined-profile: "job-cert-provisioner-job"
+    kubescape.io/user-defined-profile: job-cert-provisioner-job
   name: cert-provisioner-job
   namespace: pl
 spec:
@@ -1643,7 +1641,7 @@ spec:
         app: pl-monitoring
         component: vizier
         vizier-bootstrap: "true"
-        kubescape.io/user-defined-profile: "job-cert-provisioner-job"
+        kubescape.io/user-defined-profile: job-cert-provisioner-job
       name: cert-provisioner-job
     spec:
       containers:

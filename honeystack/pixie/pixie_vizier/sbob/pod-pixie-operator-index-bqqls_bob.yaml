@@ -1,7 +1,7 @@
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
 metadata:
-  name: pod-pixie-operator-index-bqqls
+  name: pod-pixie-operator-index
   namespace: px-operator
 spec:
   architectures:
@@ -21,9 +21,6 @@ spec:
       - --database
       - /database/index.db
       path: /bin/opm
-    identifiedCallStacks: null
-    imageID: gcr.io/pixie-oss/pixie-prod/operator/bundle_index@sha256:1f69b7bb1ce9bd6b0898ae15bf6d17f07669c0958a964da973b3560f84cb9ba4
-    imageTag: gcr.io/pixie-oss/pixie-prod/operator/bundle_index:0.0.1
     name: registry-server
     opens:
     - flags:

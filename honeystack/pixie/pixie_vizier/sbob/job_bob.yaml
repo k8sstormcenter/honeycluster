@@ -24,8 +24,6 @@ spec:
       - -z
       path: /bin/opm
     identifiedCallStacks: null
-    imageID: quay.io/operator-framework/opm@sha256:d999588bd4e9509ec9e75e49adfb6582d256e9421e454c7fb5e9fe57e7b1aada
-    imageTag: quay.io/operator-framework/opm@sha256:d999588bd4e9509ec9e75e49adfb6582d256e9421e454c7fb5e9fe57e7b1aada
     name: extract
     opens:
     - flags:
