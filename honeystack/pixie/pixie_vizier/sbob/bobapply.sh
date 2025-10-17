@@ -1,4 +1,7 @@
 #!/bin/bash
+kubectl create ns olm
+kubectl create ns px-operator
+kubectl create ns pl
 for file in *_bob.yaml; do
     kubectl apply -f $file;
 done
