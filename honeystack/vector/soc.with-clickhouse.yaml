@@ -452,7 +452,7 @@ customConfig:
         - kubescape-create_key
       database: default
       table: kubescape_logs
-      endpoint: "http://hyperdx-hdx-oss-v2-clickhouse.honey.svc.cluster.local:8123"
+      endpoint: "http://hyperdx-hdx-oss-v2-clickhouse.click.svc.cluster.local:8123"
       auth:
         strategy: "basic"
         user: app
@@ -470,7 +470,7 @@ customConfig:
         - tetragon_pixie
       database: default
       table: tetragon_logs
-      endpoint: "http://hyperdx-hdx-oss-v2-clickhouse.honey.svc.cluster.local:8123"
+      endpoint: "http://hyperdx-hdx-oss-v2-clickhouse.click.svc.cluster.local:8123"
       auth:
         strategy: "basic"
         user: app
