@@ -25,7 +25,6 @@ done
 #     done
 #   fi
 # For a Job (replace <job-name> and <namespace>)
-kubectl label --overwrite -n "px-operator" "job/job" kubescape.io/user-defined-profile="job"
 kubectl label --overwrite -n olm "deployment/catalog-operator" kubescape.io/user-defined-profile="replicaset-catalog-operator"
 kubectl label --overwrite -n olm "deployment/olm-operator" kubescape.io/user-defined-profile="replicaset-olm-operator"
 kubectl label --overwrite -n px-operator "deployment/vizier-operator" kubescape.io/user-defined-profile=replicaset-vizier-operator
