@@ -618,6 +618,7 @@ spec:
     - capset
     - chdir
     - chmod
+    - clock_gettime
     - clock_nanosleep
     - clone
     - close

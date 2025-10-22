@@ -700,6 +700,7 @@ spec:
     - capget
     - capset
     - chdir
+    - clock_gettime
     - clock_getres
     - clone
     - clone3

@@ -1470,6 +1470,7 @@ spec:
     - capget
     - capset
     - chdir
+    - clock_gettime
     - clock_nanosleep
     - clone
     - close
