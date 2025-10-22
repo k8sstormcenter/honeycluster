@@ -659,6 +659,7 @@ spec:
     - getrusage
     - getsockname
     - getsockopt
+    - gettimeofday
     - gettid
     - getuid
     - ioctl
