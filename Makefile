@@ -90,11 +90,10 @@ kind-pixie-up:
 
 .PHONY: clickhouse
 clickhouse:
-	echo "📦 Installing ClickHouse..."
-	$(HELM) repo add hyperdx https://hyperdxio.github.io/helm-charts
-	$(HELM) repo update
-	$(HELM) upgrade --install -n honey hyperdx hyperdx/hdx-oss-v2 #--set hyperdx.appURL=http://68ebcdad8221d03de95cfa45-526273.node-uw-a3d1.iximiuz.com --set ingress.enabled=true --set ingress.host="68ebcdad8221d03de95cfa45-526273.node-uw-a3d1.iximiuz.com"
-	kubectl wait --for=condition=Ready pod  -l app=clickhouse -n honey --timeout=180s
+	echo "📦 Installing ClickHouse...assumes Kubescape is installed"
+	-./honeystack/clickhouse/bobapply.sh
+	sleep 15
+	kubectl wait --for=condition=Ready pod  -l app=clickhouse -n click --timeout=180s
 	./honeystack/clickhouse/init.sh
 
 
