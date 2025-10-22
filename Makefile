@@ -90,7 +90,8 @@ kind-pixie-up:
 
 .PHONY: clickhouse
 clickhouse:
-	echo "📦 Installing ClickHouse..."
+	echo "📦 Installing ClickHouse...assumes Kubescape is installed"
+	./honeystack/clickhouse/bobapply.sh
 	$(HELM) repo add hyperdx https://hyperdxio.github.io/helm-charts
 	$(HELM) repo update
 	$(HELM) upgrade --install -n click hyperdx hyperdx/hdx-oss-v2 --create-namespace #--set hyperdx.appURL=http://68ebcdad8221d03de95cfa45-526273.node-uw-a3d1.iximiuz.com --set ingress.enabled=true --set ingress.host="68ebcdad8221d03de95cfa45-526273.node-uw-a3d1.iximiuz.com"
