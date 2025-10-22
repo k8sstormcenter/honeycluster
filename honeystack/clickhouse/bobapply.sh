@@ -2,7 +2,7 @@
 ns=click
 kubectl create ns $ns
 for file in honeystack/clickhouse/click*.yaml; do
-    kubectl apply -f $file;
+    kubectl apply -n $ns -f $file;
 done
 
 #kubectl label --overwrite -n $ns "deployment/hyperdx-hdx-oss-v2-app" kubescape.io/user-defined-profile=app
