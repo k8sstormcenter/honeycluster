@@ -718,6 +718,9 @@ spec:
     - faccessat2
     - fcntl
     - fdatasync
+    - fchmod
+    - fgetxattr
+    - fsconfig
     - flock
     - fork
     - fstat
@@ -737,6 +740,7 @@ spec:
     - getrusage
     - getsockname
     - getsockopt
+    - gettimeofday
     - gettid
     - getuid
     - ioctl
@@ -750,6 +754,8 @@ spec:
     - mmap
     - mprotect
     - munmap
+    - mount_setattr
+    - mount
     - nanosleep
     - newfstatat
     - open
@@ -760,6 +766,7 @@ spec:
     - prctl
     - pread64
     - prlimit64
+    - processtree_depth
     - read
     - readlink
     - readlinkat
@@ -788,6 +795,7 @@ spec:
     - sigaltstack
     - socket
     - stat
+    - statx
     - statfs
     - symlink
     - sysinfo
@@ -797,6 +805,7 @@ spec:
     - tkill
     - umask
     - uname
+    - umount2
     - unlink
     - unshare
     - utimensat

@@ -1046,41 +1046,49 @@ spec:
     - flags:
       - O_RDONLY
       - O_LARGEFILE
+      - O_DIRECTORY
       - O_CLOEXEC
-      path: /app/packages/app/node_modules/⋯
+      path: /app/packages/⋯/⋯/⋯
     - flags:
       - O_CLOEXEC
       - O_RDONLY
+      - O_DIRECTORY
       - O_LARGEFILE
-      path: /app/packages/app/node_modules/⋯/⋯
+      path: /app/packages/⋯/⋯/⋯/⋯
     - flags:
       - O_CLOEXEC
       - O_RDONLY
+      - O_DIRECTORY
       - O_LARGEFILE
-      path: /app/packages/app/node_modules/⋯/⋯/⋯
+      path: /app/packages/⋯/⋯/⋯/⋯/⋯
     - flags:
       - O_CLOEXEC
       - O_RDONLY
+      - O_DIRECTORY
       - O_LARGEFILE
-      path: /app/packages/app/node_modules/⋯/⋯/⋯/⋯
+      path: /app/packages/⋯/⋯/⋯/⋯/⋯/⋯
     - flags:
       - O_CLOEXEC
       - O_RDONLY
+      - O_DIRECTORY
       - O_LARGEFILE
-      path: /app/packages/app/node_modules/⋯/⋯/⋯/⋯/⋯
+      path: /app/packages/⋯/⋯/⋯/⋯/⋯/⋯/⋯
     - flags:
       - O_CLOEXEC
       - O_RDONLY
+      - O_DIRECTORY
       - O_LARGEFILE
-      path: /app/packages/app/node_modules/⋯/⋯/⋯/⋯/⋯/⋯
+      path: /app/packages/⋯/⋯/⋯/⋯/⋯/⋯/⋯/⋯
     - flags:
       - O_CLOEXEC
       - O_RDONLY
+      - O_DIRECTORY
       - O_LARGEFILE
-      path: /app/packages/app/node_modules/⋯/⋯/⋯/⋯/⋯/⋯/⋯
+      path: /app/packages/⋯/⋯/⋯/⋯/⋯/⋯/⋯/⋯/⋯
     - flags:
       - O_CLOEXEC
       - O_RDONLY
+      - O_DIRECTORY
       - O_LARGEFILE
       path: /app/packages/⋯/⋯/⋯/⋯/⋯/⋯/⋯/⋯/⋯/⋯
     - flags:
