@@ -220,7 +220,7 @@ tetragon: helm check-context
 .PHONY: vector
 vector: helm 
 	@echo "🔍 Selecting Vector config..."
-	@CONFIG_PATH=$$(kubectl get svc -n honey hyperdx-hdx-oss-v2-clickhouse --ignore-not-found | grep -q clickhouse && echo "honeystack/vector/soc.with-clickhouse.yaml" || echo "honeystack/vector/soc.no-clickhouse.yaml"); \
+	@CONFIG_PATH=$$(kubectl get svc -n click hyperdx-hdx-oss-v2-clickhouse --ignore-not-found | grep -q clickhouse && echo "honeystack/vector/soc.with-clickhouse.yaml" || echo "honeystack/vector/soc.no-clickhouse.yaml"); \
 	echo "📦 Deploying Vector using: $$CONFIG_PATH"; \
 	$(HELM) repo add vector https://helm.vector.dev; \
 	$(HELM) upgrade --install vector vector/vector --namespace honey --create-namespace --values $$CONFIG_PATH; \
