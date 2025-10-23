@@ -1303,6 +1303,7 @@ spec:
     - capset
     - chdir
     - clock_getres
+    - clock_gettime
     - clone
     - close
     - close_range

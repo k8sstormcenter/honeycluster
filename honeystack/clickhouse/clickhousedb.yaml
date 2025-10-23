@@ -702,6 +702,7 @@ spec:
     - chdir
     - clock_gettime
     - clock_getres
+    - clock_nanosleep
     - clone
     - clone3
     - close
