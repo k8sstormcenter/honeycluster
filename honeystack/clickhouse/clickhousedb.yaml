@@ -808,6 +808,7 @@ spec:
     - uname
     - umount2
     - unlink
+    - unlinkat
     - unshare
     - utimensat
     - wait4

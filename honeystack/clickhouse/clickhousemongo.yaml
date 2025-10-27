@@ -610,6 +610,7 @@ spec:
         defaultAction: ""
     syscalls:
     - accept
+    - accept4 
     - access
     - arch_prctl
     - bind
@@ -624,7 +625,9 @@ spec:
     - close
     - close_range
     - connect
+    - dup
     - dup2
+    - dup3 
     - epoll_create1
     - epoll_ctl
     - epoll_pwait
@@ -636,6 +639,7 @@ spec:
     - faccessat2
     - fallocate
     - fchdir
+    - fchown 
     - fchownat
     - fcntl
     - fdatasync
@@ -659,6 +663,7 @@ spec:
     - getrusage
     - getsockname
     - getsockopt
+    - gettimeofday
     - gettid
     - getuid
     - ioctl
@@ -667,6 +672,7 @@ spec:
     - lstat
     - madvise
     - mkdir
+    - mkdirat 
     - mmap
     - mprotect
     - munmap
@@ -681,6 +687,8 @@ spec:
     - prlimit64
     - pwrite64
     - read
+    - readlink
+    - readlinkat
     - recvfrom
     - recvmsg
     - rename

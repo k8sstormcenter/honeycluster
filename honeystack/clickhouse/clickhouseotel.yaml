@@ -372,4 +372,39 @@ spec:
     - waitid
     - write
     - writev
+    - access
+    - faccessat
+    - fallocate
+    - fchdir
+    - fchmodat
+    - fchownat
+    - fdatasync
+    - fsconfig
+    - fsmount
+    - fsopen
+    - fsync
+    - getegid
+    - geteuid
+    - getrlimit
+    - keyctl
+    - membarrier
+    - mknodat
+    - mount
+    - open_tree
+    - openat2
+    - pause
+    - pivot_root
+    - poll
+    - readlink
+    - renameat
+    - rseq
+    - set_robust_list
+    - setsid
+    - socketpair
+    - statx
+    - symlinkat
+    - sync_file_range
+    - umask
+    - umount2
+    - unlinkat
 status: {}
