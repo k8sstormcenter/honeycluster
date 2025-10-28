@@ -294,6 +294,7 @@ spec:
     - capget
     - capset
     - chdir
+    - chmod
     - clock_gettime
     - clone
     - close
@@ -332,6 +333,7 @@ spec:
     - lstat
     - madvise
     - mkdirat
+    - mkdir
     - mmap
     - mprotect
     - munmap

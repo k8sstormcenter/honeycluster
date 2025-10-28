@@ -1262,6 +1262,18 @@ spec:
       - O_DIRECTORY
       - O_CLOEXEC
       path: /usr/local/⋯/⋯/⋯/⋯/⋯/⋯/⋯/⋯/⋯/⋯/⋯
+    - flags:
+      - O_RDONLY
+      - O_LARGEFILE
+      - O_DIRECTORY
+      - O_CLOEXEC
+      path: /usr/local/⋯/⋯/⋯/⋯/⋯/⋯/⋯/⋯/⋯/⋯/⋯/⋯
+    - flags:
+      - O_RDONLY
+      - O_LARGEFILE
+      - O_DIRECTORY
+      - O_CLOEXEC
+      path: /usr/local/⋯/⋯/⋯/⋯/⋯/⋯/⋯/⋯/⋯/⋯/⋯/⋯/⋯
     rulePolicies:
       R0001:
         processAllowed:
@@ -1296,12 +1308,14 @@ spec:
       R1030:
         processAllowed:
         - next-server (v-⋯
+        - next-server
         - node-⋯
         - node⋯
         - node
         - npm exec concur-⋯
         - npm-⋯
         - npm
+        - sh
     seccompProfile:
       spec:
         defaultAction: ""
@@ -1380,6 +1394,7 @@ spec:
     - rt_sigprocmask
     - rt_sigreturn
     - sched_getaffinity
+    - sched_yield
     - sendto
     - set_tid_address
     - setgid

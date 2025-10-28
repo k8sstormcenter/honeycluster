@@ -706,6 +706,7 @@ spec:
     - setgroups
     - setsockopt
     - setuid
+    - select
     - shutdown
     - sigaltstack
     - socket
