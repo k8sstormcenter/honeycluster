@@ -29,7 +29,7 @@ PARTITION BY toYYYYMM(event_time)
 ORDER BY (hostname, event_time);
 
 CREATE TABLE IF NOT EXISTS default.tetragon_logs (
-    event_time DateTime64(3)
+    event_time DateTime64(3),
     node_name String,
     type String,
     payload String
@@ -38,7 +38,7 @@ PARTITION BY toYYYYMM(event_time)
 ORDER BY (hostname, event_time);
 
 CREATE TABLE IF NOT EXISTS default.tetragon_stix (
-    event_time DateTime64(3)
+    event_time DateTime64(3),
     timestamp String,
     pod_name String,
     namespace String,
