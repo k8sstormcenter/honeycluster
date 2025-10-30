@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS default.tetragon_stix (
     timestamp String,
     pod_name String,
     namespace String,
+    hostname String,
     data String
 ) ENGINE = MergeTree()
 PARTITION BY toYYYYMM(event_time)
