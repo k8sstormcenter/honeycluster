@@ -459,8 +459,8 @@ customConfig:
       endpoint: "http://hyperdx-hdx-oss-v2-clickhouse.click.svc.cluster.local:8123"
       auth:
         strategy: "basic"
-        user: app
-        password: hyperdx
+        user: otelcollector
+        password: otelcollectorpass
     tetragon: 
       type: file
       inputs:
@@ -477,8 +477,8 @@ customConfig:
       endpoint: "http://hyperdx-hdx-oss-v2-clickhouse.click.svc.cluster.local:8123"
       auth:
         strategy: "basic"
-        user: app
-        password: hyperdx
+        user: otelcollector
+        password: otelcollectorpass
 
 
 
