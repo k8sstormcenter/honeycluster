@@ -2,7 +2,7 @@ name: Build and push the Hive Sentinel
 on:
   push:
     branches:
-      - main
+      - mainold
     paths:
       - 'mywebapp-chart/**'
       - '.github/workflows/publish-oci-helmchart.yaml'
