@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS default.tetragon_logs (
     event_time DateTime64(3),
     node_name String,
     type String,
+    hostname String,
     payload String
 ) ENGINE = MergeTree()
 PARTITION BY toYYYYMM(event_time)
