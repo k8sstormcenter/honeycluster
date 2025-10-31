@@ -11,29 +11,43 @@ CREATE TABLE IF NOT EXISTS default.kubescape_logs (
     level String,
     message String,
     msg String,
-    time String
-) ENGINE = MergeTree() ORDER BY time;
+    hostname String,
+    event_time DateTime64(3)
+) ENGINE = MergeTree()
+PARTITION BY toYYYYMM(event_time)
+ORDER BY (hostname, event_time);
 
 CREATE TABLE IF NOT EXISTS default.kubescape_stix (
     timestamp String,
     pod_name String,
     namespace String,
-    data String
-) ENGINE = MergeTree() ORDER BY timestamp;
+    data String,
+    hostname String,
+    event_time DateTime64(3)
+) ENGINE = MergeTree()
+PARTITION BY toYYYYMM(event_time)
+ORDER BY (hostname, event_time);
 
 CREATE TABLE IF NOT EXISTS default.tetragon_logs (
-    time String,
+    event_time DateTime64(3),
     node_name String,
     type String,
+    hostname String,
     payload String
-) ENGINE = MergeTree() ORDER BY time;
+) ENGINE = MergeTree()
+PARTITION BY toYYYYMM(event_time)
+ORDER BY (hostname, event_time);
 
 CREATE TABLE IF NOT EXISTS default.tetragon_stix (
+    event_time DateTime64(3),
     timestamp String,
     pod_name String,
     namespace String,
+    hostname String,
     data String
-) ENGINE = MergeTree() ORDER BY timestamp;
+) ENGINE = MergeTree()
+PARTITION BY toYYYYMM(event_time)
+ORDER BY (hostname, event_time);
 
 CREATE TABLE IF NOT EXISTS default.matched_attack_patterns (
     timestamp String,
