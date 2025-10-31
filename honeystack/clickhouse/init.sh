@@ -16,8 +16,8 @@
         processtree_depth UInt32,
         event_time DateTime
     ) ENGINE = MergeTree()
-    PARTITION BY toYYYYMM(time)
-    ORDER BY (hostname, time);
+    PARTITION BY toYYYYMM(event_time)
+    ORDER BY (hostname, event_time);
 
 
     CREATE TABLE IF NOT EXISTS default.http_events (
