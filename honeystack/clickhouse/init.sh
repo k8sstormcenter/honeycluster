@@ -1,24 +1,6 @@
-    #!/bin/bash
-    podname=$(kubectl get pods -n click -l app=clickhouse -o jsonpath='{.items[0].metadata.name}')
-    kubectl exec -i -n click $podname -- clickhouse-client --multiquery --database=default <<'EOF'
-    CREATE TABLE IF NOT EXISTS default.kubescape_logs (
-        BaseRuntimeMetadata String,
-        CloudMetadata String,
-        RuleID String,
-        RuntimeK8sDetails String,
-        RuntimeProcessDetails String,
-        event String,
-        level String,
-        hostname String,
-        message String,
-        msg String,
-        md5_hash String,
-        processtree_depth UInt32,
-        event_time DateTime
-    ) ENGINE = MergeTree()
-    PARTITION BY toYYYYMM(event_time)
-    ORDER BY (hostname, event_time);
-
+#!/bin/bash
+podname=$(kubectl get pods -n click -l app=clickhouse -o jsonpath='{.items[0].metadata.name}')
+kubectl exec -i -n click $podname -- clickhouse-client --multiquery --database=default <<'EOF'
 
     CREATE TABLE IF NOT EXISTS default.http_events (
         time_ UInt64,
@@ -73,4 +55,18 @@
     ) ENGINE = MergeTree() ORDER BY time_;
 
 
-    EOF
+EOF
+
+
+  
+kubectl cp ./honeycluster/infer.json $podname:/var/lib/clickhouse/user_files/infer.json -n click
+
+kubectl exec -i -n click $podname -- clickhouse-client --multiquery --database=default <<'EOF'
+CREATE TABLE IF NOT EXISTS default.kubescape_logs
+PARTITION BY toYYYYMM(event_time)
+ENGINE = MergeTree
+ORDER BY event_time
+AS SELECT *
+FROM file('/var/lib/clickhouse/user_files/infer.json', 'JSONEachRow')
+SETTINGS schema_inference_make_columns_nullable = 0;
+EOF
