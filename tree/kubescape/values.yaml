@@ -1,12 +1,12 @@
 storage:
   image:
     repository: ghcr.io/k8sstormcenter/storage
-    tag: "dev-e64d59a"
+    tag: "sbob-rc4"
 
 nodeAgent:
   image:
     repository: ghcr.io/k8sstormcenter/node-agent
-    tag: "dev-e64d59a"
+    tag: "sbob-rc4"
   config:
     maxLearningPeriod: 2m
     learningPeriod: 2m 
