@@ -32,6 +32,7 @@ This allows the reconstruction of the attack paths and the construction of evide
 
 - kubescape: for a coarse filtering at any given point in time  
 This allows anchoring known malicious signals to kick off the investigation
+-> you must use a high-contrast [bill of behavior](https://billofbehavior.com) (sbob) to ensure your false negatives are low and you know your blindspots.
 
 - clickhouse: for saving the data out of band from your cluster
 Sharded by node
