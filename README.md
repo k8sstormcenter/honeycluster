@@ -77,19 +77,17 @@ that each kubescape rule fired **and** that the Pixie evidence AE exported for
 it is stored. Harness: [`bob@feat/cp-artifacts` / dx `e2e/redis`](https://github.com/k8sstormcenter/bob).
 
 ```bash
-./run-redis-e2e.sh            # deploy redis -> bind SBoB -> attack -> assert
+./run-redis-e2e.sh            # deploy redis -> bind SBOB -> attack-suite -> assert detections
 ```
 
 Expected: `RESULT: PASS` with rules `R0001 / R0005 / R0008 / R0010 / R1008` in
 `kubescape_logs` and the correlated evidence in `dns_events`, `conn_stats`,
 `http_events`, `dc_snoop`, `stack_trace`.
 
-## Evidence in ClickHouse (one redis e2e run, excl. `kubescape_logs`)
+## Evidence in ClickHouse 
 
 Kubescape fires the alert; the Adaptive Export writes the correlated Pixie
-evidence to `forensic_db`. `dc_snoop` is filtered to workload + attack (infra
-dropped; drop-list is env-configurable via `DC_SNOOP_EXCLUDE_NAMESPACES` /
-`DC_SNOOP_EXCLUDE_COMMS`, no rebuild).
+evidence to `forensic_db`. 
 
 ```
 dc_snoop              redis-server  redis  R proc/self/stat   +  sh bash getent whoami cat  (attack exec)
