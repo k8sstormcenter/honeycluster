@@ -53,13 +53,11 @@ THIS IS CURRENTLY NOT PRODUCTION READY and NOT STABLE, there is no governance or
 
 ## Install
 
-Prereqs: a `k8s` cluster  with **Pixie** deployed and registered.
+Prereqs: a `k8s` cluster  with **Pixie** deployed using the `pem-direct` configuration.
 
 ```bash
 skaffold run -m soc-stack
 
-# 2. Adaptive Export (AE) — reads kubescape_logs and exports the CORRELATED
-#    Pixie evidence into forensic_db. It self-creates the schema
 kubectl -n pl set image ds/adaptive-export \
   adaptive-export=ghcr.io/k8sstormcenter/vizier-adaptive_export_image:0.14.19-aeprod47
 kubectl -n pl set env ds/adaptive-export \
@@ -72,7 +70,7 @@ kubectl -n pl set env ds/adaptive-export \
 ## Run the e2e test (redis)
 
 Deploys the vulnerable Redis + its SBOB (user-defined ContainerProfile), fires the
-post-compromise stage-2 attacks, and exports to `forensic_db`.
+post-compromise stage-2 attacks, and exports.
 
 ```bash
 ./run-redis-e2e.sh            # deploy redis -> bind SBOB -> attack-suite -> assert detections
