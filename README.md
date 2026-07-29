@@ -88,69 +88,18 @@ Expected: `RESULT: PASS` with rules `R0001 / R0005 / R0008 / R0010 / R1008` in
 `kubescape_logs` and the correlated evidence in `dns_events`, `conn_stats`,
 `http_events`, `dc_snoop`, `stack_trace`.
 
-## What you get: real evidence in ClickHouse
+## Evidence in ClickHouse (one redis e2e run, excl. `kubescape_logs`)
 
-Kubescape fires the coarse **alert** (`kubescape_logs`); the Adaptive Export
-then writes the **correlated Pixie forensic evidence** into `forensic_db`,
-attributed by pod + process. The tables below are the full evidence set from
-**one** redis e2e run on a **fresh** cluster (`./run-redis-e2e.sh`, ~90 s of
-attack) — every count is from that single run:
+Kubescape fires the alert; the Adaptive Export writes the correlated Pixie
+evidence to `forensic_db`. `dc_snoop` is filtered to workload + attack (infra
+dropped; drop-list is env-configurable via `DC_SNOOP_EXCLUDE_NAMESPACES` /
+`DC_SNOOP_EXCLUDE_COMMS`, no rebuild).
 
-| table | rows | what it holds |
-|---|---:|---|
-| `dc_snoop` | 480,000 | every process launch + file access (dentry cache) |
-| `http_events` | 14,148 | parsed HTTP requests/responses |
-| `stack_trace` | 11,211 | continuous-profiler folded stacks (control flow) |
-| `conn_stats` | 6,085 | per-connection socket stats (bytes, open/close) |
-| `dns_events` | 3,071 | every DNS query — incl. the C2 lookups |
-| `redis_events` | 170 | parsed Redis protocol commands |
-| `adaptive_attribution` | 135 | AE's steering record — which anomaly it exported for |
-
-Sample rows (long fields shortened):
-
-**`dns_events`** — the crypto-mining C2 lookup that fired R1008:
 ```
-namespace: redis   pod: redis-74d544d5f9-s9s2d
-req_body:  {"queries":[{"name":"xmr.pool.minergate.com","type":"A"}]}
+dc_snoop              redis-server  redis  R proc/self/stat   +  sh bash getent whoami cat  (attack exec)
+dns_events            {"queries":[{"name":"xmr.pool.minergate.com","type":"A"}]}   (also evil.attacker.example.com)
+conn_stats            redis  127.0.0.1  proto:7  sent:19628 recv:39256
+redis_events          redis  PING -> PONG
+stack_trace           redis  __open;[k] entry_SYSCALL_64_after_hwframe  count:1
+adaptive_attribution  redis/sh  R0002  n_anomalies:1846
 ```
-
-**`dc_snoop`** — the offending process, attributed to the pod (R0001):
-```
-comm: sh   pid: 1041819   namespace: redis   pod: redis/redis-74d544d5f9-s9s2d
-container: redis   hostname: cplane-01
-```
-
-**`conn_stats`** — the redis pod's socket activity:
-```
-namespace: redis   pod: redis-74d544d5f9-s9s2d   protocol: 7
-conn_open: 141   bytes_sent: 987   bytes_recv: 1974
-```
-
-**`http_events`** — parsed HTTP across the cluster:
-```
-namespace: honey   pod: kubevuln-...   req_method: GET   req_path: /v1/liveness
-resp_status: 200   latency: 378215
-```
-
-**`redis_events`** — parsed Redis protocol (command + response):
-```
-namespace: redis   pod: redis-74d544d5f9-s9s2d   req_cmd: PING   req_args: {}   resp: PONG
-```
-
-**`stack_trace`** — continuous-profiler folded stack (head only; real rows are long):
-```
-namespace: redis   container: redis   count: 1
-stack_trace: 0x9ba5e353f7cfb848;…;[m] /usr/lib/x86_64-linux-gnu/libc.so.6 + 0x00048c48
-```
-
-**`adaptive_attribution`** — AE's steering record (what it exported for, and why):
-```
-namespace: redis   pod: redis-74d544d5f9-s9s2d   comm: redis-cli   pid: 78317
-last_rule_id: R0002   n_anomalies: 3
-```
-
-The whole point: kubescape anchors *when/what* is suspicious; Pixie supplies
-*the evidence* (process, file, DNS, network, protocol, control-flow), and the
-adaptive write keeps only what an anomaly actually needs.
-
-
