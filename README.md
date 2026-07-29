@@ -72,17 +72,12 @@ kubectl -n pl set env ds/adaptive-export \
 ## Run the e2e test (redis)
 
 Deploys the vulnerable Redis + its SBOB (user-defined ContainerProfile), fires the
-post-compromise stage-2 attacks, and proves from the **live** `forensic_db`
-that each kubescape rule fired **and** that the Pixie evidence AE exported for
-it is stored. Harness: [`bob@feat/cp-artifacts` / dx `e2e/redis`](https://github.com/k8sstormcenter/bob).
+post-compromise stage-2 attacks, and exports to `forensic_db`.
 
 ```bash
 ./run-redis-e2e.sh            # deploy redis -> bind SBOB -> attack-suite -> assert detections
 ```
 
-Expected: `RESULT: PASS` with rules `R0001 / R0005 / R0008 / R0010 / R1008` in
-`kubescape_logs` and the correlated evidence in `dns_events`, `conn_stats`,
-`http_events`, `dc_snoop`, `stack_trace`.
 
 ## Evidence in ClickHouse 
 
