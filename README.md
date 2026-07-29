@@ -53,18 +53,13 @@ THIS IS CURRENTLY NOT PRODUCTION READY and NOT STABLE, there is no governance or
 
 ## Install
 
-Prereqs: a `k3s` cluster (real kernel / eBPF) with **Pixie** deployed and registered.
+Prereqs: a `k8s` cluster  with **Pixie** deployed and registered.
 
 ```bash
-# 1. The soc stack, in dependency order: ClickHouse (forensic_db) ->
-#    kubescape 1.40.3 + node-agent/storage sbob-rc4 (ContainerProfile) -> vector.
 skaffold run -m soc-stack
 
 # 2. Adaptive Export (AE) — reads kubescape_logs and exports the CORRELATED
-#    Pixie evidence into forensic_db. It self-creates the schema (needs
-#    ingest_service/allow_ddl:"1", see tree/clickhouse-lab/installation.yaml),
-#    registers the retention export scripts, and deploys the dark-vector
-#    tracepoints.
+#    Pixie evidence into forensic_db. It self-creates the schema
 kubectl -n pl set image ds/adaptive-export \
   adaptive-export=ghcr.io/k8sstormcenter/vizier-adaptive_export_image:0.14.19-aeprod47
 kubectl -n pl set env ds/adaptive-export \
@@ -76,7 +71,7 @@ kubectl -n pl set env ds/adaptive-export \
 
 ## Run the e2e test (redis)
 
-Deploys the vulnerable Redis + its user-defined ContainerProfile, fires the
+Deploys the vulnerable Redis + its SBOB (user-defined ContainerProfile), fires the
 post-compromise stage-2 attacks, and proves from the **live** `forensic_db`
 that each kubescape rule fired **and** that the Pixie evidence AE exported for
 it is stored. Harness: [`bob@feat/cp-artifacts` / dx `e2e/redis`](https://github.com/k8sstormcenter/bob).
