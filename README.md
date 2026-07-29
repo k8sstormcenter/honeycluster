@@ -95,7 +95,7 @@ dropped; drop-list is env-configurable via `DC_SNOOP_EXCLUDE_NAMESPACES` /
 dc_snoop              redis-server  redis  R proc/self/stat   +  sh bash getent whoami cat  (attack exec)
 dns_events            {"queries":[{"name":"xmr.pool.minergate.com","type":"A"}]}   (also evil.attacker.example.com)
 conn_stats            redis  127.0.0.1  proto:7  sent:19628 recv:39256
-redis_events          redis  PING -> PONG
+redis_events          redis  EVAL  io.popen("getent hosts xmr.pool.minergate.com")   (CVE-2022-0543 Lua sandbox escape -> OS cmd)
 stack_trace           redis  __open;[k] entry_SYSCALL_64_after_hwframe  count:1
 adaptive_attribution  redis/sh  R0002  n_anomalies:1846
 ```
