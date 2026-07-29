@@ -77,55 +77,23 @@ that each kubescape rule fired **and** that the Pixie evidence AE exported for
 it is stored. Harness: [`bob@feat/cp-artifacts` / dx `e2e/redis`](https://github.com/k8sstormcenter/bob).
 
 ```bash
-./run-redis-e2e.sh            # deploy redis -> bind SBoB -> attack -> assert
+./run-redis-e2e.sh            # deploy redis -> bind SBOB -> attack-suite -> assert detections
 ```
 
 Expected: `RESULT: PASS` with rules `R0001 / R0005 / R0008 / R0010 / R1008` in
 `kubescape_logs` and the correlated evidence in `dns_events`, `conn_stats`,
 `http_events`, `dc_snoop`, `stack_trace`.
 
-## What you get: real evidence in ClickHouse
+## Evidence in ClickHouse 
 
-Kubescape gives you the coarse **alert**; Pixie (via AE) gives you the
-**forensic evidence**, and both land in `forensic_db` correlated by pod +
-process. From one redis attack run:
+Kubescape fires the alert; the Adaptive Export writes the correlated Pixie
+evidence to `forensic_db`. 
 
-**The alert** — `forensic_db.kubescape_logs`:
 ```
-RuleID:   R1008
-message:  Communication with a known crypto mining domain: xmr.pool.minergate.com.
-hostname: cplane-01
+dc_snoop              redis-server  redis  R proc/self/stat   +  sh bash getent whoami cat  (attack exec)
+dns_events            {"queries":[{"name":"xmr.pool.minergate.com","type":"A"}]}   (also evil.attacker.example.com)
+conn_stats            redis  127.0.0.1  proto:7  sent:19628 recv:39256
+redis_events          redis  EVAL  io.popen("getent hosts xmr.pool.minergate.com")   (CVE-2022-0543 Lua sandbox escape -> OS cmd)
+stack_trace           redis  __open;[k] entry_SYSCALL_64_after_hwframe  count:1
+adaptive_attribution  redis/sh  R0002  n_anomalies:1846
 ```
-
-**The captured C2 lookup** — `forensic_db.dns_events`:
-```
-time_:     2026-07-28 18:49:46.066529127
-req_body:  {"queries":[{"name":"xmr.pool.minergate.com","type":"A"}]}
-```
-
-**The offending process, attributed to the pod** — `forensic_db.dc_snoop`:
-```
-time_:     2026-07-28 18:49:42.011220101
-pid:       1041819
-comm:      sh
-namespace: redis
-pod:       redis/redis-74d544d5f9-dpx4r
-container: redis
-hostname:  cplane-01
-```
-
-**The detection, per rule** — `forensic_db.kubescape_logs`:
-```
-R0001   Unexpected process launched: whoami with PID 1042137
-R0001   Unexpected process launched: getent with PID 1042536
-R0001   Unexpected process launched: cat    with PID 1043393
-R1008   Communication with a known crypto mining domain: xmr.pool.minergate.com.
-```
-
-That one ~90 s attack produced, in `forensic_db`: **dns_events 411k · conn_stats
-596k · http_events 1.15M · dc_snoop 51.8M · stack_trace 399k** rows — the full
-kernel + network picture, correlated to each kubescape rule. The whole point:
-kubescape anchors *when/what* is suspicious; Pixie supplies *the evidence*, and
-the adaptive write keeps only what an anomaly actually needs.
-
-
