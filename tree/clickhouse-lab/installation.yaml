@@ -78,8 +78,8 @@ spec:
               memory: 512Mi
               cpu: 250m
             limits:
-              memory: 2Gi
-              cpu: "2"
+              memory: 16Gi
+              cpu: 8
 
     volumeClaimTemplates:
     - name: data-volume
