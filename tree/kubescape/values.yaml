@@ -28,7 +28,11 @@ capabilities:
   admissionController: disable
   networkEventsStreaming: enable
 alertCRD:
-  installDefault: true
+  # false: soc deploys via skaffold (unordered helm/kubectl apply), so the chart's
+  # own upstream ap.*/nn.* default rules would race and WIN over soc's cp.* rawYaml
+  # rules against the new cp.* node-agent -> "undeclared reference to 'ap'" and zero
+  # detections. soc owns default-rules.yaml + rule-alert-binding.yaml via rawYaml.
+  installDefault: false
   scopeClustered: true
 clusterName: bobexample
 ksNamespace: honey
