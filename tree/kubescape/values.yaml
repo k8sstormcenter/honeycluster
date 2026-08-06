@@ -1,16 +1,18 @@
 storage:
   image:
     repository: ghcr.io/k8sstormcenter/storage
-    tag: "sbob-rc4"
-
+    tag: sbob-rc5s
 nodeAgent:
   image:
     repository: ghcr.io/k8sstormcenter/node-agent
-    tag: "sbob-rc4"
+    tag: sbob-rc5s-celnet@sha256:dc4e66680df35dfb4d747544358b7fca906434a78f40ad3b573855935788b6f2
+    pullPolicy: Always
   config:
+    alertManagerExporterUrls:
+      - alertmanager.honey.svc.cluster.local:9093
     maxLearningPeriod: 2m
-    learningPeriod: 2m 
-    updatePeriod: 10000m 
+    learningPeriod: 2m
+    updatePeriod: 10000m
     ruleCooldown:
       ruleCooldownDuration: 0h
       ruleCooldownAfterCount: 1000000000
@@ -18,20 +20,16 @@ nodeAgent:
       ruleCooldownMaxSize: 20000
 capabilities:
   runtimeDetection: enable
-  # networkEventsStreaming stays DISABLED on purpose: the rule engine receives
-  # network+DNS events directly (node-agent container_watcher.go), independent
-  # of the raw network-stream export. Enabling it only drives the httpExporter
-  # (empty url -> "unsupported protocol scheme" dead error). See bob #127/#140 +
-  # memory log4j-network-detection-chain. R0011/R0005 fire without it.
-  networkEventsStreaming: disable
+  configurationScan: disable
+  nodeScan: disable
+  nodeSbomGeneration: disable
+  vulnerabilityScan: disable
+  relevancy: disable
+  admissionController: disable
+  networkEventsStreaming: enable
 alertCRD:
-  # installDefault:false -> the helm chart does NOT create its own default-rules
-  # Rules object nor the all-rules-all-pods binding. soc owns both via rawYaml
-  # (default-rules.yaml + rule-alert-binding.yaml) so our enabled flags
-  # (R0002 on, R0003 off, R0011 on) win deterministically instead of losing the
-  # dual-ownership race to the chart's helm-managed defaults.
-  installDefault: false
+  installDefault: true
   scopeClustered: true
 clusterName: bobexample
 ksNamespace: honey
-excludeNamespaces: "kubescape,kube-system,kube-public,kube-node-lease,local-path-storage,gmp-system,gmp-public,storm,lightening,cert-manager,kube-flannel,ingress-nginx,olm,px-operator,honey,pl,clickhouse"
+excludeNamespaces: "kubescape,kube-system,kube-public,kube-node-lease,local-path-storage,gmp-system,gmp-public,storm,lightening,cert-manager,kube-flannel,ingress-nginx,olm,px-operator,honey,pl,clickhouse,chain-loadgen"
