@@ -26,7 +26,11 @@ capabilities:
   vulnerabilityScan: disable
   relevancy: disable
   admissionController: disable
-  networkEventsStreaming: enable
+  # disable: the rule engine receives network+DNS events directly (node-agent
+  # container_watcher), so R0005/R0011 fire without it. Enabling only spins up an
+  # http exporter with no URL -> "InitExporters: URL is required" init failure on
+  # every node. soc has no network-stream sink, so keep it off for clean logs.
+  networkEventsStreaming: disable
 alertCRD:
   # false: soc deploys via skaffold (unordered helm/kubectl apply), so the chart's
   # own upstream ap.*/nn.* default rules would race and WIN over soc's cp.* rawYaml
