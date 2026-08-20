@@ -1,11 +1,11 @@
 storage:
   image:
     repository: ghcr.io/k8sstormcenter/storage
-    tag: sbob-rc5s
+    tag: v0.0.303
 nodeAgent:
   image:
     repository: ghcr.io/k8sstormcenter/node-agent
-    tag: sbob-rc5s-celnet@sha256:dc4e66680df35dfb4d747544358b7fca906434a78f40ad3b573855935788b6f2
+    tag: rc-sofia-port0fix
     pullPolicy: Always
   config:
     alertManagerExporterUrls:

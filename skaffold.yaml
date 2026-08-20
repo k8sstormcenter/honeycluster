@@ -66,9 +66,7 @@ manifests:
   helm:
     releases:
       - name: kubescape
-        repo: https://kubescape.github.io/helm-charts/
-        remoteChart: kubescape-operator
-        version: 1.40.3
+        remoteChart: https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-1.40.3-node-agent-rc-sofia/kubescape-operator-1.40.3-node-agent-rc-sofia.tgz
         namespace: honey
         createNamespace: true
         valuesFiles:
