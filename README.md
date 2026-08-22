@@ -61,7 +61,8 @@ skaffold deploy -f skaffold/skaffold_adaptive_export.yaml
 skaffold deploy -f skaffold/skaffold_dx.yaml
 ```
 
-![Uploading Screenshot 2026-08-22 at 22.10.12.png…]()
+<img width="1902" height="1139" alt="Screenshot 2026-08-22 at 22 10 12" src="https://github.com/user-attachments/assets/9f796aef-c12f-4bba-b10d-65e3ed46093b" />
+
 
 
 ## Run the e2e test (redis)
