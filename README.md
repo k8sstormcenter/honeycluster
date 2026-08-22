@@ -47,9 +47,6 @@ We are looking at a first release end of this summer, so that you can try it out
 THIS IS CURRENTLY NOT PRODUCTION READY and NOT STABLE, there is no governance or openssf scorecard, yet... its coming...
 
 
-> [!NOTE]
-> This repo contains the deployment artefacts for a sovereign SOC stack -- all development currently is on the individual repos (see the pixie/fork and the node-agent/fork and bob). The old code has been moved into the `deprecated` folder.
->
 
 ## Install
 
@@ -58,14 +55,15 @@ Prereqs: a `k8s` cluster  with **Pixie** deployed using the `pem-direct` configu
 ```bash
 skaffold run -m soc-stack
 
-kubectl -n pl set image ds/adaptive-export \
-  adaptive-export=ghcr.io/k8sstormcenter/vizier-adaptive_export_image:0.14.19-aeprod47
-kubectl -n pl set env ds/adaptive-export \
-  INSTALL_PRESET_SCRIPTS=true \
-  CLICKHOUSE_USER=ingest_writer CLICKHOUSE_PASSWORD=changeme-ingest \
-  CLICKHOUSE_HOST=clickhouse-forensic-soc-db.clickhouse.svc.cluster.local \
-  CLICKHOUSE_PORT=9000 CLICKHOUSE_DATABASE=forensic_db
+# make sure you already have a vanilla pixie installed via px install, then clone the pixie fork
+git -C ~/pixie checkout -q fix/ae-protocol-export-pxexport
+skaffold deploy -f skaffold/skaffold_adaptive_export.yaml
+skaffold deploy -f skaffold/skaffold_dx.yaml
 ```
+
+<img width="1902" height="1139" alt="Screenshot 2026-08-22 at 22 10 12" src="https://github.com/user-attachments/assets/9f796aef-c12f-4bba-b10d-65e3ed46093b" />
+
+
 
 ## Run the e2e test (redis)
 
