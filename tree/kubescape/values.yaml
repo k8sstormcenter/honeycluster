@@ -1,11 +1,11 @@
 storage:
   image:
     repository: ghcr.io/k8sstormcenter/storage
-    tag: v0.0.303
+    tag: net-v2-rc1
 nodeAgent:
   image:
     repository: ghcr.io/k8sstormcenter/node-agent
-    tag: rc-sofia-port0fix
+    tag: net-v2-rc1
     pullPolicy: Always
   config:
     alertManagerExporterUrls:

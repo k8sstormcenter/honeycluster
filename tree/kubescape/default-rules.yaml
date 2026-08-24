@@ -310,7 +310,8 @@ spec:
             expression: >-
               event.pktType == 'OUTGOING'
               && !event.dstAddr.startsWith('127.')
-              && !cp.was_address_in_egress(event.containerId, event.dstAddr)
+              && event.dstAddr != '::1'
+              && !cp.was_address_port_protocol_in_egress(event.containerId, event.dstAddr, event.dstPort, event.proto)
               && !cp.was_selector_in_egress(event.containerId, event.dstNamespace, event.dstPodLabels)
         uniqueId: event.dstAddr + '_' + string(event.dstPort) + '_' + event.proto
       id: R0011
@@ -340,7 +341,8 @@ spec:
             expression: >-
               event.pktType == 'HOST'
               && !event.dstAddr.startsWith('127.')
-              && !cp.was_address_in_ingress(event.containerId, event.dstAddr)
+              && event.dstAddr != '::1'
+              && !cp.was_address_port_protocol_in_ingress(event.containerId, event.dstAddr, event.dstPort, event.proto)
               && !cp.was_selector_in_ingress(event.containerId, event.dstNamespace, event.dstPodLabels)
         uniqueId: event.dstAddr + '_' + string(event.dstPort) + '_' + event.proto
       id: R0012
