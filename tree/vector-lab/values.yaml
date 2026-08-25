@@ -65,10 +65,16 @@ customConfig:
         # trigger watermark to 1s granularity and loses sub-second ordering. The
         # forensic_db.kubescape_logs schema partitions/TTLs event_time as nanos
         # (fromUnixTimestamp64Nano); AE normalizes seconds-or-nanos by magnitude.
+        # Sanity floor 2000-01-01: a Go zero time.Time serializes as a VALID
+        # RFC3339 ("0001-01-01T00:00:00Z"), so a missing/sentinel timestamp parses
+        # cleanly and would silently become the correlation anchor. Only a plausible
+        # epoch may anchor; anything else falls back to ingestion time.
+        .event_time = to_unix_timestamp(now(), unit: "nanoseconds")
         if err == null {
-          .event_time = to_unix_timestamp(ts, unit: "nanoseconds")
-        } else {
-          .event_time = to_unix_timestamp(now(), unit: "nanoseconds")
+          ets = to_unix_timestamp(ts, unit: "nanoseconds")
+          if ets > 946684800000000000 {
+            .event_time = ets
+          }
         }
         # MITRE enrichment: node-agent's BaseRuntimeAlert struct (armoapi-go)
         # does not include mitreTactic / mitreTechnique fields, so they are
