@@ -1,11 +1,11 @@
 storage:
   image:
     repository: ghcr.io/k8sstormcenter/storage
-    tag: net-v2-rc1
+    tag: net-v2s-f6fa47d6
 nodeAgent:
   image:
     repository: ghcr.io/k8sstormcenter/node-agent
-    tag: net-v2-rc1
+    tag: net-v2s-f6fa47d6
     pullPolicy: Always
   config:
     alertManagerExporterUrls:
@@ -13,6 +13,7 @@ nodeAgent:
     maxLearningPeriod: 2m
     learningPeriod: 2m
     updatePeriod: 10000m
+    networkServiceResolution: true
     ruleCooldown:
       ruleCooldownDuration: 0h
       ruleCooldownAfterCount: 1000000000

@@ -55,7 +55,7 @@ spec:
       mitreTechnique: T1059
       name: Unexpected process arguments
       profileDependency: 0
-      severity: 1
+      severity: 3
       supportPolicy: false
       tags:
         - anomaly
@@ -154,7 +154,7 @@ spec:
       mitreTechnique: T1071.004
       name: DNS Anomalies in container
       profileDependency: 0
-      severity: 1
+      severity: 5
       supportPolicy: false
       tags:
         - dns
@@ -211,8 +211,8 @@ spec:
           event.dstAddr
       id: R0007
       isTriggerAlert: false
-      mitreTactic: TA0008
-      mitreTechnique: T1210
+      mitreTactic: TA0007
+      mitreTechnique: T1613
       name: Workload uses Kubernetes API unexpectedly
       profileDependency: 0
       severity: 5
@@ -262,8 +262,8 @@ spec:
         uniqueId: event.comm + '_' + 'bpf' + '_' + string(event.cmd)
       id: R0009
       isTriggerAlert: true
-      mitreTactic: TA0005
-      mitreTechnique: T1218
+      mitreTactic: TA0002
+      mitreTechnique: T1106
       name: eBPF Program Load
       profileDependency: 1
       severity: 5
@@ -320,7 +320,7 @@ spec:
       mitreTechnique: T1041
       name: Unexpected Egress Network Traffic
       profileDependency: 0
-      severity: 5
+      severity: 8
       supportPolicy: false
       tags:
         - whitelisted
@@ -347,11 +347,11 @@ spec:
         uniqueId: event.dstAddr + '_' + string(event.dstPort) + '_' + event.proto
       id: R0012
       isTriggerAlert: true
-      mitreTactic: TA0011
-      mitreTechnique: T1071
+      mitreTactic: TA0010
+      mitreTechnique: T1041
       name: Unexpected Ingress Network Traffic
       profileDependency: 0
-      severity: 5
+      severity: 8
       supportPolicy: false
       tags:
         - whitelisted
@@ -428,7 +428,7 @@ spec:
       id: R1002
       isTriggerAlert: true
       mitreTactic: TA0005
-      mitreTechnique: T1547.006
+      mitreTechnique: T1014
       name: Process tries to load a kernel module
       profileDependency: 2
       severity: 10
@@ -457,7 +457,7 @@ spec:
       mitreTechnique: T1021.001
       name: Disallowed ssh connection
       profileDependency: 1
-      severity: 5
+      severity: 8
       supportPolicy: false
       tags:
         - ssh
@@ -506,7 +506,7 @@ spec:
       id: R1005
       isTriggerAlert: true
       mitreTactic: TA0005
-      mitreTechnique: T1055
+      mitreTechnique: T1620
       name: Fileless execution detected
       profileDependency: 2
       severity: 8
@@ -554,7 +554,7 @@ spec:
       id: R1007
       isTriggerAlert: true
       mitreTactic: TA0040
-      mitreTechnique: T1496
+      mitreTechnique: T1496.001
       name: Crypto miner launched
       profileDependency: 2
       severity: 10
@@ -647,11 +647,11 @@ spec:
         uniqueId: event.comm + '_' + string(event.dstPort)
       id: R1009
       isTriggerAlert: false
-      mitreTactic: TA0011
-      mitreTechnique: T1071
+      mitreTactic: TA0040
+      mitreTechnique: T1496.001
       name: Crypto Mining Related Port Communication
       profileDependency: 1
-      severity: 3
+      severity: 8
       supportPolicy: false
       tags:
         - network
@@ -750,7 +750,7 @@ spec:
       id: R1015
       isTriggerAlert: true
       mitreTactic: TA0005
-      mitreTechnique: T1622
+      mitreTechnique: T1055.008
       name: Malicious Ptrace Usage
       profileDependency: 2
       severity: 5
@@ -773,8 +773,8 @@ spec:
         uniqueId: string(event.opcode) + '_' + event.comm
       id: R1030
       isTriggerAlert: true
-      mitreTactic: TA0002
-      mitreTechnique: T1218
+      mitreTactic: TA0005
+      mitreTechnique: T1014
       name: Unexpected io_uring Operation Detected
       profileDependency: 0
       severity: 5
@@ -822,7 +822,7 @@ spec:
       id: R1016
       isTriggerAlert: false
       mitreTactic: TA0005
-      mitreTechnique: T1565
+      mitreTechnique: T1562
       name: Signed profile tampered
       profileDependency: 2
       severity: 10
