@@ -4,9 +4,10 @@ metadata:
   name: all-rules-all-pods
 spec:
   namespaceSelector:
-  # exclude K8s system namespaces AND the soc/pixie own-stack namespaces, so the
-  # detection firehose never lands on our own pods (saturates the PEM). Mirrors
-  # values.excludeNamespaces. The redis (target) ns is intentionally NOT here.
+  # Second ns gate, separate from values.excludeNamespaces: rules map to zero pods
+  # in any ns listed here, silently. pl/px-operator/olm (pixie's own stack) are now
+  # WATCHED so their SBoBs are enforced; only honey+clickhouse (our infra) stay out.
+  # Must stay in lockstep with values.excludeNamespaces.
     matchExpressions:
       - key: "kubernetes.io/metadata.name"
         operator: "NotIn"
@@ -18,10 +19,7 @@ spec:
         - "kubescape"
         - "kube-flannel"
         - "ingress-nginx"
-        - "olm"
-        - "px-operator"
         - "honey"
-        - "pl"
         - "clickhouse"
         - "local-path-storage"
         - "gmp-system"
