@@ -87,7 +87,7 @@ deploy:
       # can pull. Idempotent; node-agent backoff-retries if it lands slightly late.
       before:
         - host:
-            command: ["sh", "-c", "kubectl create ns honey --dry-run=client -o yaml | kubectl apply -f - >/dev/null 2>&1; kubectl create secret docker-registry duckling-pull -n honey --from-file=.dockerconfigjson=$HOME/.docker/config.json --type=kubernetes.io/dockerconfigjson --dry-run=client -o yaml | kubectl apply -f - >/dev/null 2>&1 || true"]
+            command: ["sh", "-c", "kubectl create ns honey --dry-run=client -o yaml | kubectl apply -f - >/dev/null 2>&1; kubectl create secret docker-registry duckling-pull -n honey --from-file=.dockerconfigjson=$HOME/.docker/config.json --dry-run=client -o yaml | kubectl apply -f - >/dev/null 2>&1 || true"]
             os: [linux, darwin]
       # node-agent loads rules at boot; on redeploy (or if it started before the
       # rawYaml rules landed) bounce it so R0002-on/R0003-off/R0011-on take effect.

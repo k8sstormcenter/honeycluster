@@ -63,7 +63,7 @@ kubescape:
 	helm repo add kubescape https://raw.githubusercontent.com/k8sstormcenter/helm-charts/gh-pages
 	helm repo update
 	kubectl create ns honey --dry-run=client -o yaml | kubectl apply -f -
-	kubectl create secret docker-registry duckling-pull -n honey --from-file=.dockerconfigjson=$(HOME)/.docker/config.json --type=kubernetes.io/dockerconfigjson --dry-run=client -o yaml | kubectl apply -f -
+	kubectl create secret docker-registry duckling-pull -n honey --from-file=.dockerconfigjson=$(HOME)/.docker/config.json --dry-run=client -o yaml | kubectl apply -f -
 	helm upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values tree/kubescape/values.yaml
 	-kubectl apply  -f tree/kubescape/default-rules.yaml
 	sleep 5
