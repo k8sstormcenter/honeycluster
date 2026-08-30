@@ -102,7 +102,7 @@ kubectl create ns "$KS_NS" --dry-run=client -o yaml | kubectl apply -f -
 # Kubescape
 helm repo add kubescape https://raw.githubusercontent.com/k8sstormcenter/helm-charts/gh-pages 2>/dev/null || true
 helm repo update >/dev/null
-kubectl create secret docker-registry duckling-pull -n "$KS_NS" --from-file=.dockerconfigjson="$HOME/.docker/config.json" --type=kubernetes.io/dockerconfigjson --dry-run=client -o yaml | kubectl apply -f - 2>/dev/null || true
+kubectl create secret docker-registry duckling-pull -n "$KS_NS" --from-file=.dockerconfigjson="$HOME/.docker/config.json" --dry-run=client -o yaml | kubectl apply -f - 2>/dev/null || true
 if ! helm status kubescape -n "$KS_NS" &>/dev/null; then
   helm upgrade --install kubescape kubescape/kubescape-operator --version "$KUBESCAPE_CHART_VER" -n "$KS_NS" --create-namespace --values "$KS_DIR/values.yaml" --set ksNamespace="$KS_NS" --set clusterName=socdemo --set "excludeNamespaces=kube-system\,kube-public\,kube-node-lease\,$CH_NS\,$KS_NS" --wait --timeout 180s 2>/dev/null || echo "  kubescape install may need retry"
 fi
