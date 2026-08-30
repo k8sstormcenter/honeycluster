@@ -14,7 +14,7 @@ nodeAgent:
   config:
     alertManagerExporterUrls:
       - alertmanager.honey.svc.cluster.local:9093
-    maxLearningPeriod: 2m
+    maxLearningPeriod: 24h
     learningPeriod: 2m
     updatePeriod: 10000m
     networkServiceResolution: true

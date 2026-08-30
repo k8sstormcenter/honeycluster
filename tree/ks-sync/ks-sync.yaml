@@ -1,0 +1,141 @@
+# Kubescape state -> ClickHouse sync. Every 2 min, reads ContainerProfiles,
+# RogueArtifacts and the node-agent trust-policy from the k8s API and writes
+# them (timestamped snapshots) into forensic_db so the dx/* governance views can
+# display them. Stdlib python only (no kubectl/pip). Self-creates the tables.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ks-ch-sync
+  namespace: honey
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: ks-ch-sync
+rules:
+  - apiGroups: ["spdx.softwarecomposition.kubescape.io"]
+    resources: ["containerprofiles", "rogueartifacts"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ks-ch-sync
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ks-ch-sync
+subjects:
+  - kind: ServiceAccount
+    name: ks-ch-sync
+    namespace: honey
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ks-ch-sync
+  namespace: honey
+data:
+  sync.py: |
+    import json, os, ssl, time, datetime, base64, urllib.request, urllib.parse
+
+    K8S = "https://kubernetes.default.svc"
+    SA = "/var/run/secrets/kubernetes.io/serviceaccount"
+    TOKEN = open(SA + "/token").read().strip()
+    CTX = ssl.create_default_context(cafile=SA + "/ca.crt")
+    CH = os.environ.get("CH_ENDPOINT", "http://clickhouse-forensic-soc-db.clickhouse.svc.cluster.local:8123")
+    AUTH = "Basic " + base64.b64encode(
+        (os.environ.get("CH_USER", "ingest_writer") + ":" + os.environ.get("CH_PASS", "changeme-ingest")).encode()).decode()
+    HOST = os.environ.get("SHARD_HOST", "node-01")
+    STAMP = {"event_time": int(time.time() * 1e9), "hostname": HOST,
+             "ts": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+    GRP = "/apis/spdx.softwarecomposition.kubescape.io/v1beta1"
+
+    def kget(path):
+        req = urllib.request.Request(K8S + path, headers={"Authorization": "Bearer " + TOKEN})
+        return json.loads(urllib.request.urlopen(req, context=CTX, timeout=30).read())
+
+    def ch(query, data=b""):
+        req = urllib.request.Request(CH + "/?query=" + urllib.parse.quote(query), data=data,
+                                     headers={"Authorization": AUTH})
+        return urllib.request.urlopen(req, timeout=30).read()
+
+    def insert(table, rows):
+        for r in rows:
+            r.update(STAMP)
+        if rows:
+            ch("INSERT INTO forensic_db." + table + " FORMAT JSONEachRow",
+               "\n".join(json.dumps(r) for r in rows).encode())
+        print("  %s: %d" % (table, len(rows)))
+
+    ch("CREATE TABLE IF NOT EXISTS forensic_db.kubescape_profiles (event_time UInt64, hostname String, ts DateTime, namespace String, name String, kind String, managed_by String, completion String, status String, signed Int64, signer_identity String, signer_issuer String, execs UInt32, opens UInt32, egress UInt32, ingress UInt32, syscalls UInt32, capabilities String) ENGINE=MergeTree ORDER BY (event_time, namespace, name)")
+    ch("CREATE TABLE IF NOT EXISTS forensic_db.kubescape_rogueartifacts (event_time UInt64, hostname String, ts DateTime, namespace String, name String, container_name String, workload_name String, workload_kind String, pod_name String, rogue_phase String) ENGINE=MergeTree ORDER BY (event_time, namespace, name)")
+    ch("CREATE TABLE IF NOT EXISTS forensic_db.kubescape_trust (event_time UInt64, hostname String, ts DateTime, class String, signer_key String, allowed_paths String) ENGINE=MergeTree ORDER BY (event_time, class, signer_key)")
+
+    prows = []
+    for it in kget(GRP + "/containerprofiles").get("items", []):
+        m = it["metadata"]; a = m.get("annotations", {}) or {}; l = m.get("labels", {}) or {}; s = it.get("spec", {}) or {}
+        mb = l.get("kubescape.io/managed-by", "")
+        prows.append({"namespace": m.get("namespace", ""), "name": m.get("name", ""),
+                      "kind": "user" if mb == "user" else "shadow", "managed_by": mb,
+                      "completion": a.get("kubescape.io/completion", ""), "status": a.get("kubescape.io/status", ""),
+                      "signed": 1 if a.get("signature.kubescape.io/signature") else 0,
+                      "signer_identity": a.get("signature.kubescape.io/identity", ""),
+                      "signer_issuer": a.get("signature.kubescape.io/issuer", ""),
+                      "execs": len(s.get("execs") or []), "opens": len(s.get("opens") or []),
+                      "egress": len(s.get("egress") or []), "ingress": len(s.get("ingress") or []),
+                      "syscalls": len(s.get("syscalls") or []), "capabilities": ",".join(s.get("capabilities") or [])})
+    insert("kubescape_profiles", prows)
+
+    rrows = []
+    for it in kget(GRP + "/rogueartifacts").get("items", []):
+        m = it["metadata"]; l = m.get("labels", {}) or {}; s = it.get("spec", {}) or {}
+        rrows.append({"namespace": m.get("namespace", ""), "name": m.get("name", ""),
+                      "container_name": l.get("kubescape.io/container-name", ""),
+                      "workload_name": s.get("workloadName", ""), "workload_kind": s.get("workloadKind", ""),
+                      "pod_name": s.get("podName", ""),
+                      "rogue_phase": l.get("kubescape.io/rogue-phase", "") or s.get("state", "")})
+    insert("kubescape_rogueartifacts", rrows)
+
+    trows = []
+    try:
+        cm = kget("/api/v1/namespaces/honey/configmaps/node-agent-bundle-policy")
+        doc = json.loads(cm["data"]["trust-policy.json"])
+        for cls, cfg in (doc.get("policy") or doc).get("classes", {}).items():
+            for sk in cfg.get("signers", []):
+                trows.append({"class": cls, "signer_key": sk, "allowed_paths": ",".join(cfg.get("allowedSpecPaths", []))})
+    except Exception as e:
+        print("  trust:", e)
+    insert("kubescape_trust", trows)
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ks-ch-sync
+  namespace: honey
+spec:
+  schedule: "*/2 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          serviceAccountName: ks-ch-sync
+          restartPolicy: Never
+          containers:
+            - name: sync
+              image: python:3.11-slim
+              command: ["python3", "/scripts/sync.py"]
+              volumeMounts:
+                - name: script
+                  mountPath: /scripts
+          volumes:
+            - name: script
+              configMap:
+                name: ks-ch-sync
