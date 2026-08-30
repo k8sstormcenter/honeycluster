@@ -13,7 +13,7 @@ CH_NS="socdemo-ch"
 KS_NS="socdemo"
 CHI="forensic-soc-db"
 INFER_JSON="$CH_DIR/infer_flat.json"
-KUBESCAPE_CHART_VER="${KUBESCAPE_CHART_VER:-1.30.2}"
+KUBESCAPE_CHART_VER="${KUBESCAPE_CHART_VER:-1.41.0-duckling2}"
 
 PASS=0; FAIL=0
 check() { if eval "$2" >/dev/null 2>&1; then echo "  PASS: $1"; PASS=$((PASS+1)); else echo "  FAIL: $1"; FAIL=$((FAIL+1)); fi; return 0; }
@@ -100,8 +100,9 @@ echo "=== 5/5 Kubescape + Vector ==="
 kubectl create ns "$KS_NS" --dry-run=client -o yaml | kubectl apply -f -
 
 # Kubescape
-helm repo add kubescape https://kubescape.github.io/helm-charts/ 2>/dev/null || true
+helm repo add kubescape https://raw.githubusercontent.com/k8sstormcenter/helm-charts/gh-pages 2>/dev/null || true
 helm repo update >/dev/null
+kubectl create secret docker-registry duckling-pull -n "$KS_NS" --from-file=.dockerconfigjson="$HOME/.docker/config.json" --type=kubernetes.io/dockerconfigjson --dry-run=client -o yaml | kubectl apply -f - 2>/dev/null || true
 if ! helm status kubescape -n "$KS_NS" &>/dev/null; then
   helm upgrade --install kubescape kubescape/kubescape-operator --version "$KUBESCAPE_CHART_VER" -n "$KS_NS" --create-namespace --values "$KS_DIR/values.yaml" --set ksNamespace="$KS_NS" --set clusterName=socdemo --set "excludeNamespaces=kube-system\,kube-public\,kube-node-lease\,$CH_NS\,$KS_NS" --wait --timeout 180s 2>/dev/null || echo "  kubescape install may need retry"
 fi

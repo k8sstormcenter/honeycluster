@@ -1,7 +1,7 @@
 NAME ?= sovereignsoc
 CLUSTER_NAME := $(NAME)
 HELM := $(shell which helm)
-KUBESCAPE_CHART_VER ?= 1.30.2
+KUBESCAPE_CHART_VER ?= 1.41.0-duckling2
 
 CURRENT_CONTEXT := $(shell kubectl config current-context)
 OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
@@ -59,9 +59,11 @@ storage:
 	
 
 .PHONY: kubescape
-kubescape: 
-	helm repo add kubescape https://kubescape.github.io/helm-charts/
+kubescape:
+	helm repo add kubescape https://raw.githubusercontent.com/k8sstormcenter/helm-charts/gh-pages
 	helm repo update
+	kubectl create ns honey --dry-run=client -o yaml | kubectl apply -f -
+	kubectl create secret docker-registry duckling-pull -n honey --from-file=.dockerconfigjson=$(HOME)/.docker/config.json --type=kubernetes.io/dockerconfigjson --dry-run=client -o yaml | kubectl apply -f -
 	helm upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values tree/kubescape/values.yaml
 	-kubectl apply  -f tree/kubescape/default-rules.yaml
 	sleep 5
