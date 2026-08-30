@@ -82,9 +82,6 @@ deploy:
     flags:
       apply: ["--server-side", "--force-conflicts"]
     hooks:
-      # duckling node-agent is a private image: seed the pull secret from the
-      # deployer's docker config (docker login -u entlein first) so node-agent
-      # can pull. Idempotent; node-agent backoff-retries if it lands slightly late.
       before:
         - host:
             command: ["sh", "-c", "kubectl create ns honey --dry-run=client -o yaml | kubectl apply -f - >/dev/null 2>&1; kubectl create secret docker-registry duckling-pull -n honey --from-file=.dockerconfigjson=$HOME/.docker/config.json --type=kubernetes.io/dockerconfigjson --dry-run=client -o yaml | kubectl apply -f - >/dev/null 2>&1 || true"]
