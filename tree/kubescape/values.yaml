@@ -17,6 +17,7 @@ nodeAgent:
     maxLearningPeriod: 2m
     learningPeriod: 2m
     updatePeriod: 10000m
+    networkServiceResolution: true
     ruleCooldown:
       ruleCooldownDuration: 0h
       ruleCooldownAfterCount: 1000000000

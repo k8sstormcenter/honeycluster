@@ -387,7 +387,23 @@ customConfig:
         .key, err = to_string(.field1) + to_string(.field2) + to_string(.field3) + to_string(.field4) + to_string(.field5) + to_string(.field6) 
         .md5_hash = to_string(md5(.key))
         .hostname = get_env_var!("NODE_NAME")
-        .event_time = to_unix_timestamp(now())
+        # Carry the ORIGINAL kubescape timestamp at NANOSECOND resolution — it is
+        # the kernel event time (bpf_ktime_get_boot_ns, converted to wall clock
+        # once), so the evidence-correlation window can be ms-tight. Vector's own
+        # now() is an ingestion re-stamp, and to_unix_timestamp defaults to
+        # SECONDS: together they destroyed both the anchor and its precision.
+        # Mirrors tree/vector-lab/values.yaml (the skaffold-deployed config).
+        # Sanity floor 2000-01-01: a Go zero time.Time serializes as a VALID
+        # RFC3339 ("0001-01-01T00:00:00Z"), so a missing/sentinel timestamp parses
+        # cleanly and would silently become the correlation anchor.
+        ts, err = parse_timestamp(.BaseRuntimeMetadata.timestamp, "%+")
+        .event_time = to_unix_timestamp(now(), unit: "nanoseconds")
+        if err == null {
+          ets = to_unix_timestamp(ts, unit: "nanoseconds")
+          if ets > 946684800000000000 {
+            .event_time = ets
+          }
+        }
         del(.field1)
         del(.field2)
         del(.field3)
