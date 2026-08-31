@@ -49,7 +49,7 @@ data:
     CH = os.environ.get("CH_ENDPOINT", "http://clickhouse-forensic-soc-db.clickhouse.svc.cluster.local:8123")
     AUTH = "Basic " + base64.b64encode(
         (os.environ.get("CH_USER", "ingest_writer") + ":" + os.environ.get("CH_PASS", "changeme-ingest")).encode()).decode()
-    HOST = os.environ.get("SHARD_HOST", "node-01")
+    HOST = os.environ.get("SHARD_HOST") or os.environ["NODE_NAME"]
     STAMP = {"event_time": int(time.time() * 1e9), "hostname": HOST,
              "ts": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
     GRP = "/apis/spdx.softwarecomposition.kubescape.io/v1beta1"
@@ -136,6 +136,16 @@ spec:
             - name: sync
               image: python:3.11-slim
               command: ["python3", "/scripts/sync.py"]
+              env:
+                # Shard host MUST be a node where a vizier PEM runs: the PEM injects
+                # `WHERE hostname = gethostname()` (its own node — it is hostNetwork)
+                # on every clickhouse_dsn read, so rows stamped with any other value
+                # return 0. A CronJob has no control-plane toleration, so it lands on
+                # a worker, which always has a PEM — its own node is a valid shard host.
+                - name: NODE_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: spec.nodeName
               volumeMounts:
                 - name: script
                   mountPath: /scripts
