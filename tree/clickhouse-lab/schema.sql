@@ -133,3 +133,22 @@ CREATE TABLE IF NOT EXISTS forensic_db.kubescape_trust (
     signer_key    String,
     allowed_paths String
 ) ENGINE = MergeTree ORDER BY (event_time, class, signer_key);
+
+-- Rogue lifecycle derived from snapshot ABSENCE: a healed rogue is deleted from the
+-- cluster (no Healed phase / healedAt), so ks-sync stops snapshotting it. Per
+-- (namespace,name): still in the latest snapshot => Firing, else Healed at last-seen.
+-- started/stopped human-readable; event_time+hostname kept for the px connector.
+-- Kept in lockstep with tree/ks-sync.
+CREATE OR REPLACE VIEW forensic_db.kubescape_rogue_lifecycle AS
+SELECT namespace, name, hostname, last_event_time AS event_time, pod_name, container_name,
+       workload_kind, workload_name, started_firing,
+       if(last_event_time = (SELECT max(event_time) FROM forensic_db.kubescape_rogueartifacts), 'Firing', 'Healed') AS phase,
+       if(last_event_time = (SELECT max(event_time) FROM forensic_db.kubescape_rogueartifacts), '', toString(fromUnixTimestamp64Nano(last_event_time))) AS stopped_firing,
+       snapshots
+FROM (
+  SELECT namespace, name, any(hostname) AS hostname, max(event_time) AS last_event_time,
+         any(pod_name) AS pod_name, any(container_name) AS container_name,
+         any(workload_kind) AS workload_kind, any(workload_name) AS workload_name,
+         toString(fromUnixTimestamp64Nano(min(event_time))) AS started_firing, count() AS snapshots
+  FROM forensic_db.kubescape_rogueartifacts GROUP BY namespace, name
+);
