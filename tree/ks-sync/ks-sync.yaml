@@ -71,7 +71,7 @@ data:
                "\n".join(json.dumps(r) for r in rows).encode())
         print("  %s: %d" % (table, len(rows)))
 
-    ch("CREATE TABLE IF NOT EXISTS forensic_db.kubescape_profiles (event_time UInt64, hostname String, ts DateTime, namespace String, name String, kind String, managed_by String, completion String, status String, signed Int64, signer_identity String, signer_issuer String, execs String, opens String, egress String, ingress String, syscalls String, capabilities String) ENGINE=MergeTree ORDER BY (event_time, namespace, name)")
+    ch("CREATE TABLE IF NOT EXISTS forensic_db.kubescape_profiles (event_time UInt64, hostname String, ts DateTime, namespace String, name String, kind String, managed_by String, completion String, status String, signed Int64, signer_identity String, signer_issuer String, execs String, opens String, egress String, ingress String, endpoints String, match_labels String, syscalls String, capabilities String) ENGINE=MergeTree ORDER BY (event_time, namespace, name)")
     ch("CREATE TABLE IF NOT EXISTS forensic_db.kubescape_rogueartifacts (event_time UInt64, hostname String, ts DateTime, namespace String, name String, container_name String, workload_name String, workload_kind String, pod_name String, rogue_phase String) ENGINE=MergeTree ORDER BY (event_time, namespace, name)")
     ch("CREATE TABLE IF NOT EXISTS forensic_db.kubescape_trust (event_time UInt64, hostname String, ts DateTime, class String, signer_key String, allowed_paths String) ENGINE=MergeTree ORDER BY (event_time, class, signer_key)")
     # A rogue that heals is DELETED from the cluster (no Healed phase, healedAt stays
@@ -96,11 +96,34 @@ data:
     def _paths(items):
         return "\n".join(sorted({(i.get("path") or "") for i in (items or [])} - {""}))
     def _endpoints(items):
+        # Prefer a human-meaningful target: external DNS, else the peer's label
+        # selector (app=dx-daemon), else the ns selector — the raw identifier hash
+        # is a last resort (it tells the reader nothing).
         out = set()
         for e in (items or []):
-            tgt = ",".join(e.get("dnsNames") or []) or e.get("dns") or e.get("identifier") or ""
+            dns = ",".join(e.get("dnsNames") or []) or e.get("dns") or ""
+            ps = (e.get("podSelector") or {}).get("matchLabels") or {}
+            ns = (e.get("namespaceSelector") or {}).get("matchLabels") or {}
+            sel = ",".join(k + "=" + v for k, v in sorted(ps.items()))
+            nsel = ",".join(k + "=" + v for k, v in sorted(ns.items()))
+            tgt = dns or sel or nsel or e.get("identifier") or ""
             ports = ",".join(str(p.get("port", "")) + "/" + (p.get("protocol") or "") for p in (e.get("ports") or []))
             out.add((tgt + " " + ports).strip())
+        return "\n".join(sorted(out - {""}))
+    def _procs(items):
+        # allowedProcesses: the full command (path + args), not just the binary path.
+        out = set()
+        for i in (items or []):
+            p = i.get("path") or ""
+            args = i.get("args") or []
+            out.add((p + " " + " ".join(args[1:])).strip() if len(args) > 1 else p)
+        return "\n".join(sorted(out - {""}))
+    def _eps(items):
+        # the endpoints stanza: METHOD direction :port/path the container serves/calls.
+        out = set()
+        for e in (items or []):
+            m = ",".join(e.get("methods") or [])
+            out.add((m + " " + (e.get("direction") or "") + " " + (e.get("endpoint") or "")).strip())
         return "\n".join(sorted(out - {""}))
 
     prows = []
@@ -117,8 +140,10 @@ data:
                       "signed": 1 if a.get("signature.kubescape.io/signature") else 0,
                       "signer_identity": a.get("signature.kubescape.io/identity", ""),
                       "signer_issuer": a.get("signature.kubescape.io/issuer", ""),
-                      "execs": _paths(s.get("execs")), "opens": _paths(s.get("opens")),
+                      "execs": _procs(s.get("execs")), "opens": _paths(s.get("opens")),
                       "egress": _endpoints(s.get("egress")), "ingress": _endpoints(s.get("ingress")),
+                      "endpoints": _eps(s.get("endpoints")),
+                      "match_labels": ",".join(k + "=" + v for k, v in sorted((s.get("matchLabels") or {}).items())),
                       "syscalls": ",".join(s.get("syscalls") or []), "capabilities": ",".join(s.get("capabilities") or [])})
     insert("kubescape_profiles", prows)
 
