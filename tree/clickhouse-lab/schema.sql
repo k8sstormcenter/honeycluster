@@ -82,3 +82,52 @@ CREATE TABLE IF NOT EXISTS forensic_db.kubescape_logs (
   PARTITION BY toYYYYMM(fromUnixTimestamp64Nano(event_time))
   TTL toDateTime(fromUnixTimestamp64Nano(event_time)) + INTERVAL 30 DAY DELETE
   SETTINGS index_granularity = 8192;
+
+-- Governance tables. ks-sync (tree/ks-sync) also creates these IF NOT EXISTS on
+-- its first CronJob run, but the dx views (dx/shadow_profiles, dx/profile_coverage,
+-- dx/signatures) read them DIRECTLY and fail to compile on a fresh cluster until
+-- the table exists. Create them at deploy so the views resolve before ks-sync fires
+-- (and so a demo-dump restore can INSERT without pre-existing schema). DDL is kept
+-- byte-identical to ks-sync.yaml — divergence breaks its inserts.
+CREATE TABLE IF NOT EXISTS forensic_db.kubescape_profiles (
+    event_time      UInt64,
+    hostname        String,
+    ts              DateTime,
+    namespace       String,
+    name            String,
+    kind            String,
+    managed_by      String,
+    completion      String,
+    status          String,
+    signed          Int64,
+    signer_identity String,
+    signer_issuer   String,
+    execs           UInt32,
+    opens           UInt32,
+    egress          UInt32,
+    ingress         UInt32,
+    syscalls        UInt32,
+    capabilities    String
+) ENGINE = MergeTree ORDER BY (event_time, namespace, name);
+
+CREATE TABLE IF NOT EXISTS forensic_db.kubescape_rogueartifacts (
+    event_time     UInt64,
+    hostname       String,
+    ts             DateTime,
+    namespace      String,
+    name           String,
+    container_name String,
+    workload_name  String,
+    workload_kind  String,
+    pod_name       String,
+    rogue_phase    String
+) ENGINE = MergeTree ORDER BY (event_time, namespace, name);
+
+CREATE TABLE IF NOT EXISTS forensic_db.kubescape_trust (
+    event_time    UInt64,
+    hostname      String,
+    ts            DateTime,
+    class         String,
+    signer_key    String,
+    allowed_paths String
+) ENGINE = MergeTree ORDER BY (event_time, class, signer_key);
