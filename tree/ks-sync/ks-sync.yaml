@@ -118,6 +118,15 @@ data:
             args = i.get("args") or []
             out.add((p + " " + " ".join(args[1:])).strip() if len(args) > 1 else p)
         return "\n".join(sorted(out - {""}))
+    def _eps(items, direction):
+        # the endpoints stanza, filtered by direction; folded into egress/ingress so
+        # those columns carry the WHOLE picture (network neighbours + HTTP endpoints).
+        out = set()
+        for e in (items or []):
+            if (e.get("direction") or "") != direction:
+                continue
+            out.add((",".join(e.get("methods") or []) + " " + (e.get("endpoint") or "")).strip())
+        return "\n".join(sorted(out - {""}))
 
     prows = []
     # LIST truncates ContainerProfile.spec (execs/opens/egress come back empty);
@@ -134,7 +143,8 @@ data:
                       "signer_identity": a.get("signature.kubescape.io/identity", ""),
                       "signer_issuer": a.get("signature.kubescape.io/issuer", ""),
                       "execs": _procs(s.get("execs")), "opens": _paths(s.get("opens")),
-                      "egress": _endpoints(s.get("egress")), "ingress": _endpoints(s.get("ingress")),
+                      "egress": "\n".join(x for x in [_endpoints(s.get("egress")), _eps(s.get("endpoints"), "outbound")] if x),
+                      "ingress": "\n".join(x for x in [_endpoints(s.get("ingress")), _eps(s.get("endpoints"), "inbound")] if x),
                       "syscalls": ",".join(s.get("syscalls") or []), "capabilities": ",".join(s.get("capabilities") or [])})
     insert("kubescape_profiles", prows)
 
