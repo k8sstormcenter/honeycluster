@@ -71,9 +71,21 @@ data:
                "\n".join(json.dumps(r) for r in rows).encode())
         print("  %s: %d" % (table, len(rows)))
 
-    ch("CREATE TABLE IF NOT EXISTS forensic_db.kubescape_profiles (event_time UInt64, hostname String, ts DateTime, namespace String, name String, kind String, managed_by String, completion String, status String, signed Int64, signer_identity String, signer_issuer String, execs UInt32, opens UInt32, egress UInt32, ingress UInt32, syscalls UInt32, capabilities String) ENGINE=MergeTree ORDER BY (event_time, namespace, name)")
+    ch("CREATE TABLE IF NOT EXISTS forensic_db.kubescape_profiles (event_time UInt64, hostname String, ts DateTime, namespace String, name String, kind String, managed_by String, completion String, status String, signed Int64, signer_identity String, signer_issuer String, execs String, opens String, egress String, ingress String, syscalls String, capabilities String) ENGINE=MergeTree ORDER BY (event_time, namespace, name)")
     ch("CREATE TABLE IF NOT EXISTS forensic_db.kubescape_rogueartifacts (event_time UInt64, hostname String, ts DateTime, namespace String, name String, container_name String, workload_name String, workload_kind String, pod_name String, rogue_phase String) ENGINE=MergeTree ORDER BY (event_time, namespace, name)")
     ch("CREATE TABLE IF NOT EXISTS forensic_db.kubescape_trust (event_time UInt64, hostname String, ts DateTime, class String, signer_key String, allowed_paths String) ENGINE=MergeTree ORDER BY (event_time, class, signer_key)")
+
+    # Carry the profile CONTENT, not counts — the shadow_profiles view shows what
+    # a profile actually allows. Newline-joined so each behaviour is one line.
+    def _paths(items):
+        return "\n".join(sorted({(i.get("path") or "") for i in (items or [])} - {""}))
+    def _endpoints(items):
+        out = set()
+        for e in (items or []):
+            tgt = ",".join(e.get("dnsNames") or []) or e.get("dns") or e.get("identifier") or ""
+            ports = ",".join(str(p.get("port", "")) + "/" + (p.get("protocol") or "") for p in (e.get("ports") or []))
+            out.add((tgt + " " + ports).strip())
+        return "\n".join(sorted(out - {""}))
 
     prows = []
     # LIST truncates ContainerProfile.spec (execs/opens/egress come back empty);
@@ -89,9 +101,9 @@ data:
                       "signed": 1 if a.get("signature.kubescape.io/signature") else 0,
                       "signer_identity": a.get("signature.kubescape.io/identity", ""),
                       "signer_issuer": a.get("signature.kubescape.io/issuer", ""),
-                      "execs": len(s.get("execs") or []), "opens": len(s.get("opens") or []),
-                      "egress": len(s.get("egress") or []), "ingress": len(s.get("ingress") or []),
-                      "syscalls": len(s.get("syscalls") or []), "capabilities": ",".join(s.get("capabilities") or [])})
+                      "execs": _paths(s.get("execs")), "opens": _paths(s.get("opens")),
+                      "egress": _endpoints(s.get("egress")), "ingress": _endpoints(s.get("ingress")),
+                      "syscalls": ",".join(s.get("syscalls") or []), "capabilities": ",".join(s.get("capabilities") or [])})
     insert("kubescape_profiles", prows)
 
     rrows = []
