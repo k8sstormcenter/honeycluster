@@ -34,9 +34,12 @@ spec:
                 - |
                   set -e
                   CC="clickhouse-client --host $CH_HOST --user ingest_writer --password changeme-ingest --enable_lightweight_delete=1"
+                  # Edges FIRST, scoped to infra orders via a join — NEVER the blunt
+                  # 'order_id NOT IN dx_orders' sweep, which wiped real protocol/dc_snoop
+                  # correlation edges the instant their order rotated (the http/dns bug).
+                  # Run before deleting the orders, while the join can still resolve them.
+                  $CC -q "DELETE FROM forensic_db.dx_order_edges WHERE order_id IN (SELECT order_id FROM forensic_db.dx_orders WHERE splitByChar('/', pod)[1] IN ($NS))"
                   $CC -q "DELETE FROM forensic_db.dx_orders WHERE splitByChar('/', pod)[1] IN ($NS)"
                   $CC -q "DELETE FROM forensic_db.dx_order_records WHERE splitByChar('/', pod)[1] IN ($NS)"
                   $CC -q "DELETE FROM forensic_db.kubescape_logs WHERE JSONExtractString(RuntimeK8sDetails,'podNamespace') IN ($NS)"
-                  # orphaned edges: their order was just deleted (edges carry only order_id).
-                  $CC -q "DELETE FROM forensic_db.dx_order_edges WHERE order_id NOT IN (SELECT order_id FROM forensic_db.dx_orders)"
                   echo "cleaned: orders=$($CC -q 'SELECT count() FROM forensic_db.dx_orders') edges=$($CC -q 'SELECT count() FROM forensic_db.dx_order_edges')"
