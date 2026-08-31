@@ -108,8 +108,6 @@ CREATE TABLE IF NOT EXISTS forensic_db.kubescape_profiles (
     opens           String,
     egress          String,
     ingress         String,
-    endpoints       String,
-    match_labels    String,
     syscalls        String,
     capabilities    String
 ) ENGINE = MergeTree ORDER BY (event_time, namespace, name);

@@ -71,7 +71,7 @@ data:
                "\n".join(json.dumps(r) for r in rows).encode())
         print("  %s: %d" % (table, len(rows)))
 
-    ch("CREATE TABLE IF NOT EXISTS forensic_db.kubescape_profiles (event_time UInt64, hostname String, ts DateTime, namespace String, name String, kind String, managed_by String, completion String, status String, signed Int64, signer_identity String, signer_issuer String, execs String, opens String, egress String, ingress String, endpoints String, match_labels String, syscalls String, capabilities String) ENGINE=MergeTree ORDER BY (event_time, namespace, name)")
+    ch("CREATE TABLE IF NOT EXISTS forensic_db.kubescape_profiles (event_time UInt64, hostname String, ts DateTime, namespace String, name String, kind String, managed_by String, completion String, status String, signed Int64, signer_identity String, signer_issuer String, execs String, opens String, egress String, ingress String, syscalls String, capabilities String) ENGINE=MergeTree ORDER BY (event_time, namespace, name)")
     ch("CREATE TABLE IF NOT EXISTS forensic_db.kubescape_rogueartifacts (event_time UInt64, hostname String, ts DateTime, namespace String, name String, container_name String, workload_name String, workload_kind String, pod_name String, rogue_phase String) ENGINE=MergeTree ORDER BY (event_time, namespace, name)")
     ch("CREATE TABLE IF NOT EXISTS forensic_db.kubescape_trust (event_time UInt64, hostname String, ts DateTime, class String, signer_key String, allowed_paths String) ENGINE=MergeTree ORDER BY (event_time, class, signer_key)")
     # A rogue that heals is DELETED from the cluster (no Healed phase, healedAt stays
@@ -118,13 +118,6 @@ data:
             args = i.get("args") or []
             out.add((p + " " + " ".join(args[1:])).strip() if len(args) > 1 else p)
         return "\n".join(sorted(out - {""}))
-    def _eps(items):
-        # the endpoints stanza: METHOD direction :port/path the container serves/calls.
-        out = set()
-        for e in (items or []):
-            m = ",".join(e.get("methods") or [])
-            out.add((m + " " + (e.get("direction") or "") + " " + (e.get("endpoint") or "")).strip())
-        return "\n".join(sorted(out - {""}))
 
     prows = []
     # LIST truncates ContainerProfile.spec (execs/opens/egress come back empty);
@@ -142,8 +135,6 @@ data:
                       "signer_issuer": a.get("signature.kubescape.io/issuer", ""),
                       "execs": _procs(s.get("execs")), "opens": _paths(s.get("opens")),
                       "egress": _endpoints(s.get("egress")), "ingress": _endpoints(s.get("ingress")),
-                      "endpoints": _eps(s.get("endpoints")),
-                      "match_labels": ",".join(k + "=" + v for k, v in sorted((s.get("matchLabels") or {}).items())),
                       "syscalls": ",".join(s.get("syscalls") or []), "capabilities": ",".join(s.get("capabilities") or [])})
     insert("kubescape_profiles", prows)
 
