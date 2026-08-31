@@ -50,3 +50,9 @@ alertCRD:
 clusterName: bobexample
 ksNamespace: honey
 excludeNamespaces: "kubescape,kube-system,kube-public,kube-node-lease,local-path-storage,gmp-system,gmp-public,storm,lightening,cert-manager,kube-flannel,ingress-nginx,honey,clickhouse,chain-loadgen"
+# The OLM catalog registry-server (pixie-operator-index) is unprofilable grpc infra
+# that floods the evidence graph with R0002 /proc noise. It uniquely carries
+# olm.catalogSource; vizier-operator and the profiled olm/catalog-operators do not,
+# so excluding this label drops only the registry pod, nothing we watch.
+excludeLabels:
+  olm.catalogSource: pixie-operator-index
