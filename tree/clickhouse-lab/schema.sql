@@ -102,11 +102,13 @@ CREATE TABLE IF NOT EXISTS forensic_db.kubescape_profiles (
     signed          Int64,
     signer_identity String,
     signer_issuer   String,
-    execs           UInt32,
-    opens           UInt32,
-    egress          UInt32,
-    ingress         UInt32,
-    syscalls        UInt32,
+    -- content, not counts: the actual allowed paths/endpoints/syscalls so the
+    -- shadow_profiles view can show what a profile permits (see tree/ks-sync).
+    execs           String,
+    opens           String,
+    egress          String,
+    ingress         String,
+    syscalls        String,
     capabilities    String
 ) ENGINE = MergeTree ORDER BY (event_time, namespace, name);
 
