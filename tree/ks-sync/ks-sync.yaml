@@ -76,8 +76,12 @@ data:
     ch("CREATE TABLE IF NOT EXISTS forensic_db.kubescape_trust (event_time UInt64, hostname String, ts DateTime, class String, signer_key String, allowed_paths String) ENGINE=MergeTree ORDER BY (event_time, class, signer_key)")
 
     prows = []
-    for it in kget(GRP + "/containerprofiles").get("items", []):
-        m = it["metadata"]; a = m.get("annotations", {}) or {}; l = m.get("labels", {}) or {}; s = it.get("spec", {}) or {}
+    # LIST truncates ContainerProfile.spec (execs/opens/egress come back empty);
+    # GET each profile individually for the real behaviour set.
+    for lit in kget(GRP + "/containerprofiles").get("items", []):
+        ns = lit["metadata"].get("namespace", ""); nm = lit["metadata"].get("name", "")
+        it = kget(GRP + "/namespaces/" + ns + "/containerprofiles/" + nm)
+        m = it.get("metadata", {}); a = m.get("annotations", {}) or {}; l = m.get("labels", {}) or {}; s = it.get("spec", {}) or {}
         mb = l.get("kubescape.io/managed-by", "")
         prows.append({"namespace": m.get("namespace", ""), "name": m.get("name", ""),
                       "kind": "user" if mb == "user" else "shadow", "managed_by": mb,
