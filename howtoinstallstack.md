@@ -66,6 +66,12 @@ skaffold deploy -f skaffold/skaffold_dx.yaml                 # DX 0.5.0-keepset-
   `bench=broker (pxapi → in-cluster vizier-query-broker …)` — if you instead see
   `bench=px` (px CLI) or `bench UNAVAILABLE`, the broker path didn't select and the
   dx-owned panels will be blank.
+- **dx is order-driven — its tables stay empty until an alert fires.** Right after
+  deploy, `conn_stats` / `dc_snoop` / `stack_trace` / the protocol tables read **0**
+  because no anomaly has produced a referral yet. This is expected — do **not** read it
+  as a broken deploy. Run a demo (e.g. the IngressNightmare or redis attack); a single
+  run produces the referrals and the tables + `dx_order_edges` populate within ~45s.
+  Verify the *bench* with the log line above, not with an empty table on a quiet cluster.
 
 ## 3. Pixie Vizier + Operator — SBoBs bound by DEFAULT
 
