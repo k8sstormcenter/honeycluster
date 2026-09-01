@@ -55,6 +55,17 @@ skaffold deploy -f skaffold/skaffold_dx.yaml                 # DX 0.5.0-keepset-
   missing so `apply.go` recreates them).
 - DX creates the `dx_orders` / `dx_ord__*` / `dx_src__kubescape_mitre` schema the
   `dx/*` views read.
+- **DX reads its evidence via the in-cluster query-broker — `DX_BENCH=broker`** (wired
+  in `skaffold_dx.yaml`; the skaffold sets up everything the broker path needs). This is
+  the reliable in-cluster path — **do not switch it to `pemdirect`.** `pemdirect` dials a
+  PEM direct-query listener that the stock PEM (0.14.17) does not ship, so it is refused
+  and dx goes **blind**: every dx-owned table (`conn_stats`, `dc_snoop`, `stack_trace`,
+  `redis_events`, `mysql_events`, …) renders empty while the AE-owned tables
+  (`http_events`, `dns_events`, `pgsql_events`, `creds_change`) stay populated. Confirm
+  the right path with the dx-daemon log line
+  `bench=broker (pxapi → in-cluster vizier-query-broker …)` — if you instead see
+  `bench=px` (px CLI) or `bench UNAVAILABLE`, the broker path didn't select and the
+  dx-owned panels will be blank.
 
 ## 3. Pixie Vizier + Operator — SBoBs bound by DEFAULT
 
