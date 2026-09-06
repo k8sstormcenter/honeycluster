@@ -12,13 +12,31 @@ spec:
     settings:
       logger/level: information
       tcp_port: "2181"
+  # Without this binding the operator IGNORES the templates below entirely and
+  # substitutes its own defaults: image clickhouse-keeper:latest, no resources,
+  # and NO persistent volume. A template that is defined but never referenced is
+  # silently discarded — the CR reads as correct while none of it is applied.
+  #
+  # The binding is applied on CREATE (or when the CHK spec changes), NOT on a
+  # no-op reconcile: an existing StatefulSet already rendered as :latest keeps
+  # :latest even with this block present and a forced reconcile. Adding this to a
+  # running cluster therefore needs `kubectl delete chk <name>` + re-apply, which
+  # recreates the keeper. Verified both directions on a live cluster.
+  defaults:
+    templates:
+      podTemplate: default
+      dataVolumeClaimTemplate: default
   templates:
     podTemplates:
     - name: default
       spec:
         containers:
         - name: clickhouse-keeper
-          image: clickhouse/clickhouse-keeper:24.3
+          # Digest-pinned: `:24.3` is a floating MINOR (it repoints across 24.3.x)
+          # and matches none of the published 24.3.x patch tags, so it is not
+          # traceable to a build. The digest is the only reproducible form.
+          # This is the exact image verified running healthy on a live cluster.
+          image: clickhouse/clickhouse-keeper:24.3@sha256:163a91f5fec55376205437d9449dfe23d89ce8ef381e027b7fbbdbc872b0c2f0
           resources:
             requests:
               cpu: 50m
