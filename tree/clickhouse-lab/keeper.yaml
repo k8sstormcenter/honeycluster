@@ -16,6 +16,12 @@ spec:
   # substitutes its own defaults: image clickhouse-keeper:latest, no resources,
   # and NO persistent volume. A template that is defined but never referenced is
   # silently discarded — the CR reads as correct while none of it is applied.
+  #
+  # The binding is applied on CREATE (or when the CHK spec changes), NOT on a
+  # no-op reconcile: an existing StatefulSet already rendered as :latest keeps
+  # :latest even with this block present and a forced reconcile. Adding this to a
+  # running cluster therefore needs `kubectl delete chk <name>` + re-apply, which
+  # recreates the keeper. Verified both directions on a live cluster.
   defaults:
     templates:
       podTemplate: default
