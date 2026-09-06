@@ -9,7 +9,7 @@ storage:
 nodeAgent:
   image:
     repository: docker.io/entlein/duckling
-    tag: v0.1.0-rogue2
+    tag: v0.1.0-rogue5
     pullPolicy: Always
   config:
     alertManagerExporterUrls:
