@@ -12,6 +12,14 @@ spec:
     settings:
       logger/level: information
       tcp_port: "2181"
+  # Without this binding the operator IGNORES the templates below entirely and
+  # substitutes its own defaults: image clickhouse-keeper:latest, no resources,
+  # and NO persistent volume. A template that is defined but never referenced is
+  # silently discarded — the CR reads as correct while none of it is applied.
+  defaults:
+    templates:
+      podTemplate: default
+      dataVolumeClaimTemplate: default
   templates:
     podTemplates:
     - name: default
