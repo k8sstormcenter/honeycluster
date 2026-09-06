@@ -55,6 +55,43 @@ deploy:
                 kubectl -n "$NS" exec -i "$P" -- clickhouse-client --multiquery < tree/clickhouse-lab/schema.sql
                 echo "forensic_db schema applied"
             os: [linux, darwin]
+        # Assert the operator actually RENDERED what the CRs ask for. An Altinity
+        # template that is defined but not referenced is discarded silently: the CR
+        # reads as correct while the StatefulSet runs a different image, no
+        # resources and no PVC. This compares desired (CR podTemplate) against
+        # rendered (StatefulSet) for both server and keeper, with no version
+        # hardcoded here, so it keeps working when the pins change.
+        - host:
+            command:
+              - bash
+              - -c
+              - |
+                set -euo pipefail
+                NS=clickhouse; CHI=forensic-soc-db; CHK=forensic-keeper; rc=0
+                kubectl -n "$NS" wait --for=create sts -l clickhouse-keeper.altinity.com/chk=$CHK --timeout=120s >/dev/null 2>&1 || true
+                check() {
+                  local what=$1 want=$2 got=$3
+                  if [ -z "$want" ]; then echo "  $what: no podTemplate image in CR, skipped"; return 0; fi
+                  if [ -z "$got" ]; then echo "  $what: MISSING StatefulSet"; return 1; fi
+                  if [ "$want" != "$got" ]; then
+                    echo "  $what: MISMATCH"; echo "    CR asks for : $want"; echo "    rendered    : $got"; return 1
+                  fi
+                  echo "  $what: ok ($got)"; return 0
+                }
+                WS=$(kubectl -n "$NS" get chi $CHI -o jsonpath='{.spec.templates.podTemplates[0].spec.containers[0].image}' 2>/dev/null || true)
+                GS=$(kubectl -n "$NS" get sts -l clickhouse.altinity.com/chi=$CHI -o jsonpath='{.items[0].spec.template.spec.containers[0].image}' 2>/dev/null || true)
+                WK=$(kubectl -n "$NS" get chk $CHK -o jsonpath='{.spec.templates.podTemplates[0].spec.containers[0].image}' 2>/dev/null || true)
+                GK=$(kubectl -n "$NS" get sts -l clickhouse-keeper.altinity.com/chk=$CHK -o jsonpath='{.items[0].spec.template.spec.containers[0].image}' 2>/dev/null || true)
+                echo "verifying rendered images match the CRs:"
+                check server "$WS" "$GS" || rc=1
+                check keeper "$WK" "$GK" || rc=1
+                if [ $rc -ne 0 ]; then
+                  echo "ERROR: the operator discarded a template."
+                  echo "An EXISTING StatefulSet is not corrected by adding the templates binding —"
+                  echo "recreate it:  kubectl -n $NS delete chk $CHK  &&  skaffold deploy -m soc-stack"
+                  exit 1
+                fi
+            os: [linux, darwin]
 ---
 apiVersion: skaffold/v4beta11
 kind: Config

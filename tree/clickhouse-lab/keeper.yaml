@@ -32,7 +32,11 @@ spec:
       spec:
         containers:
         - name: clickhouse-keeper
-          image: clickhouse/clickhouse-keeper:24.3
+          # Digest-pinned: `:24.3` is a floating MINOR (it repoints across 24.3.x)
+          # and matches none of the published 24.3.x patch tags, so it is not
+          # traceable to a build. The digest is the only reproducible form.
+          # This is the exact image verified running healthy on a live cluster.
+          image: clickhouse/clickhouse-keeper:24.3@sha256:163a91f5fec55376205437d9449dfe23d89ce8ef381e027b7fbbdbc872b0c2f0
           resources:
             requests:
               cpu: 50m
