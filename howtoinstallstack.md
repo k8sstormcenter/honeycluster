@@ -31,7 +31,7 @@ This brings up, in order (the module chains the dependencies):
 
 - **ClickHouse** `forensic-soc-db` with the `forensic_db` schema.
 - **Kubescape operator**, chart
-  `kubescape-operator-1.41.0-duckling5` (from the k8sstormcenter helm-charts release),
+  `kubescape-operator-1.41.0-duckling6` (from the k8sstormcenter helm-charts release),
   node-agent `docker.io/entlein/duckling:v0.1.0-rogue8`, storage `rc-rogue5`,
   `maxLearningPeriod: 24h`, `learningPeriod: 10m`.
 - **Vector** (kubescape → ClickHouse pipeline) + the **dx-wiring**.
