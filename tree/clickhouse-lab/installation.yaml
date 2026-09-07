@@ -21,8 +21,9 @@ spec:
       background_pool_size: "16"
       query_log/flush_interval_milliseconds: "5000"
       skip_check_for_incorrect_settings: "1"
-      # bound total in-flight queries (default 100) so a burst can't peg the node
-      max_concurrent_queries: "12"
+      # bound total in-flight queries (default 100) so a burst can't peg the node;
+      # the Live UI runs one query per widget, dx views have up to ~25 widgets
+      max_concurrent_queries: "32"
 
     profiles:
       # Default profile: user-level session settings
@@ -36,9 +37,9 @@ spec:
       # them until CPU saturates and the node starves (exec-into-CH then SIGILLs).
       forensic_analyst/readonly: "2"
       forensic_analyst/allow_ddl: "0"
-      forensic_analyst/max_execution_time: "30"
+      forensic_analyst/max_execution_time: "90"
       forensic_analyst/max_threads: "2"
-      forensic_analyst/max_concurrent_queries_for_user: "4"
+      forensic_analyst/max_concurrent_queries_for_user: "24"
       forensic_analyst/max_memory_usage: "4000000000"
 
       # Ingest: INSERT allowed, no DELETE/ALTER/DDL.
