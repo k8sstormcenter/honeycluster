@@ -312,7 +312,7 @@ spec:
               && !event.dstAddr.startsWith('127.')
               && event.dstAddr != '::1'
               && !cp.was_address_port_protocol_in_egress(event.containerId, event.dstAddr, event.dstPort, event.proto)
-              && !cp.was_selector_in_egress(event.containerId, event.dstNamespace, event.dstPodLabels)
+              && !cp.was_selector_in_egress(event.containerId, event.dstNamespace, event.dstPodLabels, event.dstPort, event.proto)
         uniqueId: event.dstAddr + '_' + string(event.dstPort) + '_' + event.proto
       id: R0011
       isTriggerAlert: true
@@ -343,7 +343,7 @@ spec:
               && !event.dstAddr.startsWith('127.')
               && event.dstAddr != '::1'
               && !cp.was_address_port_protocol_in_ingress(event.containerId, event.dstAddr, event.dstPort, event.proto)
-              && !cp.was_selector_in_ingress(event.containerId, event.dstNamespace, event.dstPodLabels)
+              && !cp.was_selector_in_ingress(event.containerId, event.dstNamespace, event.dstPodLabels, event.dstPort, event.proto)
         uniqueId: event.dstAddr + '_' + string(event.dstPort) + '_' + event.proto
       id: R0012
       isTriggerAlert: true
