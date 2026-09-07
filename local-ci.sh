@@ -107,6 +107,7 @@ if ! helm status kubescape -n "$KS_NS" &>/dev/null; then
   helm upgrade --install kubescape kubescape/kubescape-operator --version "$KUBESCAPE_CHART_VER" -n "$KS_NS" --create-namespace --values "$KS_DIR/values.yaml" --set ksNamespace="$KS_NS" --set clusterName=socdemo --set "excludeNamespaces=kube-system\,kube-public\,kube-node-lease\,$CH_NS\,$KS_NS" --wait --timeout 180s 2>/dev/null || echo "  kubescape install may need retry"
 fi
 kubectl apply -f "$KS_DIR/default-rules.yaml" -n "$KS_NS" 2>/dev/null || true
+kubectl apply -f "$KS_DIR/rule-alert-binding.yaml" -n "$KS_NS" 2>/dev/null || true
 
 # Vector — rewrite the ClickHouse endpoint to point at socdemo-ch namespace
 PATCHED_VALUES=$(mktemp)

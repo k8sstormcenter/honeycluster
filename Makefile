@@ -66,6 +66,7 @@ kubescape:
 	kubectl create secret docker-registry duckling-pull -n honey --from-file=.dockerconfigjson=$(HOME)/.docker/config.json --dry-run=client -o yaml | kubectl apply -f -
 	helm upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values tree/kubescape/values.yaml
 	-kubectl apply  -f tree/kubescape/default-rules.yaml
+	-kubectl apply  -f tree/kubescape/rule-alert-binding.yaml
 	sleep 5
 	-kubectl rollout restart -n honey ds node-agent
 	-kubectl wait --for=condition=ready pod -l app=kubevuln  -n honey --timeout 120s
