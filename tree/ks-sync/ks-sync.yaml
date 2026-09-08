@@ -112,7 +112,7 @@ data:
         rrows.append({"namespace": m.get("namespace", ""), "name": m.get("name", ""),
                       "container_name": l.get("kubescape.io/container-name", ""),
                       "workload_name": s.get("workloadName", ""), "workload_kind": s.get("workloadKind", ""),
-                      "pod_name": s.get("podName", ""),
+                      "pod_name": s.get("podName", "") or l.get("kubescape.io/pod", ""),
                       "rogue_phase": l.get("kubescape.io/rogue-phase", "") or s.get("state", "")})
     insert("kubescape_rogueartifacts", rrows)
 
