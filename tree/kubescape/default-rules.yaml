@@ -330,7 +330,7 @@ spec:
     - description: >-
         Detecting unexpected ingress network traffic — an inbound connection whose
         peer is not whitelisted by the application profile ingress.
-      enabled: true
+      enabled: false
       expressions:
         message: >-
           'Unexpected ingress network communication from: ' + event.dstAddr + ':' +
